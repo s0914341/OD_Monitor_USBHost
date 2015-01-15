@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+     <array name="list_menu">  
+         <item>Insert before</item>
+         <item>Delete</item>  
+         <item>Insert after</item>
+     </array>
+     
+      <array name="read_sensor_enable">  
+         <item>false</item>  
+         <item>false</item> 
+         <item>false</item> 
+         <item>false</item> 
+         <item>false</item> 
+     </array>
+     
+      <array name="shaker_on_enable">  
+         <item>false</item>  
+         <item>false</item> 
+         <item>false</item> 
+         <item>false</item> 
+         <item>false</item> 
+     </array>
+     
+      <array name="shaker_off_enable">  
+         <item>false</item>  
+         <item>false</item> 
+         <item>false</item> 
+         <item>false</item> 
+         <item>false</item> 
+     </array>
+     
+      <array name="shaker_set_temperature_enable">  
+         <item>false</item>  
+         <item>false</item> 
+         <item>false</item> 
+         <item>true</item> 
+         <item>false</item> 
+     </array>
+     
+      <array name="shaker_set_speed_enable">  
+         <item>false</item>  
+         <item>false</item> 
+         <item>false</item> 
+         <item>false</item> 
+         <item>true</item> 
+     </array>
+</resources>

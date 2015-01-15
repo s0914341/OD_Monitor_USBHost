@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World, LEDActivity!</string>
+    <string name="app_name">OD Monitor</string>
+    <string name="submit">Send</string>
+    <string name="script_add_item">Add Instruction</string>
+    <string name="script_clear_all">Clear All</string>
+    <string name="script_save_script">Save Script</string>
+    <string name="script_load_script">Load Script</string>
+    <string name="link"><a href="http://www.maestrogen.com/ftp/i-track/user_manual.html">iTrack User Manual</a></string>
+</resources>
