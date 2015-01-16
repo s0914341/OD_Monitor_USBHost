@@ -46,7 +46,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class script_activity_list extends Activity {
-	public String Tag = "script_activity_list";
+	public static String Tag = "script_activity_list";
 	private final static String key_experiment = "experiment";
 	private final static String key_picture = "picture";
 	private final static String key_index = "index"; 
@@ -225,54 +225,66 @@ public class script_activity_list extends Activity {
 	    
 	    button_load_script = (Button) findViewById(R.id.button_load);
 	    button_load_script.setOnClickListener(new View.OnClickListener() {
-        	public void onClick(View v) {
-        		file_operate_byte_array read_file = new file_operate_byte_array("ExperimentScript", "ExperimentScript", true);
-        		try {
-        	        long file_len = 0;
-        	        
-        			file_len = read_file.open_read_file(read_file.generate_filename_no_date());
-        			if (file_len > 0) {
-        				byte[] read_buf = new byte[(int)file_len];
-        				read_file.read_file(read_buf);
-        			
-        				list.clear();
-            			experiment_item.clear();
-        			    for (int i = 0; i < (file_len-SCRIPT_HEADER_SIZE)/experiment_script_data.BUFFER_SIZE; i++) {
-        			        experiment_script_data script = new experiment_script_data();
-        				    byte[] set_data_bytes = new byte[experiment_script_data.BUFFER_SIZE];
-        				    byte[] index_bytes = new byte[experiment_script_data.INDEX_SIZE];
-        	                int offset = (i*experiment_script_data.BUFFER_SIZE)+SCRIPT_HEADER_SIZE;
-        				    int index = 0;
-        				    int position = 0;
-        				    HashMap<String, Object> item_string_view = new HashMap<String, Object>();
-        				 
-        				    System.arraycopy(read_buf, offset, index_bytes, 0, experiment_script_data.INDEX_SIZE);
-
-        				    ByteBuffer buffer = ByteBuffer.wrap(index_bytes, 0, experiment_script_data.INDEX_SIZE);
-        				    buffer.order(ByteOrder.LITTLE_ENDIAN);
-        				    index = buffer.getInt();
-        				    System.arraycopy(read_buf, offset, set_data_bytes, 0, experiment_script_data.BUFFER_SIZE);
-        				    script.set_buffer(set_data_bytes);
-        				
-        				    if (script.get_instruct_value() == experiment_script_data.INSTRUCT_FINISH)
-        				    	break;
-        				    
-        				    position = index-1;
-        				    refresh_script_list_view(position, script, item_string_view);
-        				    list.add(position, item_string_view);
-        			        if (null == experiment_item.put(item_string_view, script))
-        			        	Log.d(Tag, "button_load_script position = " + index);
-        			    }
-        			    adapter.notifyDataSetChanged();
-		                Toast.makeText(script_activity_list.this, "Load Script Success", Toast.LENGTH_SHORT).show(); 
-        			}
-        		} catch (IOException e) {
-        			// TODO Auto-generated catch block
-        			e.printStackTrace();
-        		}	
+        	public void onClick(View v) {	
+        		if (0 == load_script(list, experiment_item)) {
+        		    adapter.notifyDataSetChanged();
+                    Toast.makeText(script_activity_list.this, "Load Script Success", Toast.LENGTH_SHORT).show(); 
+        		}
         	}
 		});
     }
+	
+	public static int load_script(List<HashMap<String,Object>> load_list, HashMap<Object, Object> load_experiment_item) {
+		int ret = 0;
+		
+		file_operate_byte_array read_file = new file_operate_byte_array("ExperimentScript", "ExperimentScript", true);
+		try {
+	        long file_len = 0;
+	        
+			file_len = read_file.open_read_file(read_file.generate_filename_no_date());
+			if (file_len > 0) {
+				byte[] read_buf = new byte[(int)file_len];
+				read_file.read_file(read_buf);
+			
+				load_list.clear();
+				load_experiment_item.clear();
+			    for (int i = 0; i < (file_len-SCRIPT_HEADER_SIZE)/experiment_script_data.BUFFER_SIZE; i++) {
+			        experiment_script_data script = new experiment_script_data();
+				    byte[] set_data_bytes = new byte[experiment_script_data.BUFFER_SIZE];
+				    byte[] index_bytes = new byte[experiment_script_data.INDEX_SIZE];
+	                int offset = (i*experiment_script_data.BUFFER_SIZE)+SCRIPT_HEADER_SIZE;
+				    int index = 0;
+				    int position = 0;
+				    HashMap<String, Object> item_string_view = new HashMap<String, Object>();
+				 
+				    System.arraycopy(read_buf, offset, index_bytes, 0, experiment_script_data.INDEX_SIZE);
+
+				    ByteBuffer buffer = ByteBuffer.wrap(index_bytes, 0, experiment_script_data.INDEX_SIZE);
+				    buffer.order(ByteOrder.LITTLE_ENDIAN);
+				    index = buffer.getInt();
+				    System.arraycopy(read_buf, offset, set_data_bytes, 0, experiment_script_data.BUFFER_SIZE);
+				    script.set_buffer(set_data_bytes);
+				
+				    if (script.get_instruct_value() == experiment_script_data.INSTRUCT_FINISH)
+				    	break;
+				    
+				    position = index-1;
+				    refresh_script_list_view(position, script, item_string_view);
+				    load_list.add(position, item_string_view);
+			        if (null == load_experiment_item.put(item_string_view, script))
+			        	Log.d(Tag, "button_load_script position = " + index);
+			    }
+			} else {
+			    ret = -2;
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			ret = -1;
+			e.printStackTrace();
+		}	
+		
+		return ret;
+	}
 	
 	public int check_script_recursive() {
 		int start_instruction_number = list.size();
@@ -496,7 +508,7 @@ public class script_activity_list extends Activity {
 	    }
 	}
 	
-	public void refresh_script_list_view(int index,  experiment_script_data item_data, HashMap<String, Object> item_string_view) {
+	public static void refresh_script_list_view(int index,  experiment_script_data item_data, HashMap<String, Object> item_string_view) {
 		 String str_index;
         str_index = String.format("%d", index+1);
         int instruct = item_data.get_instruct_value();

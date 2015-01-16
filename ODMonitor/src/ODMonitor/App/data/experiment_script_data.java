@@ -130,6 +130,9 @@ public class experiment_script_data implements Serializable{
         
         SCRIPT_SETTING_ENABLE_LIST = Collections.unmodifiableList(list);
     }
+   
+    public int current_instruct_index = 0;
+    public int next_instruct_index = 0;
     
     private int instruct = INSTRUCT_READ_SENSOR;
     private int repeat_from = 1;

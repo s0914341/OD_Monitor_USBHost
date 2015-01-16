@@ -115,10 +115,11 @@ public class DeviceUART {
 		}
 	}
 	
-	public int connectFunction() {
+	public int connectFunction(int port_num) {
 		int tmpProtNumber = openIndex + 1;
         int ret = -1;
 		
+        openIndex = port_num;
 		if (currentIndex != openIndex ) {
 			if(null == ftDev) {
 				ftDev = ftdid2xx.openByIndex(DeviceUARTContext, openIndex);
@@ -143,11 +144,11 @@ public class DeviceUART {
 			currentIndex = openIndex;
 			Toast.makeText(DeviceUARTContext, "open device port(" + tmpProtNumber + ") OK", Toast.LENGTH_SHORT).show();
 				
-			if (false == bReadThreadGoing) {
+			/*if (false == bReadThreadGoing) {
 				read_thread = new readThread(handler);
 				read_thread.start();
 				bReadThreadGoing = true;
-			}
+			}*/
 			
 			ret = 0;
 		} else {			
@@ -263,11 +264,18 @@ public class DeviceUART {
 		}
     }
 
-    public void SendMessage(String writeData) {
+    public String SendMessage(String writeData) {
+    	int ret = 0;
+    	String read_string = new String("");
+    	
 		if (ftDev.isOpen() == false) {
 			Log.e("j2xx", "SendMessage: device not open");
-			return;
+			ret = -1;
+			return read_string = new String("device not open");
 		}
+		
+		ftDev.purge((byte) (D2xxManager.FT_PURGE_TX));
+		ftDev.restartInTask();
 
 		ftDev.setLatencyTimer((byte) 16);
 //		ftDev.purge((byte) (D2xxManager.FT_PURGE_TX | D2xxManager.FT_PURGE_RX));
@@ -275,14 +283,23 @@ public class DeviceUART {
 		byte[] OutData = writeData.getBytes();
 		ftDev.write(OutData, writeData.length());
 		
+		if (false == bReadThreadGoing) {
+			read_thread = new readThread(handler);
+			read_thread.start();
+			bReadThreadGoing = true;
+		}
+		
 		synchronized(ftDev) {
-			try {
+		    try {
 				ftDev.wait();
+				read_string = String.copyValueOf(readDataToText, 0, iavailable);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
+			} 
 		}
+		
+	    return read_string;
     }
 
 	final Handler handler =  new Handler() {
@@ -308,7 +325,7 @@ public class DeviceUART {
 
 			//while(true == bReadThreadGoing) {
 				try {
-					Thread.sleep(50);
+					Thread.sleep(300);
 				} catch (InterruptedException e) {
 				}
 
@@ -327,9 +344,9 @@ public class DeviceUART {
 						
 						Message msg = mHandler.obtainMessage();
 						mHandler.sendMessage(msg);
-						
-						ftDev.notify();
 					}
+					
+					ftDev.notify();
 				}
 			//}
 		}

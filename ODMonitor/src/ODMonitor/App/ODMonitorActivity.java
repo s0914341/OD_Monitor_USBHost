@@ -9,6 +9,8 @@ import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
@@ -125,8 +127,7 @@ public class ODMonitorActivity extends Activity {
     final Context context = this;
     
     /*thread to listen USB data*/
-    public aoa_thread handlerThread;
-    public data_write_thread data_write_thread;
+    public experiment_thread handlerThread;
     public sync_data sync_object;
     public sync_data sync_send_script;
     public sync_data sync_start_experiment;
@@ -135,7 +136,7 @@ public class ODMonitorActivity extends Activity {
     public ProgressDialog mypDialog;
     public sync_data sync_get_experiment;
     public sync_data sync_chart_notify;
-    private boolean aoa_thread_run = false;
+    private boolean experiment_thread_run = false;
     private SwipeRefreshLayout laySwipe;
     
     /**
@@ -143,6 +144,7 @@ public class ODMonitorActivity extends Activity {
      */
     public static D2xxManager ftD2xx = null;
     public DeviceUART shaker;
+    public ExperimentalOperationInstruct experiment;
     
 	/** Called when the activity is first created. */
     @Override
@@ -201,11 +203,12 @@ public class ODMonitorActivity extends Activity {
   
         SetupD2xxLibrary();
 		shaker = new DeviceUART(this, ftD2xx, shaker_return);
+		experiment = new ExperimentalOperationInstruct(this, ftD2xx, shaker_return);
                
 		start_button = (ImageButton) findViewById(R.id.Button1);
 		start_button.setOnClickListener(new View.OnClickListener() {
 		    public void onClick(View v) {
-		        if (0 < shaker.createDeviceList()) {
+		        /*if (0 < shaker.createDeviceList()) {
 			    	if (0 == shaker.connectFunction()) {
 			    		shaker.SetConfig(shaker.baudRate, shaker.dataBit, shaker.stopBit, shaker.parity, shaker.flowControl);
 			    		shaker.SendMessage("ON ");
@@ -215,7 +218,14 @@ public class ODMonitorActivity extends Activity {
 			    	} 		
 			    } else {
 			    	Log.d(Tag, "no device on list");
-			    } 
+			    } */
+		    	if (0 == experiment.check_shaker_port_number()) {
+		    	    handlerThread = new experiment_thread(handler);
+		    	    experiment_thread_run = true;
+				    handlerThread.start();
+		    	} else {
+		    		Toast.makeText(ODMonitorActivity.this, "no find shaker device!",Toast.LENGTH_SHORT).show();
+		    	}
 		    }
 		});
         
@@ -229,18 +239,7 @@ public class ODMonitorActivity extends Activity {
 		stop_button = (ImageButton) findViewById(R.id.Button3);
 		stop_button.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				if (0 < shaker.createDeviceList()) {
-		    		if (0 == shaker.connectFunction()) {
-		    			shaker.SetConfig(shaker.baudRate, shaker.dataBit, shaker.stopBit, shaker.parity, shaker.flowControl);
-		    			shaker.SendMessage("OF ");
-		    			shaker.disconnectFunction();
-		    		} else {
-		    			Log.d(Tag, "shaker connect NG");
-		    		}
-		    		
-		    	} else {
-		    		Log.d(Tag, "no device on list");
-		    	}
+				
 			}
 		});
         
@@ -274,11 +273,13 @@ public class ODMonitorActivity extends Activity {
                keyCode == KeyEvent.KEYCODE_ENTER){ 
                Toast.makeText(ODMonitorActivity.this, etInput.getText(), Toast.LENGTH_SHORT).show(); 
                String cmd = etInput.getText().toString(); 
+               String read_string = new String("");
                
                if (0 < shaker.createDeviceList()) {
-			       if (0 == shaker.connectFunction()) {
+			       if (0 == shaker.connectFunction(0)) {
 			    	   shaker.SetConfig(shaker.baudRate, shaker.dataBit, shaker.stopBit, shaker.parity, shaker.flowControl);
-			    	   shaker.SendMessage(cmd);
+			    	   read_string = shaker.SendMessage(cmd);
+			    	   Toast.makeText(ODMonitorActivity.this, "return:"+read_string,Toast.LENGTH_SHORT).show();
 			    	   shaker.disconnectFunction();
 			       } else {
 			           Log.d(Tag, "shaker connect NG");
@@ -982,108 +983,76 @@ public class ODMonitorActivity extends Activity {
     	}
     };
 	
-	private class aoa_thread  extends Thread {
-		Handler mHandler;
-		FileInputStream instream;
-		
-		aoa_thread(Handler h, FileInputStream stream ) {
-			mHandler = h;
-			instream = stream;
-		}
-		
-		public void run() {
-			Thread.currentThread().setName("Thread_AOA");
-			int readcount;
-		    android_accessory_packet[] receive_data = new android_accessory_packet[]{
-		    		new android_accessory_packet(android_accessory_packet.NO_INIT_PREFIX_VALUE),
-		    		new android_accessory_packet(android_accessory_packet.NO_INIT_PREFIX_VALUE),
-		    		new android_accessory_packet(android_accessory_packet.NO_INIT_PREFIX_VALUE),
-		    };
-			Bundle b = new Bundle(3);
-			int read_offset = 0;
-			int receive_data_index = 0;
-			
-			while(aoa_thread_run) {
-				try {
-					if (instream != null) {	
-					    readcount = instream.read(receive_data[receive_data_index].buffer, read_offset, android_accessory_packet.get_size());
-					    if (readcount > 0) {
-					        read_offset += readcount;
-					        if (android_accessory_packet.PREFIX_VALUE == receive_data[receive_data_index].get_Prefix_value()) {
-					        	if (read_offset >= android_accessory_packet.HEADER_SIZE) {
-					        		// prefix match , set read data length
-					        	    if ((android_accessory_packet.HEADER_SIZE+receive_data[receive_data_index].get_Len_value()) <= read_offset) {
-									    read_offset = 0;
-									    Message msg = mHandler.obtainMessage();
-									    b.putByteArray(android_accessory_packet.key_receive, receive_data[receive_data_index].buffer);
-									    msg.setData(b);
-									    mHandler.sendMessage(msg);
-									    if (receive_data_index < 2)
-									        receive_data_index++;
-									    else
-									        receive_data_index = 0;
-					        	    }
-					            }
-					        } else {
-					        	// prefix value is not correct, throw this data
-					            read_offset = 0;
-					        }
-					    }
-					}
-				} catch (IOException e){
-					aoa_thread_run = false;
-					Message msg = mHandler.obtainMessage();
-				    b.putString("aoa thread exception", "aoa thread exception");
-				    msg.setData(b);
-				    mHandler.sendMessage(msg);
-				}
-			}
-		}
-	}
-	
-	
-	private class data_write_thread  extends Thread {
+	private class experiment_thread  extends Thread {
 		Handler mHandler;
 		
-		data_write_thread(Handler h){
+		experiment_thread(Handler h) {
 			mHandler = h;
 		}
 		
 		public void run() {
-			long index = 0;
-			double concentration = 0;
-	
-			file_operate_byte_array write_file = new file_operate_byte_array("testExperimentData", "testExperimentData", true);
-    		try {
-    			write_file.delete_file(write_file.generate_filename_no_date());
-    		} catch (IOException e) {
-    			// TODO Auto-generated catch block
-    			e.printStackTrace();
-    		}
+			List<HashMap<String,Object>> list = new ArrayList<HashMap<String,Object>>();
+			HashMap<Object, Object> experiment_item = new HashMap<Object, Object>();
+			int next_instruct_index = 0;
+			experiment_script_data current_instruct_data;
+			int ret = 0;
 			
-			while(true) {
-				try {
-					chart_display_data chart_data = new chart_display_data(index, concentration);
-		            write_file.create_file(write_file.generate_filename_no_date());
-		            write_file.write_file(chart_data.get_object_buffer());
-		            write_file.flush_close_file();
-		        } catch (IOException ex) {
-		     
-		        }
+			Thread.currentThread().setName("Thread_Experiment");
+			script_activity_list.load_script(list, experiment_item);
+			current_instruct_data = (experiment_script_data)experiment_item.get(list.get(next_instruct_index));
+			while(experiment_thread_run) {
+				// instruct index from 0 to ...
+				next_instruct_index = current_instruct_data.next_instruct_index;
 				
-				index++;
-				concentration = (double)(Math.random()*50);
-	    	    Log.d(Tag, "data_write_thread");
-	    	    
-	    	    try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				if (next_instruct_index >= (list.size())) {
+					experiment_thread_run = false;
+					break;
+				}
+						
+			    current_instruct_data = (experiment_script_data)experiment_item.get(list.get(next_instruct_index));
+				current_instruct_data.current_instruct_index = next_instruct_index;
+				
+				switch(current_instruct_data.get_instruct_value()) {
+				    case experiment_script_data.INSTRUCT_READ_SENSOR:
+				        ret = experiment.read_sensor_instruct(current_instruct_data);
+				    break;
+						
+					case experiment_script_data.INSTRUCT_SHAKER_ON:
+						ret =  experiment.shaker_on_instruct(current_instruct_data);
+					break;
+						
+					case experiment_script_data.INSTRUCT_SHAKER_OFF:
+						ret =  experiment.shaker_off_instruct(current_instruct_data);
+					break;
+						
+					case experiment_script_data.INSTRUCT_SHAKER_SET_TEMPERATURE:
+						ret =  experiment.shaker_set_temperature_instruct(current_instruct_data);
+					break;
+						
+					case experiment_script_data.INSTRUCT_SHAKER_SET_SPEED:
+						ret =  experiment.shaker_set_speed_instruct(current_instruct_data);
+					break;
+						
+					case experiment_script_data.INSTRUCT_REPEAT_COUNT:
+						ret =  experiment.repeat_count_instruct(current_instruct_data);
+					break;
+						
+					case experiment_script_data.INSTRUCT_REPEAT_TIME:
+						ret =  experiment.repeat_time_instruct(current_instruct_data);
+					break;
+
+					case experiment_script_data.INSTRUCT_DELAY:
+						ret =  experiment.experiment_delay_instruct(current_instruct_data);
+					break;
+						
+					default:
+					break;
 				}
 			}
 		}
 	}
+	
+	
 	
 	public int WriteUsbCommand(byte type, byte status, byte[] data, int len){	
 	    int ret = 0;
