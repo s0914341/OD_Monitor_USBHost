@@ -240,9 +240,9 @@ public class ODChartBuilder extends Activity {
   		
   		chart_end_time = objectRcvd.get_date_value();
   		if (objectRcvd.get_concentration_value() > chart_max_od_value)
-       	 chart_max_od_value = objectRcvd.get_concentration_value();
+       	    chart_max_od_value = objectRcvd.get_concentration_value();
   		else if (objectRcvd.get_concentration_value() < chart_min_od_value)
-       	 chart_min_od_value = objectRcvd.get_concentration_value();
+       	    chart_min_od_value = objectRcvd.get_concentration_value();
   		
   		String str = String.format("handler test current_index:%d, new pre index:%d, concentration:%f", current_index, pre_index, objectRcvd.get_concentration_value());
     	debug_view.setText(str);

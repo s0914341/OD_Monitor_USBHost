@@ -219,13 +219,15 @@ public class ODMonitorActivity extends Activity {
 			    } else {
 			    	Log.d(Tag, "no device on list");
 			    } */
-		    	if (0 == experiment.check_shaker_port_number()) {
+		    /*	if (0 == experiment.check_shaker_port_number()) {
 		    	    handlerThread = new experiment_thread(handler);
 		    	    experiment_thread_run = true;
 				    handlerThread.start();
 		    	} else {
 		    		Toast.makeText(ODMonitorActivity.this, "no find shaker device!",Toast.LENGTH_SHORT).show();
-		    	}
+		    	}*/
+		    	experiment.check_shaker_port_number();
+		    	experiment.check_sensor_port_number();
 		    }
 		});
         
@@ -239,7 +241,8 @@ public class ODMonitorActivity extends Activity {
 		stop_button = (ImageButton) findViewById(R.id.Button3);
 		stop_button.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				
+				experiment_script_data current_instruct_data = new experiment_script_data();
+				experiment.shaker_off_instruct(current_instruct_data);
 			}
 		});
         
@@ -254,7 +257,9 @@ public class ODMonitorActivity extends Activity {
         button5 = (ImageButton) findViewById(R.id.Button5);
         button5.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-        		show_script_activity();
+        		//show_script_activity();
+				experiment_script_data current_instruct_data = new experiment_script_data();
+				experiment.read_sensor_instruct(current_instruct_data);
 			}
 		});  
         
@@ -263,6 +268,8 @@ public class ODMonitorActivity extends Activity {
 			public void onClick(View v) {
 				//set_tablet_on_off_line((byte)0, false);
 				//SensorDataReceive();
+				experiment_script_data current_instruct_data = new experiment_script_data();
+				experiment.shaker_on_instruct(current_instruct_data);
 			}
 		});
         
@@ -273,13 +280,18 @@ public class ODMonitorActivity extends Activity {
                keyCode == KeyEvent.KEYCODE_ENTER){ 
                Toast.makeText(ODMonitorActivity.this, etInput.getText(), Toast.LENGTH_SHORT).show(); 
                String cmd = etInput.getText().toString(); 
-               String read_string = new String("");
+               char[] readDataChar = new char[cmd.length()+10];
+               int receive_length = 0;
                
                if (0 < shaker.createDeviceList()) {
 			       if (0 == shaker.connectFunction(0)) {
 			    	   shaker.SetConfig(shaker.baudRate, shaker.dataBit, shaker.stopBit, shaker.parity, shaker.flowControl);
-			    	   read_string = shaker.SendMessage(cmd);
-			    	   Toast.makeText(ODMonitorActivity.this, "return:"+read_string,Toast.LENGTH_SHORT).show();
+			    	   if (0 < (receive_length = shaker.SendMessage(cmd, readDataChar))) {
+			    		   String read_string = String.copyValueOf(readDataChar, 0, receive_length);
+			    	       Toast.makeText(ODMonitorActivity.this, "return:"+read_string,Toast.LENGTH_SHORT).show();
+			    	   } else {
+			    		   Toast.makeText(ODMonitorActivity.this, "send message error!",Toast.LENGTH_SHORT).show();
+			    	   }
 			    	   shaker.disconnectFunction();
 			       } else {
 			           Log.d(Tag, "shaker connect NG");

@@ -2,7 +2,9 @@ package ODMonitor.App;
 
 import java.util.ArrayList;
 
+import ODMonitor.App.data.chart_display_data;
 import android.content.Context;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -264,17 +266,17 @@ public class DeviceUART {
 		}
     }
 
-    public String SendMessage(String writeData) {
+    public int SendMessage(String writeData, char[] readDataChar) {
     	int ret = 0;
     	String read_string = new String("");
     	
 		if (ftDev.isOpen() == false) {
 			Log.e("j2xx", "SendMessage: device not open");
 			ret = -1;
-			return read_string = new String("device not open");
+			return ret;
 		}
 		
-		ftDev.purge((byte) (D2xxManager.FT_PURGE_TX));
+		ftDev.purge((byte) (D2xxManager.FT_PURGE_TX | D2xxManager.FT_PURGE_RX));
 		ftDev.restartInTask();
 
 		ftDev.setLatencyTimer((byte) 16);
@@ -283,39 +285,45 @@ public class DeviceUART {
 		byte[] OutData = writeData.getBytes();
 		ftDev.write(OutData, writeData.length());
 		
-		if (false == bReadThreadGoing) {
-			read_thread = new readThread(handler);
+		//if (false == bReadThreadGoing) {
+			read_thread = new readThread(handler, readDataChar);
 			read_thread.start();
-			bReadThreadGoing = true;
-		}
+			//bReadThreadGoing = true;
+		//}
 		
 		synchronized(ftDev) {
 		    try {
 				ftDev.wait();
-				read_string = String.copyValueOf(readDataToText, 0, iavailable);
+				ret = iavailable;
+			//	read_string = String.copyValueOf(readDataToText, 0, iavailable);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
+				ret = -2;
 				e.printStackTrace();
 			} 
 		}
 		
-	    return read_string;
+	    return ret;
     }
 
 	final Handler handler =  new Handler() {
     	@Override
     	public void handleMessage(Message msg) {
     		if(iavailable > 0) {
-    			readText.append(String.copyValueOf(readDataToText, 0, iavailable));
+    			char[] readDataChar = msg.getData().getCharArray("read_data_char_array");
+    			int readDataAvailableLength = msg.getData().getInt("read_data_available_length");
+    			readText.append(String.copyValueOf(readDataChar, 0, readDataAvailableLength));
     		}
     	}
     };
 
 	private class readThread  extends Thread {
 		Handler mHandler;
+		char[] readDataChar;
 
-		readThread(Handler h) {
+		readThread(Handler h, char[] readDataChar) {
 			mHandler = h;
+			this.readDataChar = readDataChar;
 			this.setPriority(Thread.MIN_PRIORITY);
 		}
 
@@ -325,24 +333,27 @@ public class DeviceUART {
 
 			//while(true == bReadThreadGoing) {
 				try {
-					Thread.sleep(300);
+					Thread.sleep(500);
 				} catch (InterruptedException e) {
 				}
 
 				synchronized(ftDev) {
 					iavailable = ftDev.getQueueStatus();				
 					if (iavailable > 0) {
-						
-						if(iavailable > readLength){
-							iavailable = readLength;
+						if(iavailable > readDataChar.length){
+							iavailable = readDataChar.length;
 						}
 						
 						ftDev.read(readData, iavailable);
 						for (i = 0; i < iavailable; i++) {
-							readDataToText[i] = (char) readData[i];
+							readDataChar[i] = (char) readData[i];
 						}
 						
+						Bundle b = new Bundle(1);
+						b.putCharArray("read_data_char_array", readDataChar);
+						b.putInt("read_data_available_length", iavailable);
 						Message msg = mHandler.obtainMessage();
+					    msg.setData(b);
 						mHandler.sendMessage(msg);
 					}
 					
