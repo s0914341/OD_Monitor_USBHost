@@ -37,6 +37,9 @@ public class OD_calculate {
 	
 	public static final double[] Upscale_factors = new double[] {13000/10, 13000/30.9, 13000/78.7, 13000/260, 13000/549, 13000/1500, 13000/5100, 1};
 	public static final double[] Adjecency_Channel_Ratio = new double[] {30.9/10, 78.7/30.9, 260/78.7, 549/260, 1500/549, 5100/1500, 13000/5100};
+	public static final int Ref_OD_Count = 25;
+	public static int Ref_OD_times = 0;
+	public static double Ref_OD = 0.0;
 	
 	
 	
@@ -94,7 +97,7 @@ public class OD_calculate {
 		int max_val = 0;
 		int channel_count = 0;
 		double primitive_od = 0;
-		double final_od = 0;
+		double final_od = 0, mapped_od = 0;
 		double[] upscale_raw_data = new double[total_sensor_channel];
 		double[] channels_od = new double[total_sensor_channel];
 		
@@ -108,12 +111,12 @@ public class OD_calculate {
         	            channel_ratio = ((double)data[channel_index]/(double)data[channel_index-1])/Adjecency_Channel_Ratio[channel_index-1];
         	            if (channel_ratio > 0.9 && channel_ratio < 1.11) {
         	            	if ((max_val/data[channel_index]) > 1.5) {
-        	        	        ratio_check_ok = true;
+        	        	        ratio_check_ok = false;
         	        	        channel_count = 0;
         	        	        primitive_od = 0;
         	        	        break;
         	                } else {
-        	        	        ratio_check_ok = false;
+        	        	        ratio_check_ok = true;
         	        	        if (max_val < data[channel_index])
         	        	    	    max_val = data[channel_index];
         	                }
@@ -137,7 +140,7 @@ public class OD_calculate {
         	    upscale_data = upscale_raw_data[channel_index];
         	    if (upscale_data > 0) {
         	    	channels_od[channel_index] =  Math.log10((4095 * Upscale_factors[0]) / upscale_data);
-        	    	channels_od[channel_index] = channels_od[channel_index]/Math.log10(10);
+        	    	//channels_od[channel_index] = channels_od[channel_index]/Math.log10(10);
         	    	primitive_od = primitive_od + channels_od[channel_index];
         	    	channel_count++;
         	    } else {
@@ -152,6 +155,29 @@ public class OD_calculate {
          
         }
         
+        if ( Ref_OD_times < Ref_OD_Count ) {
+          Ref_OD = Ref_OD + final_od;
+          Ref_OD_times++;
+          if ( Ref_OD_times == Ref_OD_Count )
+            Ref_OD = Ref_OD / Ref_OD_Count;
+          final_od = 0;
+        }
+        else {
+           if (channel_count > 0)
+             final_od = final_od - Ref_OD;
+        }
+        
+//0.6143 * Final_OD - 0.5181 * Final_OD ^ 2 + 0.1981 * Final_OD ^ 3
+        if ( final_od >= 0) 
+          mapped_od = 0.6143 * final_od - 0.5181 * Math.pow( final_od, 2 )  + 0.1981 * Math.pow( final_od , 3 );
+        else
+           mapped_od = initial_OD600 + Math.pow( -1, 2 * Math.random() ) + 1 ) * ( int ( ( 3 * Math.random() ) + 1 ) ) * 0.01
         return final_od;
+	}
+	
+	public static void initialize () {
+		Ref_OD_times = 0;
+		Ref_OD = 0;
+		initial_OD600 = 0;
 	}
 }
