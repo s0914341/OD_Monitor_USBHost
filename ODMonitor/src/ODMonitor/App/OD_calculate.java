@@ -40,6 +40,7 @@ public class OD_calculate {
 	public static final int Ref_OD_Count = 25;
 	public static int Ref_OD_times = 0;
 	public static double Ref_OD = 0.0;
+	public static double initial_OD600 = 0.0;
 	
 	
 	
@@ -171,7 +172,7 @@ public class OD_calculate {
         if ( final_od >= 0) 
           mapped_od = 0.6143 * final_od - 0.5181 * Math.pow( final_od, 2 )  + 0.1981 * Math.pow( final_od , 3 );
         else
-           mapped_od = initial_OD600 + Math.pow( -1, 2 * Math.random() ) + 1 ) * ( int ( ( 3 * Math.random() ) + 1 ) ) * 0.01
+           mapped_od = initial_OD600 + Math.pow( -1, 2 * Math.random() + 1 ) * ( Math.floor( ( 3 * Math.random() ) + 1 ) ) * 0.01;
         return final_od;
 	}
 	

@@ -8,4 +8,5 @@
 	<usb-device vendor-id="1027" product-id="24593" /> <!-- FT4232HL -->
 	<usb-device vendor-id="1027" product-id="24597" /> <!-- FT230X -->
 	<usb-device vendor-id="1412" product-id="45088" /> <!-- REX-USB60F -->
+	<usb-device vendor-id="1046" product-id="20513" class="255" subclass="0" protocol="0"/> <!-- Nuvoton sensor module -->
 </resources>

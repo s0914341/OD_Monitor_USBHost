@@ -36,7 +36,10 @@ public class ExperimentalOperationInstruct {
     
     List<repeat_informat> list_repeat_count = new ArrayList<repeat_informat>();
     List<repeat_informat> list_repeat_time = new ArrayList<repeat_informat>();
-    
+
+    /*20150121 added by michael
+     * sensor instance */
+    ODMonitor_Sensor mODMonitorSensor;
 	public class repeat_informat {
 		public int repeat_instruct_index;
 		public int repeat_instruct_from;
@@ -61,7 +64,10 @@ public class ExperimentalOperationInstruct {
 	    sensor.dataBit = 8;
 	    sensor.stopBit = 1;
 	    sensor.parity = 0;
-	    sensor.flowControl = 0; 
+	    sensor.flowControl = 0;
+	    
+        /*20150121 added by michael*/
+        mODMonitorSensor = new ODMonitor_Sensor ( parentContext );
 	}
 	
 	public int check_shaker_port_number() {

@@ -26,6 +26,7 @@ import org.achartengine.renderer.XYSeriesRenderer;
 
 import com.ftdi.j2xx.D2xxManager;
 
+import ODMonitor.App.ODMonitor_Sensor.CMD_T;
 import ODMonitor.App.R.drawable;
 import ODMonitor.App.data.android_accessory_packet;
 import ODMonitor.App.data.chart_display_data;
@@ -47,6 +48,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.hardware.usb.UsbAccessory;
+import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -79,7 +81,7 @@ import android.widget.ToggleButton;
 public class ODMonitorActivity extends Activity {
 	public String Tag = "ODMonitorActivity";
 	private static final String ACTION_USB_PERMISSION = "OD.MONITOR.USB_PERMISSION";
-	public UsbManager usbmanager;
+	public UsbManager usbmanager, mUsbManager;
 	public UsbAccessory usbaccessory;
 	public PendingIntent mPermissionIntent;
 	public ParcelFileDescriptor filedescriptor = null;
@@ -145,7 +147,7 @@ public class ODMonitorActivity extends Activity {
     public static D2xxManager ftD2xx = null;
     public DeviceUART shaker;
     public ExperimentalOperationInstruct experiment;
-    
+    boolean mRequest_USB_permission;
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -157,8 +159,9 @@ public class ODMonitorActivity extends Activity {
         
         
         IntentFilter filter = new IntentFilter();
-        filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+        //filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+        filter.addAction(ACTION_USB_PERMISSION);
         filter.setPriority(500);
         Log.d(Tag, "filter" +filter);
         this.registerReceiver(mUsbReceiver, filter);   
@@ -250,6 +253,11 @@ public class ODMonitorActivity extends Activity {
         button4.setOnClickListener(new View.OnClickListener()
         {
 			public void onClick(View v) {
+		        if ( experiment.mODMonitorSensor.isDeviceOnline() ) {
+		        	//experiment.mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_REQUEST_RAW_DATA, 0, 0, null, 1 );
+		        	experiment.mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_GET_RAW_DATA, 0, 0, null, 0 );
+		        	//experiment.mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ITRACKER_DATA, 0, 0, null, 0 );
+		        }
         		show_chart_activity();
 			}
 		});  
@@ -317,8 +325,38 @@ public class ODMonitorActivity extends Activity {
       
         Log.d ( Tag, "intent get action: " +this.getIntent().getAction());
         Log.d(Tag, "on Create");
+        mRequest_USB_permission = false;
+        mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+		mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
+        EnumerationDevice( getIntent() );
     }
     
+    public void EnumerationDevice(Intent intent) {
+    	if (intent.getAction().equals(Intent.ACTION_MAIN)) {
+    		if ( experiment.mODMonitorSensor.Enumeration() ) {
+    			
+    		}
+    		else {
+    			if ( experiment.mODMonitorSensor.isDeviceOnline() ) {
+    				mRequest_USB_permission = true;
+					mUsbManager.requestPermission(experiment.mODMonitorSensor.getDevice(), mPermissionIntent);
+    			}
+    			else {
+    				
+    			}
+    		}
+    	}
+    	else
+    		if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {
+    			UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+    			if ( experiment.mODMonitorSensor.Enumeration(device) ) {
+    				
+    			}
+    			else {
+    				
+    			}
+    		}
+    }
    /* private OnRefreshListener onSwipeToRefresh = new OnRefreshListener() {
         public void onRefresh() {
         	new Thread(new get_machine_info_task(UIhandler)).start();
@@ -331,6 +369,8 @@ public class ODMonitorActivity extends Activity {
         super.onNewIntent(intent);
 
     	setIntent(intent);//must store the new intent unless getIntent() will return the old one
+    	if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_ATTACHED))
+    		EnumerationDevice(intent);
 
     	  //processExtraData();
     	
@@ -1093,8 +1133,14 @@ public class ODMonitorActivity extends Activity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
+			UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 			if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
-				Log.i(Tag,"DETACHED...");
+				if ( experiment.mODMonitorSensor != null && experiment.mODMonitorSensor.getDevice() != null) {
+					if (device.getProductId() == experiment.mODMonitorSensor.getDevice().getProductId() && device.getVendorId() == experiment.mODMonitorSensor.getDevice().getVendorId()) {
+						Log.i(Tag,"DETACHED...");
+						experiment.mODMonitorSensor.DeviceOffline();
+					}
+				}
 				
 	      
 	            	/*switch (currect_index) 
@@ -1109,6 +1155,10 @@ public class ODMonitorActivity extends Activity {
 	            	}*/
 	                   	
 			}
+			else
+				if (action.equals(ACTION_USB_PERMISSION)) {
+					
+				}
 		}	
 	};
 };
