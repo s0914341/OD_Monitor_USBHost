@@ -4,11 +4,10 @@
       android:versionName="1.0" package="ODMonitor.App">
     <uses-sdk android:minSdkVersion="14" android:targetSdkVersion="17" />
     
-    <uses-feature android:name="android.hardware.usb.accessory"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_CONTACTS"/>
    
-    <application android:icon="@drawable/incu_shaker" 
+    <application android:icon="@drawable/incu_shaker_icon" 
                  android:label="@string/app_name"
                  android:name=".ODMonitor_Application"
                  debuggable="true">

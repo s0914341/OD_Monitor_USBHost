@@ -225,10 +225,13 @@ public class ODMonitorActivity extends Activity {
 		start_button.setOnClickListener(new View.OnClickListener() {
 		    public void onClick(View v) {
 		    	if (false == experiment_thread_run) {
-		    	    experiment.initial_experiment_devices();
-		    	    experiment_stop = false;
-		    	    experiment_thread_run = true;
-		    	    new Thread(new experiment_thread(handler)).start(); 
+		    	    if (0 == experiment.initial_experiment_devices()) {
+		    	        experiment_stop = false;
+		    	        experiment_thread_run = true;
+		    	        new Thread(new experiment_thread(handler)).start(); 
+		    	    } else {
+		    	    	Toast.makeText(ODMonitorActivity.this, "initial experiment devices fail!",Toast.LENGTH_SHORT).show();
+		    	    }
 		    	}
 		    }
 		});
@@ -329,34 +332,44 @@ public class ODMonitorActivity extends Activity {
         mRequest_USB_permission = false;
         mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
 		mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
-        EnumerationDevice( getIntent() );
+        EnumerationDevice(getIntent());
     }
     
     public void EnumerationDevice(Intent intent) {
     	if (intent.getAction().equals(Intent.ACTION_MAIN)) {
-    		if ( experiment.mODMonitorSensor.Enumeration() ) {
+    		if (experiment.mODMonitorSensor.Enumeration()) {
     			
-    		}
-    		else {
-    			if ( experiment.mODMonitorSensor.isDeviceOnline() ) {
+    		} else {
+    			if (experiment.mODMonitorSensor.isDeviceOnline()) {
     				mRequest_USB_permission = true;
 					mUsbManager.requestPermission(experiment.mODMonitorSensor.getDevice(), mPermissionIntent);
+    			} else {
+    				
     			}
-    			else {
+    		}
+    		
+            if (experiment.shaker.Enumeration()) {
+    			
+    		} else {
+    			if (experiment.shaker.isDeviceOnline()) {
+    				mRequest_USB_permission = true;
+					mUsbManager.requestPermission(experiment.shaker.getDevice(), mPermissionIntent);
+    			} else {
+    				
+    			}
+    		}
+    	} else {
+    		if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {
+    			UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+    			if (experiment.mODMonitorSensor.Enumeration(device)) {
+    				
+    			} else if (experiment.shaker.Enumeration(device)) {
+    				
+    			} else {
     				
     			}
     		}
     	}
-    	else
-    		if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {
-    			UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-    			if ( experiment.mODMonitorSensor.Enumeration(device) ) {
-    				
-    			}
-    			else {
-    				
-    			}
-    		}
     }
    /* private OnRefreshListener onSwipeToRefresh = new OnRefreshListener() {
         public void onRefresh() {
@@ -922,37 +935,39 @@ public class ODMonitorActivity extends Activity {
 	}
 	
 	/***********USB broadcast receiver*******************************************/
-    private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() 
-	{
+    private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
 			UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 			if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
-				if ( experiment.mODMonitorSensor != null && experiment.mODMonitorSensor.getDevice() != null) {
-					if (device.getProductId() == experiment.mODMonitorSensor.getDevice().getProductId() && device.getVendorId() == experiment.mODMonitorSensor.getDevice().getVendorId()) {
-						Log.i(Tag,"DETACHED...");
-						experiment.mODMonitorSensor.DeviceOffline();
-					}
-				}
-				
-	      
-	            	/*switch (currect_index) 
-	            	{
-
-	        		case 5:
-	        			((DeviceUARTFragment)currentFragment).notifyUSBDeviceDetach();
-	        			break;
-	            	default:
-	            		//((DeviceInformationFragment)currentFragment).onStart();
-	            		break;
-	            	}*/
-	                   	
-			}
-			else
+				synchronized (this) {
+				    if ( experiment.mODMonitorSensor != null && experiment.mODMonitorSensor.getDevice() != null) {
+					    if (device.getProductId() == experiment.mODMonitorSensor.getDevice().getProductId() && device.getVendorId() == experiment.mODMonitorSensor.getDevice().getVendorId()) {
+						    Log.i(Tag,"DETACHED sensor...");
+						    experiment.mODMonitorSensor.DeviceOffline();
+					    }
+				    } else if ( experiment.shaker != null && experiment.shaker.getDevice() != null) {
+					    if (device.getProductId() == experiment.shaker.getDevice().getProductId() && device.getVendorId() == experiment.shaker.getDevice().getVendorId()) {
+						    Log.i(Tag,"DETACHED shaker...");
+						    experiment.close_shaker_port();
+					    }
+				    }
+				} 	
+			} else {
 				if (action.equals(ACTION_USB_PERMISSION)) {
-					
+					synchronized (this) {
+	                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+	                        if(device != null){
+	                          //
+	                            Log.d(Tag,"PERMISSION-" + device);
+	                        }
+	                    } else {
+	                    	
+	                    }
+	                }
 				}
+			}
 		}	
 	};
 };

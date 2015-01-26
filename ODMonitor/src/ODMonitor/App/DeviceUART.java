@@ -4,6 +4,10 @@ import java.util.ArrayList;
 
 import ODMonitor.App.data.chart_display_data;
 import android.content.Context;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbDeviceConnection;
+import android.hardware.usb.UsbInterface;
+import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -17,7 +21,7 @@ import com.ftdi.j2xx.FT_Device;
 
 
 public class DeviceUART {
-
+	public static String Tag = "DeviceUART";
 	// original ///////////////////////////////
 	static Context DeviceUARTContext;
 	D2xxManager ftdid2xx;
@@ -25,6 +29,10 @@ public class DeviceUART {
 	int DevCount = -1;
     int currentIndex = -1;
     int openIndex = 0;
+    private UsbManager mManager;
+    private UsbDevice mDevice;
+    public static final int USB_VID = 0x0403;
+    public static final int USB_PID = 0x6001;
 	
     /*graphical objects*/
     TextView readText;
@@ -51,10 +59,10 @@ public class DeviceUART {
     boolean uart_configured = false;
 
 	/* Constructor */
-	public DeviceUART(Context parentContext , D2xxManager ftdid2xxContext, TextView read_text)
-	{
+	public DeviceUART(Context parentContext , D2xxManager ftdid2xxContext, TextView read_text) {
 		DeviceUARTContext = parentContext;
 		ftdid2xx = ftdid2xxContext;
+		mDevice = null;
 		readText = read_text;
 		
 		readData = new byte[readLength];
@@ -71,6 +79,67 @@ public class DeviceUART {
 		/* default flow control is is none */
 		flowControl = 0;
 		portNumber = 1; 	
+	}
+	
+	public boolean Enumeration() {
+		int total_interface = 0;
+		
+		mManager = (UsbManager) DeviceUARTContext.getSystemService(Context.USB_SERVICE);
+		Log.d(Tag,"The line number is " + new Exception().getStackTrace()[0].getLineNumber()+"\n");
+	//	show_debug(Tag+"The line number is " + new Exception().getStackTrace()[0].getLineNumber()+"\n");
+		for (UsbDevice device : mManager.getDeviceList().values()) {
+			if (device != null) {
+				if (device.getVendorId() == USB_VID && device.getProductId() == USB_PID) {
+					String device_name = device.getDeviceName();
+					Log.d(Tag, "shaker:" + device_name);
+					if (ftdid2xx.isFtDevice(device))  {
+						mDevice = device;
+						UsbDeviceConnection connection = mManager.openDevice(device);
+				        if (connection==null) {
+				            Log.d(Tag, "open connection failed");
+				        } else {
+				        	connection.close();
+				        	return true;
+				        }
+					} else {
+						Log.d(Tag, "this devices is not FT device!");
+					}
+				}
+			}
+
+			/*
+			 * UsbInterface intf = findAdbInterface(device); if
+			 * (setAdbInterface(device, intf)) { break; }
+			 */
+		}
+		Log.d(Tag, "The line number is " + new Exception().getStackTrace()[0].getLineNumber()+"\n");
+/*		if (mReceiver != null) {
+			  mContext.unregisterReceiver(mReceiver);
+			  mReceiver = null;
+		}*/
+		return false;
+	}
+	
+    public boolean Enumeration(UsbDevice device) {
+		if (device != null) {
+			if (device.getVendorId() == USB_VID && device.getProductId() == USB_PID) {
+			    mDevice = device;
+		        return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public boolean isDeviceOnline() {
+		if (mDevice != null)
+			return true;
+		else
+			return false;
+	}
+	
+	public UsbDevice getDevice() {
+		return mDevice;
 	}
 
 	public void notifyUSBDeviceAttach() {
@@ -101,6 +170,7 @@ public class DeviceUART {
 		DevCount = -1;
 		currentIndex = -1;
 		bReadThreadGoing = false;
+		mDevice = null;
 		
 		try {
 			Thread.sleep(50);
@@ -115,6 +185,52 @@ public class DeviceUART {
 				}
 			}
 		}
+	}
+	
+	public int connectFunction(UsbDevice device) {
+        int ret = -1;
+        int total_interface = 0;
+		
+		if (device != null ) {
+			if(null == ftDev) {
+				total_interface = ftdid2xx.addUsbDevice(device);
+			//	if (total_interface > 0)
+				    ftDev = ftdid2xx.openByUsbDevice(DeviceUARTContext, device);
+			} else {
+				synchronized(ftDev) {
+					total_interface = ftdid2xx.addUsbDevice(device);
+			//		if (total_interface > 0)
+				        ftDev = ftdid2xx.openByUsbDevice(DeviceUARTContext, device);
+				}
+			}
+			uart_configured = false;
+		} else {
+			Toast.makeText(DeviceUARTContext,"Device not found!",Toast.LENGTH_SHORT).show();
+			ret = 1;
+			return ret;
+		}
+
+		if (ftDev == null) {
+			Toast.makeText(DeviceUARTContext,"open device NG, ftDev == null", Toast.LENGTH_SHORT).show();
+			return ret;
+		}
+			
+		if (true == ftDev.isOpen()) {
+			Toast.makeText(DeviceUARTContext, "open device OK", Toast.LENGTH_SHORT).show();
+				
+			if (false == bReadThreadGoing) {
+				read_thread = new readThread(handler);
+				read_thread.start();
+				bReadThreadGoing = true;
+			}
+			
+			ret = 0;
+		} else {			
+			Toast.makeText(DeviceUARTContext, "open device NG", Toast.LENGTH_SHORT).show();
+			//Toast.makeText(DeviceUARTContext, "Need to get permission!", Toast.LENGTH_SHORT).show();			
+		}
+		
+		return ret;
 	}
 	
 	public int connectFunction(int port_num) {

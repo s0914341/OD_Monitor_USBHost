@@ -173,12 +173,15 @@ public class ODMonitor_Sensor {
 
 	public boolean Enumeration(UsbDevice device) {
 		
-		UsbInterface intf = findInterface(device);
-
-		if (device != null && intf != null) {
-			//RegisterReceiver();
-			if (setInterface(device, intf))
-				return true;
+		if (device != null) {
+		    if (device.getVendorId() == USB_VID && device.getProductId() == USB_PID) {
+		        UsbInterface intf = findInterface(device);
+		        if (intf != null) {
+			        //RegisterReceiver();
+			        if (setInterface(device, intf))
+				        return true;
+		        }
+		    }
 		}
 		
 /*		if (mReceiver != null) {
@@ -196,10 +199,13 @@ public class ODMonitor_Sensor {
 	}
 	
 	public boolean isDeviceOnline() {
-		if (mDevice != null && mInterface != null)
+		if (mDevice != null && mInterface != null) {
+			Log.d(Tag, "device is online");
 			return true;
-		else
+		} else {
+			Log.d(Tag, "device is not online");
 			return false;
+		}
 	}
 	
 	public UsbDevice getDevice() {

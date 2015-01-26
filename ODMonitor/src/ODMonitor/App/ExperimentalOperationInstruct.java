@@ -200,7 +200,7 @@ public class ExperimentalOperationInstruct {
 		return ret;
 	}
 	
-	public int open_shaker_port() {
+/*	public int open_shaker_port() {
 		int ret = 0;
 		
 		if (0 == check_shaker_port_number()) {
@@ -220,6 +220,20 @@ public class ExperimentalOperationInstruct {
 	        Log.d(Tag, "no shaker port in device list");
 	    }
 		
+		return ret;
+	}*/
+	
+	public int open_shaker_port() {
+		int ret = 0;
+		
+		//shaker.Enumeration();
+        if (0 == shaker.connectFunction(shaker.getDevice())) {
+    		shaker.SetConfig(shaker.baudRate, shaker.dataBit, shaker.stopBit, shaker.parity, shaker.flowControl);
+    	} else {
+    	    ret = -2;
+    		Log.d(Tag, "shaker connect NG");
+    	}
+	
 		return ret;
 	}
 	
