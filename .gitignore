@@ -1,0 +1,6 @@
+*.bak
+bin/
+gen/
+tests/
+./ODMonitor/bin/
+./ODMonitor/gen/
