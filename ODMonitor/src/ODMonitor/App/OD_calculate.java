@@ -84,8 +84,8 @@ public class OD_calculate {
 		int channel_count = 0;
 		double primitive_od = 0;
 		double final_od = 0, mapped_od = 0;
-		double[] upscale_raw_data = new double[total_sensor_channel];
-		double[] channels_od = new double[total_sensor_channel];
+		double[] upscale_raw_data = new double[sensor_data_composition.raww_total_sensor_channel];
+		double[] channels_od = new double[sensor_data_composition.raww_total_sensor_channel];
 		
 		
         if (data.length == sensor_data_composition.raww_total_sensor_channel) {
