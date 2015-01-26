@@ -157,7 +157,7 @@
             	android:layout_alignLeft="@+id/Button3"
             	android:layout_alignTop="@+id/textViewButton1" 
             	android:layout_alignBottom="@+id/textViewButton1"
-            	android:text="Send Script"
+            	android:text="Stop"
             	android:textStyle="bold">
             </TextView>
             
@@ -274,7 +274,7 @@
         </RelativeLayout>          
         
         <RelativeLayout  
-        	android:layout_height="400dp" 
+        	android:layout_height="800dp" 
         	android:id="@+id/frameLayoutShaker" 
         	android:layout_width="match_parent" 
         	android:background="@drawable/border2">
@@ -303,25 +303,47 @@
             	android:textAppearance="?android:attr/textAppearanceMedium"
             	android:layout_width="match_parent" 
             	android:scrollbars="vertical"
-            	android:layout_height="160dp"
+            	android:layout_height="150dp"
             	android:layout_alignParentLeft="true" 
-            	android:text="showing...\n"
+            	android:text="shaker read:\n"
             	android:layout_marginLeft="25dp"
             	android:layout_marginTop="140dp"
             	android:textStyle="bold">
             </TextView>
             
         	<TextView 
-            	android:id="@+id/DebugView" 
+            	android:id="@+id/ExperimentInformation" 
             	android:textAppearance="?android:attr/textAppearanceMedium"
-            	android:layout_width="wrap_content" 
-            	android:layout_height="150dp"
+            	android:layout_width="match_parent" 
+            	android:layout_height="100dp"
             	android:layout_alignParentLeft="true" 
-            	android:text="debug..."
+            	android:scrollbars="vertical"
+            	android:text="experiment information:\n"
             	android:layout_below="@+id/ShakerReturn"  
             	android:layout_marginLeft="25dp"
             	android:textStyle="bold">
             </TextView>
+            
+        	<TextView 
+            	android:id="@+id/SensorData" 
+            	android:textAppearance="?android:attr/textAppearanceMedium"
+            	android:layout_width="match_parent" 
+            	android:layout_height="100dp"
+            	android:layout_alignParentLeft="true" 
+            	android:scrollbars="vertical"
+            	android:text="Sensor data:\n"
+            	android:layout_below="@+id/ExperimentInformation"  
+            	android:layout_marginLeft="25dp"
+            	android:textStyle="bold">
+            </TextView>
+            
+        	<Chronometer
+                android:id="@+id/ExperimentTimer"
+                android:layout_marginLeft="25dp"
+                android:layout_below="@+id/SensorData"  
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
+            </Chronometer>
                                  
         </RelativeLayout>
         

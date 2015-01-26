@@ -146,11 +146,11 @@ public class DeviceUART {
 			currentIndex = openIndex;
 			Toast.makeText(DeviceUARTContext, "open device port(" + tmpProtNumber + ") OK", Toast.LENGTH_SHORT).show();
 				
-			/*if (false == bReadThreadGoing) {
+			if (false == bReadThreadGoing) {
 				read_thread = new readThread(handler);
 				read_thread.start();
 				bReadThreadGoing = true;
-			}*/
+			}
 			
 			ret = 0;
 		} else {			
@@ -276,31 +276,36 @@ public class DeviceUART {
 			return ret;
 		}
 		
-		ftDev.purge((byte) (D2xxManager.FT_PURGE_TX | D2xxManager.FT_PURGE_RX));
-		ftDev.restartInTask();
-
 		ftDev.setLatencyTimer((byte) 16);
 //		ftDev.purge((byte) (D2xxManager.FT_PURGE_TX | D2xxManager.FT_PURGE_RX));
-
+		
+		synchronized(ftDev) {
+		    iavailable = 0;
+		}
+		
 		byte[] OutData = writeData.getBytes();
 		ftDev.write(OutData, writeData.length());
 		
-		//if (false == bReadThreadGoing) {
-			read_thread = new readThread(handler, readDataChar);
-			read_thread.start();
-			//bReadThreadGoing = true;
-		//}
+		try {
+			int  i = 10;
+			while ((i--) > 0)
+			    Thread.sleep(10);
+		} catch (InterruptedException e) {
+		}
 		
 		synchronized(ftDev) {
-		    try {
-				ftDev.wait();
-				ret = iavailable;
-			//	read_string = String.copyValueOf(readDataToText, 0, iavailable);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				ret = -2;
-				e.printStackTrace();
-			} 
+            if (iavailable > 0) {
+            	if (iavailable > readDataChar.length)
+            		iavailable = readDataChar.length;
+            	
+            	for (int i = 0; i < iavailable; i++) {
+            		readDataChar[i] = readDataToText[i];
+				}
+            	ret = iavailable;
+            	iavailable = 0;
+			} else {
+				Toast.makeText(DeviceUARTContext, "no data receive", Toast.LENGTH_SHORT).show();
+			}
 		}
 		
 	    return ret;
@@ -309,59 +314,85 @@ public class DeviceUART {
 	final Handler handler =  new Handler() {
     	@Override
     	public void handleMessage(Message msg) {
-    		if(iavailable > 0) {
+    		int readDataAvailableLength = msg.getData().getInt("read_data_available_length");
+    		if(readDataAvailableLength > 0) {
     			char[] readDataChar = msg.getData().getCharArray("read_data_char_array");
-    			int readDataAvailableLength = msg.getData().getInt("read_data_available_length");
-    			readText.append(String.copyValueOf(readDataChar, 0, readDataAvailableLength));
+    			readText.setText(String.copyValueOf(readDataChar, 0, readDataAvailableLength));
     		}
     	}
     };
 
 	private class readThread  extends Thread {
 		Handler mHandler;
-		char[] readDataChar;
 
-		readThread(Handler h, char[] readDataChar) {
+		readThread(Handler h) {
 			mHandler = h;
-			this.readDataChar = readDataChar;
 			this.setPriority(Thread.MIN_PRIORITY);
 		}
 
 		@Override
 		public void run() {
-			int i;
-
-			//while(true == bReadThreadGoing) {
+			int read_length = 0;
+         
+			while(true == bReadThreadGoing) {
 				try {
-					Thread.sleep(500);
+					Thread.sleep(50);
 				} catch (InterruptedException e) {
 				}
 
 				synchronized(ftDev) {
-					iavailable = ftDev.getQueueStatus();				
-					if (iavailable > 0) {
-						if(iavailable > readDataChar.length){
-							iavailable = readDataChar.length;
+					read_length = ftDev.getQueueStatus();				
+					if (read_length > 0) {
+						if((read_length+iavailable) > readLength){
+							read_length = (readLength-iavailable);
 						}
 						
-						ftDev.read(readData, iavailable);
-						for (i = 0; i < iavailable; i++) {
-							readDataChar[i] = (char) readData[i];
+						ftDev.read(readData, read_length);
+						char[] read_data_put = new char[read_length];
+						for (int i = 0; i < read_length; i++) {
+							readDataToText[i+iavailable] = (char) readData[i];
+							read_data_put[i] = (char) readData[i];
 						}
 						
+						iavailable += read_length;
+		
 						Bundle b = new Bundle(1);
-						b.putCharArray("read_data_char_array", readDataChar);
-						b.putInt("read_data_available_length", iavailable);
-						Message msg = mHandler.obtainMessage();
-					    msg.setData(b);
-						mHandler.sendMessage(msg);
+					    b.putCharArray("read_data_char_array", read_data_put);
+					    b.putInt("read_data_available_length", iavailable);
+					    Message msg = mHandler.obtainMessage();
+				        msg.setData(b);
+					    mHandler.sendMessage(msg);
 					}
-					
-					ftDev.notify();
 				}
-			//}
+			}
+		}
+	}
+	
+	public int GetDeviceInformation(int device_type) throws InterruptedException {
+		int devCount = 0;
+		int device_num = -1;
+
+		devCount = ftdid2xx.createDeviceInfoList(DeviceUARTContext);
+
+		Log.i("FtdiModeControl",
+				"Device number = " + Integer.toString(devCount));
+		if (devCount > 0) {
+			D2xxManager.FtDeviceInfoListNode[] deviceList = new D2xxManager.FtDeviceInfoListNode[devCount];
+			ftdid2xx.getDeviceInfoList(devCount, deviceList);
+			
+			// deviceList[0] = ftdid2xx.getDeviceInfoListDetail(0);
+			
+			// display the chip type for the first device
+			for (int i = 0; i < devCount; i++) {
+				if (deviceList[i].type == device_type) {
+					device_num = i;
+					break;
+				}
+			}
+		} else {
 		}
 
+		return device_num;
 	}
 }
 

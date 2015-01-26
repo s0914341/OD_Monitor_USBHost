@@ -31,6 +31,7 @@ import ODMonitor.App.data.android_accessory_packet;
 import ODMonitor.App.data.chart_display_data;
 import ODMonitor.App.data.experiment_script_data;
 import ODMonitor.App.data.machine_information;
+import ODMonitor.App.data.sensor_data_composition;
 import ODMonitor.App.data.sync_data;
 import ODMonitor.App.file.file_operate_byte_array;
 import ODMonitor.App.file.file_operation;
@@ -52,6 +53,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.ParcelFileDescriptor;
+import android.os.SystemClock;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener;
 import android.text.Html;
@@ -66,6 +68,7 @@ import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -75,9 +78,10 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
+import android.os.CountDownTimer;
 
 public class ODMonitorActivity extends Activity {
-	public String Tag = "ODMonitorActivity";
+	public static String Tag = "ODMonitorActivity";
 	private static final String ACTION_USB_PERMISSION = "OD.MONITOR.USB_PERMISSION";
 	public UsbManager usbmanager;
 	public UsbAccessory usbaccessory;
@@ -91,6 +95,12 @@ public class ODMonitorActivity extends Activity {
 	public static final int UI_SEND_SCRIPT = 1;
 	public static final int UI_SHOW_INITIAL_DIALOG = 2;
 	public static final int UI_CANCLE_INITIAL_DIALOG = 3;
+	
+	public static final int EXPERIMENT_START = 0;
+	public static final int EXPERIMENT_RUNNING = 1;
+	public static final int EXPERIMENT_STOP = 2;
+	//public static final int EXPERIMENT_SHOW_SENSOR_DATA = 3;
+	public static final int EXPERIMENT_NOTIFY_CHART = 3;
 	
 	public static final long WAIT_TIMEOUT = 3000;
 	public static final long WAIT_TIMEOUT_GET_EXPERIMENT = 10000;
@@ -119,15 +129,14 @@ public class ODMonitorActivity extends Activity {
     public EditText etInput; //shaker command input
     public TextView shaker_return;
     public TextView debug_view;
+    public TextView sensor_data_view;
     public int get_experiment_data_start = 0;
     public long script_length = 0;
     public int script_offset = 0;
     public byte[] script = null;
-    private IDemoChart[] mCharts = new IDemoChart[] { new AverageTemperatureChart() };
     final Context context = this;
     
     /*thread to listen USB data*/
-    public experiment_thread handlerThread;
     public sync_data sync_object;
     public sync_data sync_send_script;
     public sync_data sync_start_experiment;
@@ -137,7 +146,9 @@ public class ODMonitorActivity extends Activity {
     public sync_data sync_get_experiment;
     public sync_data sync_chart_notify;
     private boolean experiment_thread_run = false;
+    private boolean experiment_stop = false;
     private SwipeRefreshLayout laySwipe;
+    public Chronometer experiment_timer;
     
     /**
      * FTDI D2xx USB to UART
@@ -154,8 +165,6 @@ public class ODMonitorActivity extends Activity {
         setContentView(R.layout.od_monitor);
         Thread.currentThread().setName("Thread_ODMonitorActivity");
         
-        
-        
         IntentFilter filter = new IntentFilter();
         filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
@@ -165,7 +174,10 @@ public class ODMonitorActivity extends Activity {
 		
 		shaker_return = (TextView)findViewById(R.id.ShakerReturn);
 		shaker_return.setMovementMethod(new ScrollingMovementMethod());
-		debug_view = (TextView)findViewById(R.id.DebugView);
+		debug_view = (TextView)findViewById(R.id.ExperimentInformation);
+		debug_view.setMovementMethod(new ScrollingMovementMethod());
+		sensor_data_view = (TextView)findViewById(R.id.SensorData);
+		sensor_data_view.setMovementMethod(new ScrollingMovementMethod());
 		connect_status = (ImageView)findViewById(R.id.ConnectStatus);
 		connect_status.setEnabled(false);
 		mass_storage_status = (ImageView)findViewById(R.id.MassStorageStatus);
@@ -174,6 +186,7 @@ public class ODMonitorActivity extends Activity {
 		sensor_status.setEnabled(false);
 		shaker_status = (ImageView)findViewById(R.id.ShakerStatus);
 		shaker_status.setEnabled(false);
+		experiment_timer = (Chronometer)findViewById(R.id.ExperimentTimer);
 		//data_write_thread = new data_write_thread(handler);
 		//data_write_thread.start();
 	//	textView2 = (TextView) findViewById(R.id.test);
@@ -203,31 +216,17 @@ public class ODMonitorActivity extends Activity {
   
         SetupD2xxLibrary();
 		shaker = new DeviceUART(this, ftD2xx, shaker_return);
-		experiment = new ExperimentalOperationInstruct(this, ftD2xx, shaker_return);
+		experiment = new ExperimentalOperationInstruct(context, ftD2xx, shaker_return);
                
 		start_button = (ImageButton) findViewById(R.id.Button1);
 		start_button.setOnClickListener(new View.OnClickListener() {
 		    public void onClick(View v) {
-		        /*if (0 < shaker.createDeviceList()) {
-			    	if (0 == shaker.connectFunction()) {
-			    		shaker.SetConfig(shaker.baudRate, shaker.dataBit, shaker.stopBit, shaker.parity, shaker.flowControl);
-			    		shaker.SendMessage("ON ");
-			    		shaker.disconnectFunction();
-			    	} else {
-			    		Log.d(Tag, "shaker connect NG");
-			    	} 		
-			    } else {
-			    	Log.d(Tag, "no device on list");
-			    } */
-		    /*	if (0 == experiment.check_shaker_port_number()) {
-		    	    handlerThread = new experiment_thread(handler);
+		    	if (false == experiment_thread_run) {
+		    	    experiment.initial_experiment_devices();
+		    	    experiment_stop = false;
 		    	    experiment_thread_run = true;
-				    handlerThread.start();
-		    	} else {
-		    		Toast.makeText(ODMonitorActivity.this, "no find shaker device!",Toast.LENGTH_SHORT).show();
-		    	}*/
-		    	experiment.check_shaker_port_number();
-		    	experiment.check_sensor_port_number();
+		    	    new Thread(new experiment_thread(handler)).start(); 
+		    	}
 		    }
 		});
         
@@ -241,8 +240,10 @@ public class ODMonitorActivity extends Activity {
 		stop_button = (ImageButton) findViewById(R.id.Button3);
 		stop_button.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				experiment_script_data current_instruct_data = new experiment_script_data();
-				experiment.shaker_off_instruct(current_instruct_data);
+				/*experiment_script_data current_instruct_data = new experiment_script_data();
+				current_instruct_data.set_shaker_temperature_value(31);
+				experiment.shaker_set_temperature_instruct(current_instruct_data);*/
+				experiment_stop = true;
 			}
 		});
         
@@ -257,9 +258,9 @@ public class ODMonitorActivity extends Activity {
         button5 = (ImageButton) findViewById(R.id.Button5);
         button5.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-        		//show_script_activity();
-				experiment_script_data current_instruct_data = new experiment_script_data();
-				experiment.read_sensor_instruct(current_instruct_data);
+        		show_script_activity();
+				//experiment_script_data current_instruct_data = new experiment_script_data();
+				//experiment.read_sensor_instruct(current_instruct_data);
 			}
 		});  
         
@@ -268,8 +269,8 @@ public class ODMonitorActivity extends Activity {
 			public void onClick(View v) {
 				//set_tablet_on_off_line((byte)0, false);
 				//SensorDataReceive();
-				experiment_script_data current_instruct_data = new experiment_script_data();
-				experiment.shaker_on_instruct(current_instruct_data);
+				/*experiment_script_data current_instruct_data = new experiment_script_data();
+				experiment.shaker_on_instruct(current_instruct_data);*/
 			}
 		});
         
@@ -500,32 +501,6 @@ public class ODMonitorActivity extends Activity {
 		return ret;
     }
     
-    public int set_tablet_on_off_line(byte status, boolean block) {
-    	int ret = 0;
-    	
-		byte[] data = new byte[1];
-		data[0] = status;
-		if (0 != (ret = WriteUsbCommand(android_accessory_packet.DATA_TYPE_SET_TABLET_ON_OFF_LINE, android_accessory_packet.STATUS_OK, data, 1)))
-			return ret;
-		
-		if (false == block)
-			return ret;
-		
-		synchronized (sync_object) {
-		    try {
-		    	sync_object.set_is_timeout(true);
-		    	sync_object.wait(WAIT_TIMEOUT);
-		    	if (sync_object.get_is_time() == true)
-		    		ret = -1;
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		return ret;
-    }
-    
     public void show_chart_activity() {
     	Intent intent = null;
     	//intent = mCharts[0].execute(this);
@@ -622,18 +597,7 @@ public class ODMonitorActivity extends Activity {
 			Message msg = mHandler.obtainMessage();
 			msg.arg1 = UI_SHOW_INITIAL_DIALOG;
 		    mHandler.sendMessage(msg);
-			if (0 == get_experiment_data(true, true)) {
-				if (0 == get_machine_information(true)) {
-				    if (0 != set_tablet_on_off_line((byte)1, true)) {
-				    	Log.d(Tag, "get_machine_information fail");
-				    }
-				} else {
-					Log.d(Tag, "get_machine_information fail");
-				}
-			} else {
-				Log.d(Tag, "get_experiment_data fail");
-			}
-			
+		
 			msg = mHandler.obtainMessage();
 			msg.arg1 = UI_CANCLE_INITIAL_DIALOG;
 		    mHandler.sendMessage(msg);
@@ -712,115 +676,6 @@ public class ODMonitorActivity extends Activity {
 	    } 	
 	}
 	
-	public void SensorDataReceive(android_accessory_packet rec) {
-		file_operate_byte_array write_file = new file_operate_byte_array("od_sensor", "sensor_offline_byte", true);
-		file_operate_byte_array read_file = new file_operate_byte_array("od_sensor", "sensor_offline_byte", true);
-		byte[] byte_str = new byte[rec.get_Len_value()];
-    	System.arraycopy(rec.buffer, android_accessory_packet.DATA_START, byte_str, 0, rec.get_Len_value());
-    	String str = new String(byte_str);
-    	
-    	try {
-    		int[] data = null;
-            data = OD_calculate.parse_raw_data(str);
-            if (data != null) {
-            	long size = read_file.open_read_file(read_file.generate_filename_no_date());
-         	    if (size <= 0)
-         	        return;
-         	    
-         	    if (size >= (4*OD_calculate.experiment_data_size)+8) {
-         	        read_file.seek_read_file(size-(long)(4*OD_calculate.experiment_data_size)+4);
-        	        byte[] final_current_raw_index_bytes = new byte[4];
-        	        read_file.read_file(final_current_raw_index_bytes);
-        	        ByteBuffer byte_buffer = ByteBuffer.wrap(final_current_raw_index_bytes, 0, 4);
-                    byte_buffer = ByteBuffer.wrap(final_current_raw_index_bytes, 0, 4);
-                    int final_current_raw_index = byte_buffer.getInt();
-                    
-                    if (final_current_raw_index != data[OD_calculate.pre_raw_index_index]) {
-                        return;
-    	            }
-         	    } else {
-         	    	if ((data[OD_calculate.current_raw_index_index] != 0) || (data[OD_calculate.pre_raw_index_index] != 0))
-         	    		return;
-         	    }
-            	
-            	try {
-            		write_file.create_file(write_file.generate_filename_no_date());
-            		ByteBuffer byteBuffer = ByteBuffer.allocate(data.length * 4);        
-                    IntBuffer intBuffer = byteBuffer.asIntBuffer();
-                    intBuffer.put(data);
-                    byte[] data_bytes = byteBuffer.array();
-            		write_file.write_file(data_bytes);
-            		write_file.flush_close_file();
-            		shaker_return.append(str);
-            		//shaker_return.setText(str);
-            		// notify ODChartBuilder object has new sensor to display
-            		if (sync_chart_notify != null) {
-                	    synchronized (sync_chart_notify) {
-                	    	sync_chart_notify.notify();
-                	    }
-                	}
-        		} catch (IOException e) {
-        			// TODO Auto-generated catch block
-        			e.printStackTrace();
-        			return;
-        		}
-            }
-         } catch (IOException e) {
- 	        // TODO Auto-generated catch block
- 	        e.printStackTrace();
-         }
-	}
-	
-	public void convert_string_to_byte_file() {
-		file_operation read_file = new file_operation("od_sensor", "sensor_offline", true);
-        try {
-	        read_file.open_read_file(read_file.generate_filename_no_date());
-        } catch (IOException e) {
-	        // TODO Auto-generated catch block
-	        e.printStackTrace();
-        }
-        
-        file_operate_byte_array write_file = new file_operate_byte_array("od_sensor", "sensor_offline_byte", false);
-    	try {
-    	//	write_file.delete_file(write_file.generate_filename_no_date());
-            write_file.create_file(write_file.generate_filename_no_date());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        
-        try {    	
-	        String sensor_str = new String();
-	        sensor_str = read_file.read_file();
-	        if(sensor_str != null) {
-	        	byte[] temp = OD_calculate.parse_date(sensor_str);
-	        	write_file.write_file(temp);
-	        }
-	        
-	        sensor_str = read_file.read_file();
-	        while (sensor_str != null) {
-				int[] data = null;
-		        data = OD_calculate.parse_raw_data(sensor_str);
-		        if (data != null) {
-		        	for (int i = 0; i < data.length; i++) {
-		        		ByteBuffer byteBuffer = ByteBuffer.allocate(4);
-		        		byte[] bytes = byteBuffer.putInt(data[i]).array();
-		        		write_file.write_file(bytes);
-		        	}
-		        } else {
-		        	Log.e(Tag, "parse raw data fail");
-		        }
-		        
-		        sensor_str = read_file.read_file();
-			} 
-	        
-	        write_file.flush_close_file();
-        } catch (IOException e) {
-	        // TODO Auto-generated catch block
-	        e.printStackTrace();
-        }
-	}
-	
 	final Handler UIhandler = new Handler() {
 		public void handleMessage(Message msg) {	
 			switch (msg.arg1) {
@@ -851,151 +706,53 @@ public class ODMonitorActivity extends Activity {
 			}
 		}
 	};
-		
 	
+	public void notify_chart_receive_data() {
+		if (sync_chart_notify != null) {
+	        synchronized (sync_chart_notify) {
+	        	sync_chart_notify.set_status(sync_data.STATUS_DATA_AVAILABLE);
+	    	    sync_chart_notify.notify();
+	        }
+	    }
+	}
+		
 	final Handler handler =  new Handler() {
-    	@SuppressLint("DefaultLocale") @Override 
     	public void handleMessage(Message msg) {	
-    		String view_str = msg.getData().getString("aoa thread exception", "no exception");
-    		if (true == view_str.equals("aoa thread exception"))
-			    debug_view.setText(view_str);
-    		
-    		Bundle b = msg.getData();
-    		android_accessory_packet handle_receive_data = new android_accessory_packet(android_accessory_packet.NO_INIT_PREFIX_VALUE);
-    		byte[] recv = b.getByteArray(android_accessory_packet.key_receive);
-    		
-    		Log.d(Tag, "Handler  id:"+Thread.currentThread().getId() + "process:" + android.os.Process.myTid());
-    		
-    		if (recv == null) {
-    			Log.e(Tag, "handler recv is null!");
-    			return;
-    		}
-    		handle_receive_data.copy_to_buffer(recv, android_accessory_packet.get_size());
-    		switch (handle_receive_data.get_Type_value()) {
-    		    case android_accessory_packet.DATA_TYPE_GET_MACHINE_STATUS: {
-    		    	machine_information info = new machine_information();
-    		    	info.copy_to_buffer(handle_receive_data.get_data(0, machine_information.TOTAL_SIZE), machine_information.TOTAL_SIZE);
-    		    } break;
-        		
-    		    case android_accessory_packet.DATA_TYPE_SEND_SHAKER_COMMAND:
-    		    	
-        		break;
-    		
-    		    case android_accessory_packet.DATA_TYPE_GET_SHAKER_RETURN: {
-    		    	byte[] byte_str = new byte[android_accessory_packet.get_data_size()];
-    		    	System.arraycopy(handle_receive_data.buffer, android_accessory_packet.DATA_START, byte_str, 0, android_accessory_packet.get_data_size());
-    		    	String str = new String(byte_str);
-    		    	
-    		    	shaker_return.setText(str);
-    		    } break;
-    			
-    		    case android_accessory_packet.DATA_TYPE_GET_EXPERIMENT_DATA:
-    		    	//if (1 == get_experiment_data_start) {
-    		    		if (android_accessory_packet.STATUS_FAIL == handle_receive_data.get_Status_value()) {
-    		    		    get_experiment_data_start = 0;
-        		    		Toast.makeText(ODMonitorActivity.this, "Get experiment data fail", Toast.LENGTH_SHORT).show(); 
-        		    		if (sync_get_experiment != null) {
-    		        	        synchronized (sync_get_experiment) {
-    		        	        	sync_get_experiment.set_status(sync_data.STATUS_END);
-    		        	        	sync_get_experiment.set_is_timeout(false);
-    		        	        	sync_get_experiment.notify();
-    		        	        }
-    		        	    }
-    		    		} else {
-    		    	        int len = handle_receive_data.get_Len_value();
-    		    		    byte[] experiment_data = new byte[len];
-        		    	    System.arraycopy(handle_receive_data.buffer, handle_receive_data.DATA_START, experiment_data, 0, len); 
-        		            //String debug_str;
-        		    	    //debug_str = String.format("prefix:%d, type:%d, status:%d, len:%d", handle_receive_data.get_Prefix_value(),
-        		    	    //   		handle_receive_data.get_Type_value(), handle_receive_data.get_Status_value(), handle_receive_data.get_Len_value());
-        		    	    //debug_view.setText(debug_str);
-        		    	    //String experiment_str = new String(experiment_data);
-        		    	    file_operate_byte_array write_file = new file_operate_byte_array("od_sensor", "sensor_offline", true);
-        		     	    try {
-        		                write_file.create_file(write_file.generate_filename_no_date());
-        		    		    write_file.write_file(experiment_data);
-        		    		    write_file.flush_close_file();
-        				    } catch (IOException e) {
-        					    // TODO Auto-generated catch block
-        					    e.printStackTrace();
-        				    }
-        		    	
-        		    	    if (android_accessory_packet.STATUS_OK == handle_receive_data.get_Status_value()) {
-        		    		    get_experiment_data_start = 0;
-        		    		    convert_string_to_byte_file();
-        		    		    Toast.makeText(ODMonitorActivity.this, "Get experiment data complete", Toast.LENGTH_SHORT).show(); 
-        		    		    if (sync_get_experiment != null) {
-        		        	        synchronized (sync_get_experiment) {
-        		        	        	sync_get_experiment.set_status(sync_data.STATUS_END);
-        		        	        	sync_get_experiment.set_is_timeout(false);
-        		        	        	sync_get_experiment.notify();
-        		        	        }
-        		        	    }
-        		    	    } else if (android_accessory_packet.STATUS_HAVE_DATA == handle_receive_data.get_Status_value()) {
-        		    	    	if (sync_get_experiment != null) {
-        		        	        synchronized (sync_get_experiment) {
-        		        	        	sync_get_experiment.set_meta_data(len);
-        		        	        	sync_get_experiment.set_status(sync_data.STATUS_CONTINUE);
-        		        	        	sync_get_experiment.set_is_timeout(false);
-        		        	        	sync_get_experiment.notify();
-        		        	        }
-        		        	    }	
-        		    	    }
-    		    	    }	
-    		    //	}
-        		break;
-        		
-    		    case android_accessory_packet.DATA_TYPE_SET_EXPERIMENT_SCRIPT:
-    		    	if (script_offset < script_length) {
-    		    		long len = 0;
-    		    		byte status = android_accessory_packet.STATUS_HAVE_DATA;
-    		    		byte[] script_buffer;
-    		    		if ((script_length-script_offset) > android_accessory_packet.DATA_SIZE)
-    		    			len = android_accessory_packet.DATA_SIZE;
-    		    		else
-    		    			len = script_length-script_offset;
-    		    		
-    		    		script_buffer = new byte[(int)len];
-    		    		System.arraycopy(script, script_offset, script_buffer, 0, (int)len);
-    		    		if ((script_offset+len) == script_length)
-    		    			status = android_accessory_packet.STATUS_OK;
-    		    		else
-    		    			status = android_accessory_packet.STATUS_HAVE_DATA;
-    		    		WriteUsbCommand(android_accessory_packet.DATA_TYPE_SET_EXPERIMENT_SCRIPT, status, script_buffer, (int)len);
-    		    		script_offset += len;
-    		    	} else {
-    		    		script_offset = 0;
-    		    		script_length = 0;
-    		    		script = null; 
-    		    		synchronized (sync_send_script) {
-    		    			sync_send_script.notify();
-	        	        }
-    		    	}
-            	break;
-    			
-    		    case android_accessory_packet.DATA_TYPE_SET_EXPERIMENT_STATUS:
-    		    	Log.d(Tag, "RECEIVE SET EXPERIMENT STATUS");
-                break;
-                
-    		    case android_accessory_packet.DATA_TYPE_NOTIFY_EXPERIMENT_DATA:
-    		    	SensorDataReceive(handle_receive_data);
-        		break;	
-        		
-    		    case android_accessory_packet.DATA_TYPE_SET_TABLET_ON_OFF_LINE:
-    		    	Log.d(Tag, "Set tablet on off line");
-    		    	
-    		    	if (sync_object != null) {
-    		    	    synchronized (sync_object) {
-    		    	    	sync_object.set_is_timeout(false);
-    		    		    sync_object.notify();
-    		    	    }
-    		    	}
-        		break;	
-    		}
+		    Bundle b = msg.getData();
+		    
+		    int experiment_status = b.getInt("experiment status");
+		    switch (experiment_status) {
+		        case EXPERIMENT_START:
+		        	experiment_timer.setBase(SystemClock.elapsedRealtime());
+		        	experiment_timer.start();
+		        break;
+		        case EXPERIMENT_RUNNING:
+		        	int current_instruct_index = b.getInt("current instruct index");
+		    		int current_instruct_value = b.getInt("current instruct value");
+		    		long current_experiment_time = b.getLong("current experiment time");
+		    		
+		    		String experiment_process = String.format("index:%d,   time:%d,   instruct:%s \n", current_instruct_index, current_experiment_time, experiment_script_data.SCRIPT_INSTRUCT.get(current_instruct_value));
+		    		debug_view.setText(experiment_process);
+		        break;
+		        
+		        case EXPERIMENT_STOP:
+		        	experiment_timer.stop();
+		        	experiment.close_shaker_port();
+		        break;
+		        
+		     /*   case EXPERIMENT_SHOW_SENSOR_DATA:
+		        	sensor_data_view.setText(b.getString("experiment sensor data", "no sensor data"));
+		        break;*/
+		        
+		        case EXPERIMENT_NOTIFY_CHART:
+		        	notify_chart_receive_data();
+		        	sensor_data_view.setText(b.getString("experiment sensor data", "no sensor data"));
+		        break;
+		    }
     	}
     };
 	
-	private class experiment_thread  extends Thread {
+    class experiment_thread implements Runnable {
 		Handler mHandler;
 		
 		experiment_thread(Handler h) {
@@ -1008,53 +765,90 @@ public class ODMonitorActivity extends Activity {
 			int next_instruct_index = 0;
 			experiment_script_data current_instruct_data;
 			int ret = 0;
+			Bundle b = new Bundle(1);
+			Message msg;
 			
 			Thread.currentThread().setName("Thread_Experiment");
 			script_activity_list.load_script(list, experiment_item);
 			current_instruct_data = (experiment_script_data)experiment_item.get(list.get(next_instruct_index));
-			while(experiment_thread_run) {
+			
+			b = new Bundle(1);
+			b.putInt("experiment status", EXPERIMENT_START);
+			msg = mHandler.obtainMessage();
+	        msg.setData(b);
+		    mHandler.sendMessage(msg);
+		    
+			while (experiment_thread_run) {
 				// instruct index from 0 to ...
 				next_instruct_index = current_instruct_data.next_instruct_index;
 				
-				if (next_instruct_index >= (list.size())) {
+				if (next_instruct_index >= (list.size()) || (true == experiment_stop)) {
+					if (true == experiment_stop) {
+						ret = experiment.shaker_off_instruct(current_instruct_data);
+						experiment_stop = false;
+					}
 					experiment_thread_run = false;
+					b = new Bundle(1);
+					b.putInt("experiment status", EXPERIMENT_STOP);
+					msg = mHandler.obtainMessage();
+			        msg.setData(b);
+				    mHandler.sendMessage(msg);
 					break;
 				}
 						
 			    current_instruct_data = (experiment_script_data)experiment_item.get(list.get(next_instruct_index));
 				current_instruct_data.current_instruct_index = next_instruct_index;
+				current_instruct_data.next_instruct_index = next_instruct_index;
+				
+				b = new Bundle(1);
+				b.putInt("experiment status", EXPERIMENT_RUNNING);
+			    b.putInt("current instruct index", current_instruct_data.current_instruct_index);
+			    b.putInt("current instruct value", current_instruct_data.get_instruct_value());
+			    b.putLong("current experiment time", new Date().getTime());
+			    msg = mHandler.obtainMessage();
+		        msg.setData(b);
+			    mHandler.sendMessage(msg);
 				
 				switch(current_instruct_data.get_instruct_value()) {
 				    case experiment_script_data.INSTRUCT_READ_SENSOR:
 				        ret = experiment.read_sensor_instruct(current_instruct_data);
+				        if (0 == ret) {
+				        	String sensor_string = experiment.get_current_one_sensor_data_string();
+				        	b = new Bundle(1);
+				        	b.putInt("experiment status", EXPERIMENT_NOTIFY_CHART);
+							b.putString("experiment sensor data", sensor_string);
+							msg = mHandler.obtainMessage();
+					        msg.setData(b);
+						    mHandler.sendMessage(msg);
+				        }
 				    break;
 						
 					case experiment_script_data.INSTRUCT_SHAKER_ON:
-						ret =  experiment.shaker_on_instruct(current_instruct_data);
+						ret = experiment.shaker_on_instruct(current_instruct_data);
 					break;
 						
 					case experiment_script_data.INSTRUCT_SHAKER_OFF:
-						ret =  experiment.shaker_off_instruct(current_instruct_data);
+						ret = experiment.shaker_off_instruct(current_instruct_data);
 					break;
 						
 					case experiment_script_data.INSTRUCT_SHAKER_SET_TEMPERATURE:
-						ret =  experiment.shaker_set_temperature_instruct(current_instruct_data);
+						ret = experiment.shaker_set_temperature_instruct(current_instruct_data);
 					break;
 						
 					case experiment_script_data.INSTRUCT_SHAKER_SET_SPEED:
-						ret =  experiment.shaker_set_speed_instruct(current_instruct_data);
+						ret = experiment.shaker_set_speed_instruct(current_instruct_data);
 					break;
 						
 					case experiment_script_data.INSTRUCT_REPEAT_COUNT:
-						ret =  experiment.repeat_count_instruct(current_instruct_data);
+						ret = experiment.repeat_count_instruct(current_instruct_data);
 					break;
 						
 					case experiment_script_data.INSTRUCT_REPEAT_TIME:
-						ret =  experiment.repeat_time_instruct(current_instruct_data);
+						ret = experiment.repeat_time_instruct(current_instruct_data);
 					break;
 
 					case experiment_script_data.INSTRUCT_DELAY:
-						ret =  experiment.experiment_delay_instruct(current_instruct_data);
+						ret = experiment.experiment_delay_instruct(current_instruct_data);
 					break;
 						
 					default:

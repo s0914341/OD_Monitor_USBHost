@@ -5,6 +5,7 @@ import java.io.Serializable;
 public class sync_data{
 	public static final int STATUS_END = 1;
 	public static final int STATUS_CONTINUE = 2;
+	public static final int STATUS_DATA_AVAILABLE = 3;
 	
 	private int status;
 	private int meta_data;

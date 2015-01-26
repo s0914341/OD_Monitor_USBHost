@@ -72,7 +72,7 @@ public class script_setting_activity extends Activity {
 		    	     } else if(val < 1) {
 		    	        s.replace(0, s.length(), "1", 0, 1);
 		    	     }
-		    	     item_data.set_repeat_count_value(Byte.parseByte(s.toString()));
+		    	     item_data.set_repeat_count_value(Integer.parseInt(s.toString()));
 		    	     Log.i(Tag, "afterTextChanged");
 		    	   } catch (NumberFormatException ex) {
 		    	      // Do something
@@ -94,12 +94,12 @@ public class script_setting_activity extends Activity {
 	        public void afterTextChanged(Editable s) {
 		        try {
 		    	     int val = Integer.parseInt(s.toString());
-		    	     if(val > 255) {
-		    	        s.replace(0, s.length(), "255", 0, 3);
+		    	     if(val > 86400) {
+		    	        s.replace(0, s.length(), "2147483000", 0, 10);
 		    	     } else if(val < 1) {
 		    	        s.replace(0, s.length(), "1", 0, 1);
 		    	     }
-		    	     item_data.set_repeat_time_value(Byte.parseByte(s.toString()));
+		    	     item_data.set_repeat_time_value(Integer.parseInt(s.toString()));
 		    	   } catch (NumberFormatException ex) {
 		    	      // Do something
 		    	   }
