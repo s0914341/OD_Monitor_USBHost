@@ -90,17 +90,13 @@ public class DeviceUART {
 		for (UsbDevice device : mManager.getDeviceList().values()) {
 			if (device != null) {
 				if (device.getVendorId() == USB_VID && device.getProductId() == USB_PID) {
-					String device_name = device.getDeviceName();
-					Log.d(Tag, "shaker:" + device_name);
 					if (ftdid2xx.isFtDevice(device))  {
 						mDevice = device;
-						UsbDeviceConnection connection = mManager.openDevice(device);
-				        if (connection==null) {
-				            Log.d(Tag, "open connection failed");
-				        } else {
-				        	connection.close();
-				        	return true;
-				        }
+						if (true == mManager.hasPermission(mDevice)) {
+							return true;
+						} else {
+							Log.d(Tag, "open connection failed");
+						}
 					} else {
 						Log.d(Tag, "this devices is not FT device!");
 					}
@@ -193,6 +189,7 @@ public class DeviceUART {
 		
 		if (device != null ) {
 			if(null == ftDev) {
+				total_interface = ftdid2xx.addUsbDevice(device);
 				total_interface = ftdid2xx.addUsbDevice(device);
 			//	if (total_interface > 0)
 				    ftDev = ftdid2xx.openByUsbDevice(DeviceUARTContext, device);

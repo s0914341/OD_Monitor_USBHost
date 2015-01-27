@@ -257,11 +257,21 @@ public class ODMonitorActivity extends Activity {
         button4.setOnClickListener(new View.OnClickListener()
         {
 			public void onClick(View v) {
-		        if ( experiment.mODMonitorSensor.isDeviceOnline() ) {
-		        	//experiment.mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_REQUEST_RAW_DATA, 0, 0, null, 1 );
-		        	experiment.mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_GET_RAW_DATA, 0, 0, null, 0 );
+		        /*if ( experiment.mODMonitorSensor.isDeviceOnline() ) {
+		        //	experiment.mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_HELLO, 0, 0, null, 1 );
+		        	experiment.mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_REQUEST_RAW_DATA, 0, 0, null, 1 );
+		        	try {
+						Thread.sleep(2000);
+					} catch (InterruptedException e) {
+					}
+		        	byte[] raw_bytes = new byte[160];
+		        	experiment.mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_GET_RAW_DATA, 0, 0, raw_bytes, 0 );
+		        	IntBuffer raw_IntBuffer = ByteBuffer.wrap(raw_bytes).order(ByteOrder.LITTLE_ENDIAN).asIntBuffer();
+		        	int[] raw_data = new int[raw_IntBuffer.remaining()];
+		        	raw_IntBuffer.get(raw_data);
+		        	Log.d(Tag, raw_data[0]+","+ raw_data[1]+","+ raw_data[2]+","+raw_data[3]+","+raw_data[4]+","+raw_data[5]+","+raw_data[6]+","+raw_data[7]+","+raw_data[8]+","+raw_data[9]);
 		        	//experiment.mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ITRACKER_DATA, 0, 0, null, 0 );
-		        }
+		        }*/
         		show_chart_activity();
 			}
 		});  
@@ -272,6 +282,7 @@ public class ODMonitorActivity extends Activity {
         		show_script_activity();
 				//experiment_script_data current_instruct_data = new experiment_script_data();
 				//experiment.read_sensor_instruct(current_instruct_data);
+				//experiment.mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_HELLO, 0, 0, null, 1 );
 			}
 		});  
         
@@ -336,40 +347,55 @@ public class ODMonitorActivity extends Activity {
     }
     
     public void EnumerationDevice(Intent intent) {
-    	if (intent.getAction().equals(Intent.ACTION_MAIN)) {
+    	Log.d(Tag, "EnumerationDevice" + intent.getAction());
+    	if (intent.getAction().equals(Intent.ACTION_MAIN) || intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {
+    		Log.d(Tag, "EnumerationDevice 0");
     		if (experiment.mODMonitorSensor.Enumeration()) {
-    			
+    			Log.d(Tag, "EnumerationDevice 1");
     		} else {
     			if (experiment.mODMonitorSensor.isDeviceOnline()) {
+    				Log.d(Tag, "EnumerationDevice 2");
     				mRequest_USB_permission = true;
 					mUsbManager.requestPermission(experiment.mODMonitorSensor.getDevice(), mPermissionIntent);
     			} else {
-    				
+    				Log.d(Tag, "EnumerationDevice 3");
     			}
     		}
     		
             if (experiment.shaker.Enumeration()) {
-    			
+            	Log.d(Tag, "EnumerationDevice 4");
     		} else {
     			if (experiment.shaker.isDeviceOnline()) {
-    				mRequest_USB_permission = true;
+    				Log.d(Tag, "EnumerationDevice 5");
 					mUsbManager.requestPermission(experiment.shaker.getDevice(), mPermissionIntent);
     			} else {
-    				
+    				Log.d(Tag, "EnumerationDevice 6");
     			}
     		}
-    	} else {
+    	} /*else {
     		if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {
-    			UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+    			Log.d(Tag, "EnumerationDevice 7");
+    			UsbDevice device = null;
+    			do {
+    			device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
     			if (experiment.mODMonitorSensor.Enumeration(device)) {
-    				
+    				Log.d(Tag, "EnumerationDevice 8");
+    				if (false == mUsbManager.hasPermission(device)) {
+    					Log.d(Tag, "EnumerationDevice 9");
+    					mUsbManager.requestPermission(experiment.mODMonitorSensor.getDevice(), mPermissionIntent);
+    				}
     			} else if (experiment.shaker.Enumeration(device)) {
-    				
+    				Log.d(Tag, "EnumerationDevice 10");
+    				if (false == mUsbManager.hasPermission(device)) {
+    					Log.d(Tag, "EnumerationDevice 11");
+    					mUsbManager.requestPermission(experiment.shaker.getDevice(), mPermissionIntent);
+    				}
     			} else {
-    				
+    				Log.d(Tag, "EnumerationDevice  12");
     			}
+    			} while (device != null);
     		}
-    	}
+    	}*/
     }
    /* private OnRefreshListener onSwipeToRefresh = new OnRefreshListener() {
         public void onRefresh() {
@@ -416,142 +442,6 @@ public class ODMonitorActivity extends Activity {
     	if(!ftD2xx.setVIDPID(0x0403, 0xada1))
     		Log.i("ftd2xx-java","setVIDPID Error");
 
-    }
-
-    
-    
-    public int send_script(boolean block) {
-    	int ret = 0;
-    	
-    	file_operate_byte_array read_file = new file_operate_byte_array("ExperimentScript", "ExperimentScript", true);
-    	try {
-    		script_length = read_file.open_read_file(read_file.generate_filename_no_date());
-    		
-    		if (script_length > 0) {
-    		    script = new byte[(int)script_length];
-    		    read_file.read_file(script);
-    		    byte[] data = new byte[1];
-        		data[0] = 0;
-        		WriteUsbCommand(android_accessory_packet.DATA_TYPE_SET_EXPERIMENT_SCRIPT, android_accessory_packet.STATUS_START, data, 0);	
-        		
-        		if (false == block)
-        			return ret;
-        		
-        		 synchronized (sync_send_script) {
-     		        try {
-     		        	sync_send_script.wait();
-     			    } catch (InterruptedException e) {
-     				    // TODO Auto-generated catch block
-     				    e.printStackTrace();
-     			    }
-     		    }	
-    		} else {
-    			ret = -1;
-    			Log.d(Tag, "open script fail");
-    		}
-		} catch (IOException e) {
-			ret = -2;
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	
-    	return ret;
-    }
-    
-    public void start_experiment(boolean run) {
-    	file_operate_byte_array write_file = new file_operate_byte_array("od_sensor", "sensor_offline_byte", true);
-		try {
-			write_file.delete_file(write_file.generate_filename_no_date());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		byte[] data = new byte[9];
-		if (true == run) {
-		    data[0] = android_accessory_packet.STATUS_EXPERIMENT_START;
-		} else {
-			data[0] = android_accessory_packet.STATUS_EXPERIMENT_STOP;
-		}
-		// get current time data and write to file
-		byte[] start_time_bytes = ByteBuffer.allocate(8).putLong(new Date().getTime()).array();
-		try {
-			write_file.create_file(write_file.generate_filename_no_date());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		write_file.write_file(start_time_bytes);
-		write_file.flush_close_file();
-		System.arraycopy(start_time_bytes, 0, data, 1, 8);
-		WriteUsbCommand(android_accessory_packet.DATA_TYPE_SET_EXPERIMENT_STATUS, android_accessory_packet.STATUS_OK, data, 9);
-    }
-    
-    public int get_experiment_data(boolean delete_file, boolean block) {
-    	int ret = 0;
-    	
-    	if (true == delete_file) {
-    	    file_operate_byte_array write_file = new file_operate_byte_array("od_sensor", "sensor_offline", true);
-		    try {
-			    write_file.delete_file(write_file.generate_filename_no_date());
-		    } catch (IOException e) {
-			    // TODO Auto-generated catch block
-			    e.printStackTrace();
-		    }
-    	}
-    	
-    	int address = 0;
-    	do {
-    		address += sync_get_experiment.get_meta_data();
-    	    byte[] data = android_accessory_packet.set_file_struct(address);
-		  //  get_experiment_data_start = 1;
-		    WriteUsbCommand(android_accessory_packet.DATA_TYPE_GET_EXPERIMENT_DATA, android_accessory_packet.STATUS_START, data, android_accessory_packet.GET_FILE_STRUCT_SIZE);
-		
-		    if (false == block)
-			    return ret;
-		
-		    synchronized (sync_get_experiment) {
-		        try {
-		        	sync_get_experiment.set_is_timeout(true);
-		    	    sync_get_experiment.wait(WAIT_TIMEOUT);
-		    	    if (sync_object.get_is_time() == true) {
-			    		ret = -1;
-			    		break;
-		    	    }
-			    } catch (InterruptedException e) {
-				    // TODO Auto-generated catch block
-				    e.printStackTrace();
-			    }
-		    }
-    	} while (sync_data.STATUS_END != sync_get_experiment.get_status());
-    	
-    	return ret;
-    }
-    
-    public int get_machine_information(boolean block) {
-    	int ret = 0;
-    	
-		byte[] data = new byte[1];
-		data[0] = 0;
-		if (0 != (ret = WriteUsbCommand(android_accessory_packet.DATA_TYPE_GET_MACHINE_STATUS, android_accessory_packet.STATUS_OK, data, 0)))
-			return ret;
-		
-		if (false == block)
-			return ret;
-		
-		synchronized (sync_object) {
-		    try {
-		    	sync_object.set_is_timeout(true);
-		    	sync_object.wait(WAIT_TIMEOUT);
-		    	if (sync_object.get_is_time() == true)
-		    		ret = -1;
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		return ret;
     }
     
     public void show_chart_activity() {
@@ -639,96 +529,6 @@ public class ODMonitorActivity extends Activity {
 		super.onDestroy();
 	}
 	
-	class initial_task implements Runnable {
-		Handler mHandler;
-		
-		initial_task(Handler h) {
-			mHandler = h;
-		}
-		
-		public void run() {	
-			Message msg = mHandler.obtainMessage();
-			msg.arg1 = UI_SHOW_INITIAL_DIALOG;
-		    mHandler.sendMessage(msg);
-		
-			msg = mHandler.obtainMessage();
-			msg.arg1 = UI_CANCLE_INITIAL_DIALOG;
-		    mHandler.sendMessage(msg);
-	    } 	
-	}
-	
-	class get_experiment_task implements Runnable {
-		public void run() {	
-			get_experiment_data(true, true);
-	    } 	
-	}
-	
-	class get_machine_info_task implements Runnable {
-		Handler mHandler;
-	
-		get_machine_info_task(Handler h) {
-			mHandler = h;
-		}
-		
-		public void run() {
-			String str_status;
-			if (0 == get_machine_information(true))
-				str_status = new String("refresh done!");
-			else
-				str_status = new String("refresh fail!");
-			/**
-			 * send message to UIhandler to do refresh UI task 
-			 */
-			Bundle b = new Bundle(1);
-			Message msg = mHandler.obtainMessage();
-			b.putString("get_machine_info_status", str_status);
-			msg.arg1 = UI_GET_MACHINE_INFO_REFRESH;
-			msg.setData(b);
-		    mHandler.sendMessage(msg);
-	    } 	
-	}
-	
-	class start_experiment_task implements Runnable {
-		Handler mHandler;
-		boolean run = false;
-		sync_data sync;
-	
-		start_experiment_task(Handler h, boolean run, sync_data sync) {
-			mHandler = h;
-			this.run = run;
-			this.sync = sync;
-		}
-		
-		public void run() {
-			if (true == run) {
-			    String str_status = new String("Set experiment exception");
-			    switch (send_script(true)) {
-			        case 0:
-			    	    str_status = new String("Set experiment script success");
-			        break;
-			
-	                case -1:
-	            	    str_status = new String("Get script lenght < 0");
-	                break;
-	        
-	                case -2:
-	            	    str_status = new String("read_file constructor fail");
-	                break;
-	            } 
-			
-			    Bundle b = new Bundle(1);
-			    Message msg = mHandler.obtainMessage();
-			    b.putString("send_script_status", str_status);
-			    msg.arg1 = UI_SEND_SCRIPT;
-			    msg.setData(b);
-		        mHandler.sendMessage(msg);
-			}
-			
-			start_experiment(run);
-			sync.set_status(sync_data.STATUS_END);
-	    } 	
-	}
-	
 	final Handler UIhandler = new Handler() {
 		public void handleMessage(Message msg) {	
 			switch (msg.arg1) {
@@ -779,6 +579,7 @@ public class ODMonitorActivity extends Activity {
 		        	experiment_timer.setBase(SystemClock.elapsedRealtime());
 		        	experiment_timer.start();
 		        break;
+		        
 		        case EXPERIMENT_RUNNING:
 		        	int current_instruct_index = b.getInt("current instruct index");
 		    		int current_instruct_value = b.getInt("current instruct value");
@@ -911,29 +712,7 @@ public class ODMonitorActivity extends Activity {
 		}
 	}
 	
-	
-	
-	public int WriteUsbCommand(byte type, byte status, byte[] data, int len){	
-	    int ret = 0;
-	    
-		acc_pkg_transfer.set_Type(type);
-		acc_pkg_transfer.set_Status(status);
-		acc_pkg_transfer.copy_to_data(data, len);
-		acc_pkg_transfer.set_Len((byte)len);
 
-		try{
-			if(outputstream != null){
-				outputstream.write(acc_pkg_transfer.buffer, 0,  len + android_accessory_packet.get_header_size());
-			} else {
-				ret = -1;
-			}
-		} catch (IOException e) {
-			ret = -2;
-		}		
-		
-		return ret;
-	}
-	
 	/***********USB broadcast receiver*******************************************/
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
 		@Override

@@ -1,6 +1,9 @@
 package ODMonitor.App;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -14,6 +17,7 @@ import android.widget.Toast;
 import com.ftdi.j2xx.D2xxManager;
 import com.ftdi.j2xx.FT_Device;
 
+import ODMonitor.App.ODMonitor_Sensor.CMD_T;
 import ODMonitor.App.data.experiment_script_data;
 import ODMonitor.App.data.sensor_data_composition;
 import ODMonitor.App.file.file_operate_byte_array;
@@ -46,7 +50,8 @@ public class ExperimentalOperationInstruct {
 
     /*20150121 added by michael
      * sensor instance */
-    ODMonitor_Sensor mODMonitorSensor;
+    public ODMonitor_Sensor mODMonitorSensor;
+    private byte[] sensor_raw_buffer;
 	public class repeat_informat {
 		public int repeat_instruct_index;
 		public int repeat_instruct_from;
@@ -75,6 +80,7 @@ public class ExperimentalOperationInstruct {
 	    
         /*20150121 added by michael*/
         mODMonitorSensor = new ODMonitor_Sensor ( parentContext );
+        sensor_raw_buffer = new byte[160];
 	}
 	
 	public int initial_experiment_devices() {
@@ -147,58 +153,6 @@ public class ExperimentalOperationInstruct {
 		return ret;
 	}
 	
-	public int check_sensor_port_number() {
-		int ret = -1;
-		int total_port_num = sensor.createDeviceList();
-		char[] readDataChar = new char[50];
-		int receive_length = 0;
-		int try_count = 3;
-		
-		if (total_port_num <= 0) {
-			ret = -2;
-		} else {
-		    try {
-			    sensor_port_num = sensor.GetDeviceInformation(D2xxManager.FT_DEVICE_232B);
-		    } catch (InterruptedException e) {
-			    // TODO Auto-generated catch block
-			    e.printStackTrace();
-		    }
-		}
-		
-	/*	for (int i = 0; i < total_port_num; i++) {
-			if (0 == sensor.connectFunction(i)) {
-				sensor.SetConfig(sensor.baudRate, sensor.dataBit, sensor.stopBit, sensor.parity, sensor.flowControl);
-				while ((try_count--) > 0) {		
-    		        if (0 < (receive_length = sensor.SendMessage("Hello OD Monitor\r", readDataChar))) {
-    		    	    String read_string = String.copyValueOf(readDataChar, 0, receive_length);
-    		    	    if (true == read_string.equals("I am OD monitor\r")) {
-    		    		    sensor.disconnectFunction();
-    		    	        sensor_port_num = i;
-    		    	        ret = 0;
-    		    	        try_count = 0;
-    		    	    } else {
-    		    	        Toast.makeText(ExperimentalOperationInstructContext, "sensor check no match", Toast.LENGTH_SHORT).show();
-    		    	    }
-    		        } else {
-    		        	Toast.makeText(ExperimentalOperationInstructContext, "sensor send message fail", Toast.LENGTH_SHORT).show();
-    		        }
-				}
-    		        
-    		    sensor.disconnectFunction();
-    	    } else {
-    		    Log.d(Tag, "sensor connect NG");
-    	    } 		
-		}*/
-		
-		if (sensor_port_num >= 0) {
-			Toast.makeText(ExperimentalOperationInstructContext, "sensor port num:" + sensor_port_num, Toast.LENGTH_SHORT).show();
-			ret = 0;
-		} else {
-			Toast.makeText(ExperimentalOperationInstructContext, "sensor port not be found", Toast.LENGTH_SHORT).show();
-		}
-		
-		return ret;
-	}
 	
 /*	public int open_shaker_port() {
 		int ret = 0;
@@ -249,7 +203,7 @@ public class ExperimentalOperationInstruct {
 		return current_one_sensor_data.get_sensor_data_string();
 	}
 	
-	public int save_sensor_data_to_file(int index, long time, String inStr) {
+	/*public int save_sensor_data_to_file(int index, long time, String inStr) {
 		int ret = 0;
 		
         file_operate_byte_array write_file = new file_operate_byte_array("od_sensor", "sensor_offline_byte", true);
@@ -282,6 +236,39 @@ public class ExperimentalOperationInstruct {
 		}
     	
     	return ret;
+	}*/
+	
+	public int save_sensor_data_to_file(int index, long time, int[] raw_data) {
+		int ret = 0;
+		
+        file_operate_byte_array write_file = new file_operate_byte_array("od_sensor", "sensor_offline_byte", true);
+    	try {
+            write_file.create_file(write_file.generate_filename_no_date());
+            
+            if (raw_data != null) {
+                if (raw_data.length == sensor_data_composition.raw_total_sensor_data_size) {
+    		    	current_one_sensor_data = new sensor_data_composition();
+    		    	current_one_sensor_data.set_sensor_get_index(index);
+    		    	// write this sensor data time to file
+    		    	current_one_sensor_data.set_sensor_measurement_time(time);
+    		    	current_one_sensor_data.set_raw_sensor_data(raw_data);
+    		    	write_file.write_file(current_one_sensor_data.buffer);
+    		    } else {
+    		    	ret = -3;
+    		    	Log.e(Tag, "parse raw data fail");
+    		    }
+    		} else {
+    			ret = -2;
+    		}
+    		
+    		write_file.flush_close_file();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			ret = -1;
+		}
+    	
+    	return ret;
 	}
 	
 	public int read_sensor_instruct(experiment_script_data current_instruct_data) {
@@ -289,6 +276,16 @@ public class ExperimentalOperationInstruct {
 		char[] readDataChar = new char[128];
 		int receive_length = 0;
 		int try_count = 3;
+		
+	/*	if (mODMonitorSensor.isDeviceOnline()) {
+        	mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_REQUEST_RAW_DATA, 0, 0, null, 1 );
+        	try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+			}
+        	mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_GET_RAW_DATA, 0, 0, sensor_raw_buffer, 0 );
+     
+        }*/
 		
 	/*	if (0 < sensor.createDeviceList() && (sensor_port_num >= 0)) {
     	    if (0 == sensor.connectFunction(sensor_port_num)) {
@@ -321,12 +318,37 @@ public class ExperimentalOperationInstruct {
 		else
 			Toast.makeText(ExperimentalOperationInstructContext, "sensor request fail", Toast.LENGTH_SHORT).show();*/
 		
-		String read_string = String.format("index: 597, 0704,  0702,  0698,  0698,  0694,  0694,  0692,  0693\r");
+		if (mODMonitorSensor.isDeviceOnline() ) {
+	        mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_REQUEST_RAW_DATA, 0, 0, null, 1 );
+	        try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+			}
+	        
+	        mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_GET_RAW_DATA, 0, 0, sensor_raw_buffer, 0 );
+	        IntBuffer raw_IntBuffer = ByteBuffer.wrap(sensor_raw_buffer).order(ByteOrder.LITTLE_ENDIAN).asIntBuffer();
+	        int[] raw_data = new int[raw_IntBuffer.remaining()];
+	        raw_IntBuffer.get(raw_data);
+	        Log.d(Tag, raw_data[0]+","+ raw_data[1]+","+ raw_data[2]+","+raw_data[3]+","+raw_data[4]+","+raw_data[5]+","+raw_data[6]+","+raw_data[7]+","+raw_data[8]+","+raw_data[9]);
+	        int[] raw_data_save = new int[sensor_data_composition.raw_total_sensor_data_size];
+	        for (int i = 0; i < sensor_data_composition.raw_total_sensor_data_size; i++) {
+	        	raw_data_save[i] = raw_data[1+i];
+	        }
+	        
+	        if (0 == save_sensor_data_to_file(sensor_data_index, new Date().getTime(), raw_data_save)) {
+	        	sensor_data_index++;
+			    ret = 0;
+			}
+	        
+			current_instruct_data.next_instruct_index++;
+	    }
+		
+		/*String read_string = String.format("index: 597, 0704,  0702,  0698,  0698,  0694,  0694,  0692,  0693\r");
 		if (0 == save_sensor_data_to_file(sensor_data_index, new Date().getTime(), read_string)) {
         	sensor_data_index++;
 		    ret = 0;
 		}
-		current_instruct_data.next_instruct_index++;
+		current_instruct_data.next_instruct_index++;*/
 		
 		return ret;
 	}

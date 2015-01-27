@@ -292,7 +292,8 @@ public class ODMonitor_Sensor {
     public boolean IOCTL(int itracker_cmd, int arg0, int arg1, byte[] dataBytes, int debug) {
     	boolean result = false;
     	
-    	synchronized(lock1) {
+    	synchronized(lock1)
+    	{
     	if (isDeviceOnline()) {
 		message.set(itracker_cmd, arg0, arg1, dataBytes, debug);
 		result = message.process_command(0);
@@ -368,9 +369,10 @@ public class ODMonitor_Sensor {
 			}
 			else
 				if (itracker_cmd==CMD_T.HID_CMD_ODMONITOR_GET_RAW_DATA && result) {
-					Sensor_dev_data = message.mDataBuffer.asIntBuffer();
-					for ( int i = 0; i < 10; i++ )
-						Log.d ( Tag, Integer.toString(Sensor_dev_data.get(i)));
+				//	Sensor_dev_data = message.mDataBuffer.asIntBuffer();
+					System.arraycopy(message.mDataBuffer.array(), 0, dataBytes, 0, dataBytes.length);
+				/*	for ( int i = 0; i < 10; i++ )
+						Log.d ( Tag, Integer.toString(Sensor_dev_data.get(i)));*/
 				}
 		if (result)
 			return true;
