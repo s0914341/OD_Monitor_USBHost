@@ -20,13 +20,13 @@
             	android:layout_width="wrap_content" 
             	android:layout_height="wrap_content" 
             	android:layout_alignParentLeft="true" 
-            	android:text="Machine status info"
+            	android:text="Machine status information"
             	android:layout_marginLeft="25dp"
             	android:layout_marginTop="10dp"
             	android:textStyle="bold">
             </TextView>
  
-        	<TextView 
+            <!-- <TextView 
             	android:id="@+id/ViewMassStorage" 
             	android:textAppearance="?android:attr/textAppearanceMedium"
             	android:layout_width="wrap_content" 
@@ -47,6 +47,17 @@
             	android:layout_alignTop="@+id/ViewMassStorage" 
             	android:layout_alignBottom="@+id/ViewMassStorage"
             	android:layout_alignLeft="@+id/ShakerStatus">
+            </TextView> -->
+            
+            <TextView 
+            	android:id="@+id/ViewShaker" 
+            	android:textAppearance="?android:attr/textAppearanceMedium"
+            	android:layout_width="wrap_content" 
+            	android:layout_height="wrap_content" 
+            	android:layout_alignParentLeft="true" 
+            	android:text="Shaker"
+            	android:layout_marginLeft="42dp"
+            	android:layout_marginTop="50dp">
             </TextView>
             
         	<TextView 
@@ -61,7 +72,7 @@
             	android:layout_alignLeft="@+id/SensorStatus">
             </TextView>
             
-        	<TextView 
+        	<!-- <TextView 
             	android:id="@+id/ViewConnect" 
             	android:textAppearance="?android:attr/textAppearanceMedium"
             	android:layout_width="wrap_content" 
@@ -71,9 +82,9 @@
             	android:layout_alignTop="@+id/ViewSensor" 
             	android:layout_alignBottom="@+id/ViewSensor"
             	android:layout_alignLeft="@+id/ConnectStatus">
-            </TextView>
+            </TextView> -->
              
-            <ImageView 
+           <!--  <ImageView 
             	android:layout_width="100dp" 
             	android:src="@drawable/view_mass_storage" 
             	android:id="@+id/MassStorageStatus" 
@@ -91,6 +102,15 @@
             	android:layout_toRightOf="@+id/MassStorageStatus" 
             	android:layout_alignTop="@+id/MassStorageStatus" 
             	android:layout_alignBottom="@+id/MassStorageStatus">
+            </ImageView> -->
+            
+            <ImageView 
+            	android:layout_width="100dp" 
+            	android:src="@drawable/view_shaker" 
+            	android:id="@+id/ShakerStatus" 
+            	android:layout_height="100dp" 
+                android:layout_marginTop="100dp"
+            	android:layout_marginLeft="42dp">
             </ImageView>
             
              <ImageView 
@@ -104,7 +124,7 @@
             	android:layout_alignBottom="@+id/ShakerStatus">
             </ImageView>
              
-             <ImageView 
+           <!--   <ImageView 
             	android:layout_width="100dp" 
             	android:src="@drawable/view_connect" 
             	android:id="@+id/ConnectStatus" 
@@ -113,7 +133,7 @@
             	android:layout_toRightOf="@+id/SensorStatus" 
             	android:layout_alignTop="@+id/SensorStatus" 
             	android:layout_alignBottom="@+id/SensorStatus">
-            </ImageView>
+            </ImageView> -->
     </RelativeLayout>
    
     
@@ -259,7 +279,7 @@
             		android:layout_marginLeft="30dp">
             </ImageButton> 
             
-           	<ImageButton 
+           	<!-- <ImageButton 
             		android:background="@drawable/buttons" 
             		android:layout_width="80dp" 
             		android:id="@+id/Button6" 
@@ -269,7 +289,7 @@
             		android:layout_alignTop="@+id/Button5"
             		android:scaleType="fitCenter"
             		android:layout_marginLeft="30dp">
-            </ImageButton> 
+            </ImageButton>  -->
             
         </RelativeLayout>          
         
@@ -337,13 +357,14 @@
             	android:textStyle="bold">
             </TextView>
             
-        	<Chronometer
+        	<TextView
                 android:id="@+id/ExperimentTimer"
                 android:layout_marginLeft="25dp"
                 android:layout_below="@+id/SensorData"  
                 android:layout_width="fill_parent"
+                android:textStyle="bold"
                 android:layout_height="wrap_content">
-            </Chronometer>
+            </TextView>
                                  
         </RelativeLayout>
         

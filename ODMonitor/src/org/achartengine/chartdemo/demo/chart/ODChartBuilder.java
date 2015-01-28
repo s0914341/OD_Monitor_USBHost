@@ -74,7 +74,6 @@ public class ODChartBuilder extends Activity {
   private XYSeriesRenderer mCurrentRenderer;
   /** The chart view that displays the data. */
   private GraphicalView mChartView;
-  public data_read_thread data_read_thread;
   public long current_index = -1;
   public int current_raw_index = -1;
   
@@ -86,7 +85,7 @@ public class ODChartBuilder extends Activity {
   private static final int HOURS = 24;
   
   public sync_data sync_chart_notify;
-  private boolean data_read_thread_run = false;
+  private boolean chart_thread_run = false;
   public TextView debug_view;
   private ImageButton zoom_in_button;
   private ImageButton zoom_out_button;
@@ -197,10 +196,8 @@ public class ODChartBuilder extends Activity {
 	  });
     
       init_time_series();
-      //read_thread();
-      data_read_thread = new data_read_thread(handler);
-      data_read_thread_run = true;
-      data_read_thread.start();
+      chart_thread_run = true;
+      new Thread(new chart_thread(chart_handler)).start(); 
   }
   
   public void refresh_current_view_range(Date x, double y) {
@@ -224,8 +221,7 @@ public class ODChartBuilder extends Activity {
       mChartView.repaint();
   }
   
-  final Handler handler =  new Handler() {
-  	@Override 
+  final Handler chart_handler = new Handler() {
   	public void handleMessage(Message msg) {
   		Bundle b = msg.getData();
   		int chart_count = b.getInt("chart count");
@@ -243,7 +239,8 @@ public class ODChartBuilder extends Activity {
   		    if (index[i] == 0) {
   			    chart_start_time = date[i];
   			    mRenderer.setRange(new double[] {chart_start_time, chart_start_time+20000, od[i]-2, od[i]+2});
-  	            CreateNewSeries();
+  			    if(null == mCurrentSeries)
+  	                CreateNewSeries();
   		        mCurrentSeries.add(new Date(date[i]), od[i]);
   		        if (null != mChartView)
   		        	mChartView.repaint();
@@ -254,20 +251,19 @@ public class ODChartBuilder extends Activity {
   		        SerialAdd(new Date(date[i]), od[i]);
   		    }
   		
-  		    String str = String.format("handler test concentration:%f", od[i]);
+  		    String str = "index: " + index[i] + "\n" + "OD: " + od[i] + "\n";
     	    debug_view.setText(str);
   	
-		    Log.d(Tag, "data_read_thread handler id:"+Thread.currentThread().getId() + "process:" + android.os.Process.myTid());
+		    Log.d(Tag, "chart_thread handler id:"+Thread.currentThread().getId() + "process:" + android.os.Process.myTid());
 		    Log.d(Tag, "index:"+ index[i] + "date:" + date[i] + "od:" + od[i]);
   		}
   	}
   };
   
-  
-  private class data_read_thread  extends Thread {
+    class chart_thread implements Runnable {
 		Handler mHandler;
 		
-		data_read_thread(Handler h){
+		chart_thread(Handler h){
 			mHandler = h;
 		}
 		
@@ -278,7 +274,7 @@ public class ODChartBuilder extends Activity {
 			byte[] file_data;
 			sensor_data_composition one_sensor_data = new sensor_data_composition();
 			
-			while (data_read_thread_run) {
+			while (chart_thread_run) {
 				Log.d(Tag, "data_read_thread  id:"+Thread.currentThread().getId() + "process:" + android.os.Process.myTid());
 				synchronized (sync_chart_notify) {
 				    try {
@@ -343,7 +339,7 @@ public class ODChartBuilder extends Activity {
 		             b.putDoubleArray("od", od);
 		           //  b.putSerializable("chart array", chart_data);
 		             msg.setData(b);
-	                 mHandler.sendMessage(msg);   
+	                 mHandler.sendMessage(msg);
                 } else {
                     Log.d(Tag, "sensor get index:"+one_sensor_data.get_sensor_get_index() + "current_raw_index:" + current_raw_index);
                 }
@@ -358,7 +354,6 @@ public class ODChartBuilder extends Activity {
     public void init_time_series() {
         Date date = null;
         double od_value = 0;
-        long experiment_start_ms = 0;
         long size = 0;
         
    
@@ -403,6 +398,11 @@ public class ODChartBuilder extends Activity {
 		    
 			 refresh_current_view_range(date, od_value); 
 		} else {
+			if (mCurrentSeries == null) {
+			    long init_date = new Date().getTime();
+	            mRenderer.setRange(new double[] {init_date, init_date+20000, -2, 2});
+	            CreateNewSeries();
+	        }
 		}
     }
   
@@ -432,7 +432,7 @@ public class ODChartBuilder extends Activity {
         super.onResume();
         if (mChartView == null) {
             LinearLayout layout = (LinearLayout) findViewById(R.id.chart);
-            mChartView = ChartFactory.getTimeChartView(this, mDataset, mRenderer, "h:mm:ss a");
+            mChartView = ChartFactory.getTimeChartView(this, mDataset, mRenderer, "MM-dd h:mm:ss a");
             //mChartView = ChartFactory.getLineChartView(this, mDataset, mRenderer);
             // enable the chart click events
             mRenderer.setClickEnabled(true);
@@ -479,7 +479,7 @@ public class ODChartBuilder extends Activity {
     @Override
     public void onPause() {
   	    Log.d(Tag, "on Pause");
-  	    data_read_thread_run = false;
+  	    chart_thread_run = false;
   	    notify_chart_thread_end();
   	    super.onPause();
     }

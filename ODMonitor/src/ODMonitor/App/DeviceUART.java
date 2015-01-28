@@ -166,7 +166,6 @@ public class DeviceUART {
 		DevCount = -1;
 		currentIndex = -1;
 		bReadThreadGoing = false;
-		mDevice = null;
 		
 		try {
 			Thread.sleep(50);
@@ -181,6 +180,10 @@ public class DeviceUART {
 				}
 			}
 		}
+	}
+	
+	public void DeviceOffline() {
+		mDevice = null;
 	}
 	
 	public int connectFunction(UsbDevice device) {

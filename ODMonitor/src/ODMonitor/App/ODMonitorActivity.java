@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -71,6 +72,7 @@ import android.view.View.OnKeyListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
 import android.widget.Chronometer;
+import android.widget.Chronometer.OnChronometerTickListener;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -103,6 +105,7 @@ public class ODMonitorActivity extends Activity {
 	public static final int EXPERIMENT_STOP = 2;
 	//public static final int EXPERIMENT_SHOW_SENSOR_DATA = 3;
 	public static final int EXPERIMENT_NOTIFY_CHART = 3;
+	public static final int EXPERIMENT_OPEN_SCRIPT_ERROR = 4;
 	
 	public static final long WAIT_TIMEOUT = 3000;
 	public static final long WAIT_TIMEOUT_GET_EXPERIMENT = 10000;
@@ -123,8 +126,6 @@ public class ODMonitorActivity extends Activity {
     
     public ImageView ledvolume;
     
-    public ImageView connect_status;
-    public ImageView mass_storage_status;
     public ImageView sensor_status;
     public ImageView shaker_status;
     
@@ -150,7 +151,8 @@ public class ODMonitorActivity extends Activity {
     private boolean experiment_thread_run = false;
     private boolean experiment_stop = false;
     private SwipeRefreshLayout laySwipe;
-    public Chronometer experiment_timer;
+    public Thread experiment_time_thread = null;
+    public boolean experiment_time_run = false;
     
     /**
      * FTDI D2xx USB to UART
@@ -181,15 +183,10 @@ public class ODMonitorActivity extends Activity {
 		debug_view.setMovementMethod(new ScrollingMovementMethod());
 		sensor_data_view = (TextView)findViewById(R.id.SensorData);
 		sensor_data_view.setMovementMethod(new ScrollingMovementMethod());
-		connect_status = (ImageView)findViewById(R.id.ConnectStatus);
-		connect_status.setEnabled(false);
-		mass_storage_status = (ImageView)findViewById(R.id.MassStorageStatus);
-		mass_storage_status.setEnabled(false);
 		sensor_status = (ImageView)findViewById(R.id.SensorStatus);
 		sensor_status.setEnabled(false);
 		shaker_status = (ImageView)findViewById(R.id.ShakerStatus);
 		shaker_status.setEnabled(false);
-		experiment_timer = (Chronometer)findViewById(R.id.ExperimentTimer);
 		//data_write_thread = new data_write_thread(handler);
 		//data_write_thread.start();
 	//	textView2 = (TextView) findViewById(R.id.test);
@@ -224,13 +221,20 @@ public class ODMonitorActivity extends Activity {
 		start_button = (ImageButton) findViewById(R.id.Button1);
 		start_button.setOnClickListener(new View.OnClickListener() {
 		    public void onClick(View v) {
-		    	if (false == experiment_thread_run) {
-		    	    if (0 == experiment.initial_experiment_devices()) {
-		    	        experiment_stop = false;
-		    	        experiment_thread_run = true;
-		    	        new Thread(new experiment_thread(handler)).start(); 
-		    	    } else {
-		    	    	Toast.makeText(ODMonitorActivity.this, "initial experiment devices fail!",Toast.LENGTH_SHORT).show();
+		    	boolean sensor_connected = sensor_status.isEnabled();
+		    	boolean shaker_connected = shaker_status.isEnabled();
+		    	
+		    	if ((false == sensor_connected) || (false == shaker_connected)) {
+		    		Toast.makeText(ODMonitorActivity.this, "devices is not ready!",Toast.LENGTH_SHORT).show();
+		    	} else {
+		    	    if (false == experiment_thread_run) {
+		    	        if (0 == experiment.initial_experiment_devices()) {
+		    	            experiment_stop = false;
+		    	            experiment_thread_run = true;
+		    	            new Thread(new experiment_thread(handler)).start(); 
+		    	        } else {
+		    	    	    Toast.makeText(ODMonitorActivity.this, "initial experiment devices fail!",Toast.LENGTH_SHORT).show();
+		    	        }
 		    	    }
 		    	}
 		    }
@@ -246,32 +250,18 @@ public class ODMonitorActivity extends Activity {
 		stop_button = (ImageButton) findViewById(R.id.Button3);
 		stop_button.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				/*experiment_script_data current_instruct_data = new experiment_script_data();
-				current_instruct_data.set_shaker_temperature_value(31);
-				experiment.shaker_set_temperature_instruct(current_instruct_data);*/
-				experiment_stop = true;
+				if (true == experiment_thread_run) {
+				    experiment_stop = true;
+				    Toast.makeText(ODMonitorActivity.this, "Stopping experiment!",Toast.LENGTH_SHORT).show();
+				} else {
+					Toast.makeText(ODMonitorActivity.this, "No experiment running!",Toast.LENGTH_SHORT).show();
+				}
 			}
 		});
         
         button4 = (ImageButton) findViewById(R.id.Button4);
-        button4.setOnClickListener(new View.OnClickListener()
-        {
+        button4.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-		        /*if ( experiment.mODMonitorSensor.isDeviceOnline() ) {
-		        //	experiment.mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_HELLO, 0, 0, null, 1 );
-		        	experiment.mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_REQUEST_RAW_DATA, 0, 0, null, 1 );
-		        	try {
-						Thread.sleep(2000);
-					} catch (InterruptedException e) {
-					}
-		        	byte[] raw_bytes = new byte[160];
-		        	experiment.mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_GET_RAW_DATA, 0, 0, raw_bytes, 0 );
-		        	IntBuffer raw_IntBuffer = ByteBuffer.wrap(raw_bytes).order(ByteOrder.LITTLE_ENDIAN).asIntBuffer();
-		        	int[] raw_data = new int[raw_IntBuffer.remaining()];
-		        	raw_IntBuffer.get(raw_data);
-		        	Log.d(Tag, raw_data[0]+","+ raw_data[1]+","+ raw_data[2]+","+raw_data[3]+","+raw_data[4]+","+raw_data[5]+","+raw_data[6]+","+raw_data[7]+","+raw_data[8]+","+raw_data[9]);
-		        	//experiment.mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ITRACKER_DATA, 0, 0, null, 0 );
-		        }*/
         		show_chart_activity();
 			}
 		});  
@@ -280,21 +270,18 @@ public class ODMonitorActivity extends Activity {
         button5.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
         		show_script_activity();
-				//experiment_script_data current_instruct_data = new experiment_script_data();
-				//experiment.read_sensor_instruct(current_instruct_data);
-				//experiment.mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_HELLO, 0, 0, null, 1 );
 			}
 		});  
         
-        button6 = (ImageButton) findViewById(R.id.Button6);
+      /*  button6 = (ImageButton) findViewById(R.id.Button6);
         button6.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				//set_tablet_on_off_line((byte)0, false);
 				//SensorDataReceive();
-				/*experiment_script_data current_instruct_data = new experiment_script_data();
-				experiment.shaker_on_instruct(current_instruct_data);*/
+				experiment_script_data current_instruct_data = new experiment_script_data();
+				experiment.shaker_on_instruct(current_instruct_data);
 			}
-		});
+		});*/
         
         etInput = (EditText)findViewById(R.id.etInput); 
         etInput.setOnKeyListener(new OnKeyListener() {
@@ -346,56 +333,42 @@ public class ODMonitorActivity extends Activity {
         EnumerationDevice(getIntent());
     }
     
+    public void EnumerationDeviceShaker() {
+    	if (experiment.shaker.Enumeration()) {
+    		shaker_status.setEnabled(true);
+        	Log.d(Tag, "*****Shaker EnumerationDevice permission pass!*****");
+		} else {
+			if (experiment.shaker.isDeviceOnline()) {
+				Log.d(Tag, "*****Shaker EnumerationDevice request permission!*****");
+				mUsbManager.requestPermission(experiment.shaker.getDevice(), mPermissionIntent);
+			} else {
+				Log.d(Tag, "*****Shaker EnumerationDevice is not online!*****");
+			}
+		}
+    }
+    
     public void EnumerationDevice(Intent intent) {
-    	Log.d(Tag, "EnumerationDevice" + intent.getAction());
+    	Log.d(Tag, "*****EnumerationDevice start!*****" + intent.getAction());
     	if (intent.getAction().equals(Intent.ACTION_MAIN) || intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {
-    		Log.d(Tag, "EnumerationDevice 0");
+    		boolean shaker_can_request_permission = false;
     		if (experiment.mODMonitorSensor.Enumeration()) {
-    			Log.d(Tag, "EnumerationDevice 1");
+    			shaker_can_request_permission = true;
+    			sensor_status.setEnabled(true);
+    			Log.d(Tag, "*****Sensor EnumerationDevice permission pass!*****");
     		} else {
     			if (experiment.mODMonitorSensor.isDeviceOnline()) {
-    				Log.d(Tag, "EnumerationDevice 2");
+    				Log.d(Tag, "*****Sensor EnumerationDevice request permission!*****");
     				mRequest_USB_permission = true;
 					mUsbManager.requestPermission(experiment.mODMonitorSensor.getDevice(), mPermissionIntent);
     			} else {
-    				Log.d(Tag, "EnumerationDevice 3");
+    				shaker_can_request_permission = true;
+    				Log.d(Tag, "*****Sensor EnumerationDevice is not online!*****");
     			}
     		}
     		
-            if (experiment.shaker.Enumeration()) {
-            	Log.d(Tag, "EnumerationDevice 4");
-    		} else {
-    			if (experiment.shaker.isDeviceOnline()) {
-    				Log.d(Tag, "EnumerationDevice 5");
-					mUsbManager.requestPermission(experiment.shaker.getDevice(), mPermissionIntent);
-    			} else {
-    				Log.d(Tag, "EnumerationDevice 6");
-    			}
-    		}
-    	} /*else {
-    		if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {
-    			Log.d(Tag, "EnumerationDevice 7");
-    			UsbDevice device = null;
-    			do {
-    			device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-    			if (experiment.mODMonitorSensor.Enumeration(device)) {
-    				Log.d(Tag, "EnumerationDevice 8");
-    				if (false == mUsbManager.hasPermission(device)) {
-    					Log.d(Tag, "EnumerationDevice 9");
-    					mUsbManager.requestPermission(experiment.mODMonitorSensor.getDevice(), mPermissionIntent);
-    				}
-    			} else if (experiment.shaker.Enumeration(device)) {
-    				Log.d(Tag, "EnumerationDevice 10");
-    				if (false == mUsbManager.hasPermission(device)) {
-    					Log.d(Tag, "EnumerationDevice 11");
-    					mUsbManager.requestPermission(experiment.shaker.getDevice(), mPermissionIntent);
-    				}
-    			} else {
-    				Log.d(Tag, "EnumerationDevice  12");
-    			}
-    			} while (device != null);
-    		}
-    	}*/
+    		if (true == shaker_can_request_permission)
+    			EnumerationDeviceShaker();
+    	}
     }
    /* private OnRefreshListener onSwipeToRefresh = new OnRefreshListener() {
         public void onRefresh() {
@@ -446,7 +419,6 @@ public class ODMonitorActivity extends Activity {
     
     public void show_chart_activity() {
     	Intent intent = null;
-    	//intent = mCharts[0].execute(this);
     	intent = new Intent(this, ODChartBuilder.class);
     	startActivity(intent);
     }
@@ -465,8 +437,6 @@ public class ODMonitorActivity extends Activity {
         
         return super.onKeyDown(keyCode, event);  
     }
-
-  
 
     public void ConfirmExit(){
         AlertDialog.Builder ad=new AlertDialog.Builder(ODMonitorActivity.this); //創建訊息方塊
@@ -576,8 +546,13 @@ public class ODMonitorActivity extends Activity {
 		    int experiment_status = b.getInt("experiment status");
 		    switch (experiment_status) {
 		        case EXPERIMENT_START:
-		        	experiment_timer.setBase(SystemClock.elapsedRealtime());
-		        	experiment_timer.start();
+		        	Runnable myRunnableThread = new CountDownRunner();
+		        	experiment_time_thread= new Thread(myRunnableThread); 
+		        	experiment_time_run = true;
+		        	experiment_time_thread.start();
+		        	
+		        	//experiment_timer.setBase(SystemClock.elapsedRealtime());
+		        	//experiment_timer.start();
 		        break;
 		        
 		        case EXPERIMENT_RUNNING:
@@ -585,12 +560,14 @@ public class ODMonitorActivity extends Activity {
 		    		int current_instruct_value = b.getInt("current instruct value");
 		    		long current_experiment_time = b.getLong("current experiment time");
 		    		
-		    		String experiment_process = String.format("index:%d,   time:%d,   instruct:%s \n", current_instruct_index, current_experiment_time, experiment_script_data.SCRIPT_INSTRUCT.get(current_instruct_value));
+		    		String experiment_process = "index: " + current_instruct_index + ",  " + "time: " + current_experiment_time + ",  " + "instruct: " + experiment_script_data.SCRIPT_INSTRUCT.get(current_instruct_value) + "\n";
+		    		//String experiment_process = String.format("index:%d,   time:%d,   instruct:%s \n", current_instruct_index, current_experiment_time, experiment_script_data.SCRIPT_INSTRUCT.get(current_instruct_value));
 		    		debug_view.setText(experiment_process);
 		        break;
 		        
 		        case EXPERIMENT_STOP:
-		        	experiment_timer.stop();
+		        	experiment_time_run = false;
+		        	//experiment_timer.stop();
 		        	experiment.close_shaker_port();
 		        break;
 		        
@@ -601,6 +578,10 @@ public class ODMonitorActivity extends Activity {
 		        case EXPERIMENT_NOTIFY_CHART:
 		        	notify_chart_receive_data();
 		        	sensor_data_view.setText(b.getString("experiment sensor data", "no sensor data"));
+		        break;
+		        
+		        case EXPERIMENT_OPEN_SCRIPT_ERROR:
+		        	Toast.makeText(getApplicationContext(), "Script open error!", Toast.LENGTH_SHORT).show();
 		        break;
 		    }
     	}
@@ -623,7 +604,14 @@ public class ODMonitorActivity extends Activity {
 			Message msg;
 			
 			Thread.currentThread().setName("Thread_Experiment");
-			script_activity_list.load_script(list, experiment_item);
+			if (0 != script_activity_list.load_script(list, experiment_item)) {
+				b = new Bundle(1);
+				b.putInt("experiment status", EXPERIMENT_OPEN_SCRIPT_ERROR);
+				msg = mHandler.obtainMessage();
+		        msg.setData(b);
+			    mHandler.sendMessage(msg);
+			    return;
+			}
 			current_instruct_data = (experiment_script_data)experiment_item.get(list.get(next_instruct_index));
 			
 			b = new Bundle(1);
@@ -711,6 +699,39 @@ public class ODMonitorActivity extends Activity {
 			}
 		}
 	}
+    
+    public void doWork(final long elapsed) {
+        runOnUiThread(new Runnable() {
+            public void run() {
+                try{
+                    TextView txtCurrentTime= (TextView)findViewById(R.id.ExperimentTimer);
+                    int hours = (int)(elapsed/3600);
+                    int minutes = (int)((elapsed%3600)/60);
+                    int seconds = (int)((elapsed%3600)%60);
+                    String curTime = "Experiment elapsed time: "+ hours + ":" + minutes + ":" + seconds;
+                    txtCurrentTime.setText(curTime);
+                }catch (Exception e) {}
+            }
+        });
+    }
+
+
+    class CountDownRunner implements Runnable{
+    	long elapsed = 0;
+        // @Override
+        public void run() {
+                while(!Thread.currentThread().isInterrupted() && experiment_time_run){
+                    try {
+                        doWork(elapsed);
+                        Thread.sleep(1000); // Pause of 1 Second
+                        elapsed++;
+                    } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                    }catch(Exception e){
+                    }
+                }
+        }
+    }
 	
 
 	/***********USB broadcast receiver*******************************************/
@@ -721,28 +742,56 @@ public class ODMonitorActivity extends Activity {
 			UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 			if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
 				synchronized (this) {
-				    if ( experiment.mODMonitorSensor != null && experiment.mODMonitorSensor.getDevice() != null) {
+				    if (experiment.mODMonitorSensor != null && experiment.mODMonitorSensor.getDevice() != null) {
 					    if (device.getProductId() == experiment.mODMonitorSensor.getDevice().getProductId() && device.getVendorId() == experiment.mODMonitorSensor.getDevice().getVendorId()) {
 						    Log.i(Tag,"DETACHED sensor...");
 						    experiment.mODMonitorSensor.DeviceOffline();
+						    sensor_status.setEnabled(false);
+						    return;
 					    }
-				    } else if ( experiment.shaker != null && experiment.shaker.getDevice() != null) {
+				    } else {
+				    	
+				    }
+				    
+				    if (experiment.shaker != null && experiment.shaker.getDevice() != null) {
 					    if (device.getProductId() == experiment.shaker.getDevice().getProductId() && device.getVendorId() == experiment.shaker.getDevice().getVendorId()) {
 						    Log.i(Tag,"DETACHED shaker...");
 						    experiment.close_shaker_port();
+						    experiment.shaker.DeviceOffline();
+						    shaker_status.setEnabled(false);
+						    return;
 					    }
+				    } else {
+				    	
 				    }
 				} 	
 			} else {
 				if (action.equals(ACTION_USB_PERMISSION)) {
 					synchronized (this) {
-	                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-	                        if(device != null){
-	                          //
-	                            Log.d(Tag,"PERMISSION-" + device);
+						Log.d(Tag, "mUsbReceiver  id:"+Thread.currentThread().getId() + "process:" + android.os.Process.myTid());
+						if(device != null && experiment.mODMonitorSensor.getDevice() != null){
+							if (device.getProductId() == experiment.mODMonitorSensor.getDevice().getProductId() && device.getVendorId() == experiment.mODMonitorSensor.getDevice().getVendorId()) {
+								experiment.mODMonitorSensor.Enumeration(device);
+								EnumerationDeviceShaker();
+                        	}
+                            Log.d(Tag,"PERMISSION-" + device);
+                        }
+						
+						boolean is_permission = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false);
+	                    if(device != null){
+	                        if (experiment.mODMonitorSensor.getDevice() != null) {
+	                            if (device.getProductId() == experiment.mODMonitorSensor.getDevice().getProductId() && device.getVendorId() == experiment.mODMonitorSensor.getDevice().getVendorId()) {
+	                        		sensor_status.setEnabled(is_permission);
+	                        		return;
+	                        	}
 	                        }
-	                    } else {
-	                    	
+	                        	   
+	                        if (experiment.shaker.getDevice() != null) {
+	                        	if (device.getProductId() == experiment.shaker.getDevice().getProductId() && device.getVendorId() == experiment.shaker.getDevice().getVendorId()) { 
+	                        		shaker_status.setEnabled(is_permission);
+	                        		return;
+	                        	}
+	                        }
 	                    }
 	                }
 				}

@@ -80,7 +80,7 @@
             android:id="@+id/textView4"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:text="Repeat Time" />
+            android:text="Repeat Time(min)" />
 
         <EditText
             android:id="@+id/editText_repeat_time"
@@ -104,7 +104,7 @@
             android:id="@+id/textView5"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:text="Shaker Temperature" />
+            android:text="Shaker Temperature(℃)" />
 
         <EditText
             android:id="@+id/editText_shaker_temperature"
@@ -128,7 +128,7 @@
             android:id="@+id/textView6"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:text="Shaker Speed" />
+            android:text="Shaker Speed(rpm)" />
 
        <EditText
             android:id="@+id/editText_shaker_speed"
@@ -152,7 +152,7 @@
             android:id="@+id/textView7"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:text="Delay" />
+            android:text="Delay(sec)" />
 
        <EditText
             android:id="@+id/editText_delay"
