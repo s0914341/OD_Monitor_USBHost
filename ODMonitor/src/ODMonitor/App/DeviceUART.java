@@ -431,7 +431,7 @@ public class DeviceUART {
     	@Override
     	public void handleMessage(Message msg) {
     		int readDataAvailableLength = msg.getData().getInt("read_data_available_length");
-    		if(readDataAvailableLength > 0) {
+    		if((readDataAvailableLength > 0) && (null != readText)) {
     			char[] readDataChar = msg.getData().getCharArray("read_data_char_array");
     			readText.setText(String.copyValueOf(readDataChar, 0, readDataAvailableLength));
     		}

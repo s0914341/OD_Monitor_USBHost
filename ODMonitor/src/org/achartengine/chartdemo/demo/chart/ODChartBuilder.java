@@ -319,7 +319,8 @@ public class ODChartBuilder extends Activity {
                 	for (int i = 0; i < chart_count; i++) {
                 	    double od_value = 0;
                 	    current_raw_index = one_sensor_data.get_sensor_get_index();
-   		                od_value = OD_calculate.calculate_od(one_sensor_data.get_channel_data());      
+                	    od_value = one_sensor_data.get_sensor_od_value();   
+   		               // od_value = OD_calculate.calculate_od(one_sensor_data.get_channel_data());      
    		                index[i] = current_raw_index;
    		                date[i] = one_sensor_data.get_sensor_measurement_time();
    		                od[i] = od_value;
@@ -376,7 +377,8 @@ public class ODChartBuilder extends Activity {
 				 date = new Date(one_sensor_data.get_sensor_measurement_time());	 
 				 offset += sensor_data_composition.total_size;
 				 
-		         od_value = OD_calculate.calculate_od(one_sensor_data.get_channel_data());      
+				 od_value = one_sensor_data.get_sensor_od_value();    
+		        // od_value = OD_calculate.calculate_od(one_sensor_data.get_channel_data());      
 		         if (mCurrentSeries == null) {
 		        	 chart_start_time = date.getTime();
 		             mRenderer.setRange(new double[] {chart_start_time, chart_start_time+20000, od_value-2, od_value+2});

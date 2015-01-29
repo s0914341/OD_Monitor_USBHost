@@ -203,6 +203,10 @@ public class ExperimentalOperationInstruct {
 		return current_one_sensor_data.get_sensor_data_string();
 	}
 	
+	public sensor_data_composition get_current_one_sensor_data() {
+		return current_one_sensor_data;
+	}
+	
 	/*public int save_sensor_data_to_file(int index, long time, String inStr) {
 		int ret = 0;
 		
@@ -240,6 +244,7 @@ public class ExperimentalOperationInstruct {
 	
 	public int save_sensor_data_to_file(int index, long time, int[] raw_data) {
 		int ret = 0;
+		double od_value = 0;
 		
         file_operate_byte_array write_file = new file_operate_byte_array("od_sensor", "sensor_offline_byte", true);
     	try {
@@ -252,10 +257,12 @@ public class ExperimentalOperationInstruct {
     		    	// write this sensor data time to file
     		    	current_one_sensor_data.set_sensor_measurement_time(time);
     		    	current_one_sensor_data.set_raw_sensor_data(raw_data);
+    		    	od_value = OD_calculate.calculate_od(current_one_sensor_data.get_channel_data()); 
+    		    	current_one_sensor_data.set_sensor_od_value(od_value);
     		    	write_file.write_file(current_one_sensor_data.buffer);
     		    } else {
     		    	ret = -3;
-    		    	Log.e(Tag, "parse raw data fail");
+    		    	Log.e(Tag, "raw data length is not match");
     		    }
     		} else {
     			ret = -2;
@@ -276,47 +283,6 @@ public class ExperimentalOperationInstruct {
 		char[] readDataChar = new char[128];
 		int receive_length = 0;
 		int try_count = 3;
-		
-	/*	if (mODMonitorSensor.isDeviceOnline()) {
-        	mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_REQUEST_RAW_DATA, 0, 0, null, 1 );
-        	try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-			}
-        	mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_GET_RAW_DATA, 0, 0, sensor_raw_buffer, 0 );
-     
-        }*/
-		
-	/*	if (0 < sensor.createDeviceList() && (sensor_port_num >= 0)) {
-    	    if (0 == sensor.connectFunction(sensor_port_num)) {
-    	    	sensor.SetConfig(sensor.baudRate, sensor.dataBit, sensor.stopBit, sensor.parity, sensor.flowControl);
-    	    	
-    	    	while ((try_count--) > 0) {
-    		        if (0 < (receive_length = sensor.SendMessage("Request OD data\r", readDataChar))) {
-    		    	    String index_str = String.copyValueOf(readDataChar, 0, 5);
-    		    	    if (true == index_str.equals("index")) {
-    		    	        String read_string = String.copyValueOf(readDataChar, 0, receive_length);
-    		    	        if (0 == save_sensor_data_to_file(sensor_data_index, new Date().getTime(), read_string)) {
-    		    	        	sensor_data_index++;
-    		    	            ret = 0;
-    		    	        }
-    		    	        Toast.makeText(ExperimentalOperationInstructContext, read_string, Toast.LENGTH_SHORT).show();
-    		    	        break;
-    		    	    }
-    		        }
-    	    	}
-    		    sensor.disconnectFunction();
-    	    } else {
-    		    Log.d(Tag, "sensor connect NG");
-    	    } 		
-        } else {
-    	    Log.d(Tag, "no device on list");
-        }
-		
-		if (ret == 0)
-			Toast.makeText(ExperimentalOperationInstructContext, "sensor request OK", Toast.LENGTH_SHORT).show();
-		else
-			Toast.makeText(ExperimentalOperationInstructContext, "sensor request fail", Toast.LENGTH_SHORT).show();*/
 		
 		if (mODMonitorSensor.isDeviceOnline() ) {
 	        mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_REQUEST_RAW_DATA, 0, 0, null, 1 );

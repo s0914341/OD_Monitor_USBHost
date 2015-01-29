@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
@@ -48,6 +49,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbDevice;
@@ -74,11 +78,13 @@ import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.Chronometer.OnChronometerTickListener;
 import android.widget.EditText;
+import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -118,10 +124,9 @@ public class ODMonitorActivity extends Activity {
     public ProgressBar slider;
     
     public ImageButton start_button; //Button led1;
-    public ImageButton button2; //Button led2;
     public ImageButton stop_button; //Button led3;
-    public ImageButton button4; //Button led4;
-    public ImageButton button5;
+    public ImageButton chart_button; //Button led4;
+    public ImageButton script_button;
     public ImageButton button6;
     
     public ImageView ledvolume;
@@ -129,10 +134,10 @@ public class ODMonitorActivity extends Activity {
     public ImageView sensor_status;
     public ImageView shaker_status;
     
-    public EditText etInput; //shaker command input
-    public TextView shaker_return;
-    public TextView debug_view;
-    public TextView sensor_data_view;
+    //public EditText etInput; //shaker command input
+   // public TextView shaker_return;
+   // public TextView debug_view;
+   // public TextView sensor_data_view;
     public int get_experiment_data_start = 0;
     public long script_length = 0;
     public int script_offset = 0;
@@ -144,7 +149,6 @@ public class ODMonitorActivity extends Activity {
     public sync_data sync_send_script;
     public sync_data sync_start_experiment;
     
-    public TextView textView2;
     public ProgressDialog mypDialog;
     public sync_data sync_get_experiment;
     public sync_data sync_chart_notify;
@@ -158,9 +162,20 @@ public class ODMonitorActivity extends Activity {
      * FTDI D2xx USB to UART
      */
     public static D2xxManager ftD2xx = null;
-    public DeviceUART shaker;
     public ExperimentalOperationInstruct experiment;
     boolean mRequest_USB_permission;
+    
+    GVTable table;
+	SQLiteDatabase db;
+	int id;
+	private static final String TABLE_NAME = "stu";
+	private static final String INDEX = "NO";
+	private static final String DATE = "date";
+	private static final String OD1 = "OD1";
+	private static final String OD2 = "OD2";
+	private static final String OD3 = "OD3";
+	private static final String OD4 = "OD4";
+    
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -177,16 +192,40 @@ public class ODMonitorActivity extends Activity {
         Log.d(Tag, "filter" +filter);
         this.registerReceiver(mUsbReceiver, filter);   
 		
-		shaker_return = (TextView)findViewById(R.id.ShakerReturn);
-		shaker_return.setMovementMethod(new ScrollingMovementMethod());
-		debug_view = (TextView)findViewById(R.id.ExperimentInformation);
-		debug_view.setMovementMethod(new ScrollingMovementMethod());
-		sensor_data_view = (TextView)findViewById(R.id.SensorData);
-		sensor_data_view.setMovementMethod(new ScrollingMovementMethod());
+		//shaker_return = (TextView)findViewById(R.id.ShakerReturn);
+		//shaker_return.setMovementMethod(new ScrollingMovementMethod());
+		//debug_view = (TextView)findViewById(R.id.ExperimentInformation);
+		//debug_view.setMovementMethod(new ScrollingMovementMethod());
+		//sensor_data_view = (TextView)findViewById(R.id.SensorData);
+		//sensor_data_view.setMovementMethod(new ScrollingMovementMethod());
 		sensor_status = (ImageView)findViewById(R.id.SensorStatus);
 		sensor_status.setEnabled(false);
 		shaker_status = (ImageView)findViewById(R.id.ShakerStatus);
 		shaker_status.setEnabled(false);
+		
+		table = new GVTable(this);
+		table.gvSetTableRowCount(50);//?置每?分?的ROW??
+		LinearLayout ly = (LinearLayout) findViewById(R.id.GridLayout);
+		table.setTableOnClickListener(new GVTable.OnTableClickListener() {
+			//@Override
+			public void onTableClickListener(int x,int y,Cursor c) {
+				c.moveToPosition(y);
+				String str=c.getString(x)+" 位置:("+String.valueOf(x)+","+String.valueOf(y)+")";
+				Toast.makeText(ODMonitorActivity.this, str, Toast.LENGTH_SHORT).show();
+			}
+		});
+		table.setOnPageSwitchListener(new GVTable.OnPageSwitchListener() {
+			
+		//	@Override
+			public void onPageSwitchListener(int pageID,int pageCount) {
+				String str="共有"+String.valueOf(pageCount)+
+				" ?前第"+String.valueOf(pageID)+"?";
+				Toast.makeText(ODMonitorActivity.this, str, Toast.LENGTH_SHORT).show();
+			}
+		});
+		
+		ly.addView(table);
+		
 		//data_write_thread = new data_write_thread(handler);
 		//data_write_thread.start();
 	//	textView2 = (TextView) findViewById(R.id.test);
@@ -215,10 +254,11 @@ public class ODMonitorActivity extends Activity {
     	}
   
         SetupD2xxLibrary();
-		shaker = new DeviceUART(this, ftD2xx, shaker_return);
-		experiment = new ExperimentalOperationInstruct(context, ftD2xx, shaker_return);
+		//shaker = new DeviceUART(this, ftD2xx, shaker_return);
+		//experiment = new ExperimentalOperationInstruct(context, ftD2xx, shaker_return);
+        experiment = new ExperimentalOperationInstruct(context, ftD2xx, null);
                
-		start_button = (ImageButton) findViewById(R.id.Button1);
+		start_button = (ImageButton) findViewById(R.id.ButtonStart);
 		start_button.setOnClickListener(new View.OnClickListener() {
 		    public void onClick(View v) {
 		    	boolean sensor_connected = sensor_status.isEnabled();
@@ -229,6 +269,7 @@ public class ODMonitorActivity extends Activity {
 		    	} else {
 		    	    if (false == experiment_thread_run) {
 		    	        if (0 == experiment.initial_experiment_devices()) {
+		    	        	table.gvRemoveAll();
 		    	            experiment_stop = false;
 		    	            experiment_thread_run = true;
 		    	            new Thread(new experiment_thread(handler)).start(); 
@@ -240,14 +281,7 @@ public class ODMonitorActivity extends Activity {
 		    }
 		});
         
-        /*button2 = (ImageButton) findViewById(R.id.Button2);
-        button2.setOnClickListener(new View.OnClickListener() {		
-			public void onClick(View v) {
-				new Thread(new get_experiment_task()).start();
-			}
-		});*/
-        
-		stop_button = (ImageButton) findViewById(R.id.Button3);
+		stop_button = (ImageButton) findViewById(R.id.ButtonStop);
 		stop_button.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				if (true == experiment_thread_run) {
@@ -259,15 +293,15 @@ public class ODMonitorActivity extends Activity {
 			}
 		});
         
-        button4 = (ImageButton) findViewById(R.id.Button4);
-        button4.setOnClickListener(new View.OnClickListener() {
+        chart_button = (ImageButton) findViewById(R.id.ButtonChart);
+        chart_button.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
         		show_chart_activity();
 			}
 		});  
         
-        button5 = (ImageButton) findViewById(R.id.Button5);
-        button5.setOnClickListener(new View.OnClickListener() {
+        script_button = (ImageButton) findViewById(R.id.ButtonScript);
+        script_button.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
         		show_script_activity();
 			}
@@ -283,7 +317,7 @@ public class ODMonitorActivity extends Activity {
 			}
 		});*/
         
-        etInput = (EditText)findViewById(R.id.etInput); 
+       /* etInput = (EditText)findViewById(R.id.etInput); 
         etInput.setOnKeyListener(new OnKeyListener() {
         public boolean onKey(View v, int keyCode, KeyEvent event) { 
             if(event.getAction() == KeyEvent.ACTION_DOWN && 
@@ -314,17 +348,8 @@ public class ODMonitorActivity extends Activity {
             } 
            return false; 
          } 
-         });
+         });*/
         
- /*       laySwipe = (SwipeRefreshLayout) findViewById(R.id.laySwipe);
-      //  laySwipe.setOnRefreshListener(this);
-        laySwipe.setOnRefreshListener(onSwipeToRefresh);
-        laySwipe.setColorSchemeResources(
-        	    android.R.color.holo_red_light, 
-        	    android.R.color.holo_blue_light, 
-        	    android.R.color.holo_green_light, 
-        	    android.R.color.holo_orange_light);*/
-      
         Log.d ( Tag, "intent get action: " +this.getIntent().getAction());
         Log.d(Tag, "on Create");
         mRequest_USB_permission = false;
@@ -332,6 +357,35 @@ public class ODMonitorActivity extends Activity {
 		mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
         EnumerationDevice(getIntent());
     }
+    
+	void CreateDB() {
+		// 在?存?建?据?
+		db = SQLiteDatabase.create(null);
+		Log.e("DB Path", db.getPath());
+		String amount = String.valueOf(databaseList().length);
+		Log.e("DB amount", amount);
+		// ?建?据表
+		String sql = "CREATE TABLE " + TABLE_NAME + " (" + 
+		        INDEX	+ " text not null, " + DATE + " text not null," + OD1 + " text not null," +
+		        OD2	+ " text not null, " + OD3 + " text not null," +
+		        OD4	+ " text not null "+");";
+		try {
+			db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+			db.execSQL(sql);
+		} catch (SQLException e) {}
+	}
+
+	void InsertRecord(sensor_data_composition sensor_data) {
+		String sql = "insert into " + TABLE_NAME + " (" + 
+			INDEX + ", " + DATE + ", " + OD1 + ", " + OD2 + ", " + OD3 + ", " + OD4
+					+ ") values('" + sensor_data.get_sensor_get_index_string()
+					+ "', '" + sensor_data.get_sensor_measurement_time_string() + "','"
+					+ sensor_data.get_sensor_od_value_string() + "','0.2','0.3','0.4');";
+		try {
+			db.execSQL(sql);
+		} catch (SQLException e) {
+		}
+	}
     
     public void EnumerationDeviceShaker() {
     	if (experiment.shaker.Enumeration()) {
@@ -370,11 +424,6 @@ public class ODMonitorActivity extends Activity {
     			EnumerationDeviceShaker();
     	}
     }
-   /* private OnRefreshListener onSwipeToRefresh = new OnRefreshListener() {
-        public void onRefresh() {
-        	new Thread(new get_machine_info_task(UIhandler)).start();
-        }
-    };*/
     
     @Override
     protected void onNewIntent(Intent intent) {
@@ -550,9 +599,7 @@ public class ODMonitorActivity extends Activity {
 		        	experiment_time_thread= new Thread(myRunnableThread); 
 		        	experiment_time_run = true;
 		        	experiment_time_thread.start();
-		        	
-		        	//experiment_timer.setBase(SystemClock.elapsedRealtime());
-		        	//experiment_timer.start();
+		        	CreateDB();
 		        break;
 		        
 		        case EXPERIMENT_RUNNING:
@@ -562,12 +609,13 @@ public class ODMonitorActivity extends Activity {
 		    		
 		    		String experiment_process = "index: " + current_instruct_index + ",  " + "time: " + current_experiment_time + ",  " + "instruct: " + experiment_script_data.SCRIPT_INSTRUCT.get(current_instruct_value) + "\n";
 		    		//String experiment_process = String.format("index:%d,   time:%d,   instruct:%s \n", current_instruct_index, current_experiment_time, experiment_script_data.SCRIPT_INSTRUCT.get(current_instruct_value));
-		    		debug_view.setText(experiment_process);
+		    		//debug_view.setText(experiment_process);
 		        break;
 		        
 		        case EXPERIMENT_STOP:
 		        	experiment_time_run = false;
 		        	//experiment_timer.stop();
+					db.close();
 		        	experiment.close_shaker_port();
 		        break;
 		        
@@ -577,7 +625,14 @@ public class ODMonitorActivity extends Activity {
 		        
 		        case EXPERIMENT_NOTIFY_CHART:
 		        	notify_chart_receive_data();
-		        	sensor_data_view.setText(b.getString("experiment sensor data", "no sensor data"));
+		        	sensor_data_composition sensor_data = (sensor_data_composition)b.getSerializable("sensor_data_composition");
+		        	if (null != sensor_data) {
+		        		InsertRecord(sensor_data);
+		        		table.gvUpdatePageBar("select count(*) from " + TABLE_NAME,db);
+						table.gvReadyTable("select * from " + TABLE_NAME,db);
+						table.refresh_last_table();
+		        	}
+		        //	sensor_data_view.setText(b.getString("experiment sensor data", "no sensor data"));
 		        break;
 		        
 		        case EXPERIMENT_OPEN_SCRIPT_ERROR:
@@ -655,10 +710,12 @@ public class ODMonitorActivity extends Activity {
 				    case experiment_script_data.INSTRUCT_READ_SENSOR:
 				        ret = experiment.read_sensor_instruct(current_instruct_data);
 				        if (0 == ret) {
-				        	String sensor_string = experiment.get_current_one_sensor_data_string();
+				        	sensor_data_composition sensor_data = experiment.get_current_one_sensor_data();
+				        	String sensor_string = sensor_data.get_sensor_data_string();
 				        	b = new Bundle(1);
 				        	b.putInt("experiment status", EXPERIMENT_NOTIFY_CHART);
 							b.putString("experiment sensor data", sensor_string);
+							b.putSerializable("sensor_data_composition", sensor_data);
 							msg = mHandler.obtainMessage();
 					        msg.setData(b);
 						    mHandler.sendMessage(msg);

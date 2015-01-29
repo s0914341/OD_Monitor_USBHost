@@ -12,7 +12,7 @@
         	android:layout_height="250dp" 
         	android:id="@+id/frameLayout2" 
         	android:layout_width="match_parent" 
-        	android:background="@drawable/border2">
+        	android:background="@drawable/border2_large">
         	
         	<TextView 
             	android:id="@+id/MachineInformation" 
@@ -20,285 +20,218 @@
             	android:layout_width="wrap_content" 
             	android:layout_height="wrap_content" 
             	android:layout_alignParentLeft="true" 
-            	android:text="Machine status information"
+            	android:text="Devices status information"
             	android:layout_marginLeft="25dp"
             	android:layout_marginTop="10dp"
             	android:textStyle="bold">
             </TextView>
- 
-            <!-- <TextView 
-            	android:id="@+id/ViewMassStorage" 
-            	android:textAppearance="?android:attr/textAppearanceMedium"
-            	android:layout_width="wrap_content" 
-            	android:layout_height="wrap_content" 
-            	android:layout_alignParentLeft="true" 
-            	android:text="MassStorage"
-            	android:layout_marginLeft="42dp"
-            	android:layout_marginTop="50dp">
-            </TextView>
             
-        	<TextView 
-            	android:id="@+id/ViewShaker" 
-            	android:textAppearance="?android:attr/textAppearanceMedium"
-            	android:layout_width="wrap_content" 
-            	android:layout_height="wrap_content" 
-            	android:text="Shaker"
-            	android:layout_toRightOf="@+id/ViewMassStorage" 
-            	android:layout_alignTop="@+id/ViewMassStorage" 
-            	android:layout_alignBottom="@+id/ViewMassStorage"
-            	android:layout_alignLeft="@+id/ShakerStatus">
-            </TextView> -->
+    
+            <LinearLayout 
+                android:id="@+id/ShakerLayout" 
+                android:orientation="vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="50dp"
+                android:layout_marginLeft="42dp"
+                android:gravity="center">
+                
+                <ImageView 
+            	    android:src="@drawable/view_shaker" 
+            	    android:id="@+id/ShakerStatus" 
+            	    android:layout_width="50pt"
+                    android:layout_height="50pt"
+                    android:layout_marginTop="5pt">
+                </ImageView>
+                
+                <TextView 
+            	    android:id="@+id/ViewShaker" 
+            	    android:textAppearance="?android:attr/textAppearanceMedium"
+            	    android:layout_height="fill_parent"
+                    android:layout_width="fill_parent" 
+            	    android:text="Shaker"
+                    android:gravity="center"
+                    android:textSize="10pt"
+                    android:paddingTop = "15dp"
+                    android:paddingBottom = "5dp">
+                </TextView>
+            </LinearLayout>
             
-            <TextView 
-            	android:id="@+id/ViewShaker" 
-            	android:textAppearance="?android:attr/textAppearanceMedium"
-            	android:layout_width="wrap_content" 
-            	android:layout_height="wrap_content" 
-            	android:layout_alignParentLeft="true" 
-            	android:text="Shaker"
-            	android:layout_marginLeft="42dp"
-            	android:layout_marginTop="50dp">
-            </TextView>
+            <LinearLayout 
+                android:orientation="vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="70dp"
+            	android:layout_toRightOf="@+id/ShakerLayout" 
+            	android:layout_alignTop="@+id/ShakerLayout" 
+            	android:layout_alignBottom="@+id/ShakerLayout"
+                android:gravity="center">
+                
+                <ImageView 
+            	    android:src="@drawable/view_sensor" 
+            	    android:id="@+id/SensorStatus" 
+            	    android:layout_width="50pt"
+                    android:layout_height="50pt"
+                    android:layout_marginTop="5pt">
+                </ImageView>
             
-        	<TextView 
-            	android:id="@+id/ViewSensor" 
-            	android:textAppearance="?android:attr/textAppearanceMedium"
-            	android:layout_width="wrap_content" 
-            	android:layout_height="wrap_content" 
-            	android:text="Sensor"
-            	android:layout_toRightOf="@+id/ViewShaker" 
-            	android:layout_alignTop="@+id/ViewShaker" 
-            	android:layout_alignBottom="@+id/ViewShaker"
-            	android:layout_alignLeft="@+id/SensorStatus">
-            </TextView>
-            
-        	<!-- <TextView 
-            	android:id="@+id/ViewConnect" 
-            	android:textAppearance="?android:attr/textAppearanceMedium"
-            	android:layout_width="wrap_content" 
-            	android:layout_height="wrap_content" 
-            	android:text="Connect"
-            	android:layout_toRightOf="@+id/ViewSensor" 
-            	android:layout_alignTop="@+id/ViewSensor" 
-            	android:layout_alignBottom="@+id/ViewSensor"
-            	android:layout_alignLeft="@+id/ConnectStatus">
-            </TextView> -->
-             
-           <!--  <ImageView 
-            	android:layout_width="100dp" 
-            	android:src="@drawable/view_mass_storage" 
-            	android:id="@+id/MassStorageStatus" 
-            	android:layout_height="100dp" 
-                android:layout_marginTop="100dp"
-            	android:layout_marginLeft="42dp">
-            </ImageView>
-            
-            <ImageView 
-            	android:layout_width="100dp" 
-            	android:src="@drawable/view_shaker" 
-            	android:id="@+id/ShakerStatus" 
-            	android:layout_height="100dp" 
-            	android:layout_marginLeft="80dp"
-            	android:layout_toRightOf="@+id/MassStorageStatus" 
-            	android:layout_alignTop="@+id/MassStorageStatus" 
-            	android:layout_alignBottom="@+id/MassStorageStatus">
-            </ImageView> -->
-            
-            <ImageView 
-            	android:layout_width="100dp" 
-            	android:src="@drawable/view_shaker" 
-            	android:id="@+id/ShakerStatus" 
-            	android:layout_height="100dp" 
-                android:layout_marginTop="100dp"
-            	android:layout_marginLeft="42dp">
-            </ImageView>
-            
-             <ImageView 
-            	android:layout_width="100dp" 
-            	android:src="@drawable/view_sensor" 
-            	android:id="@+id/SensorStatus" 
-            	android:layout_height="100dp" 
-            	android:layout_marginLeft="80dp"
-            	android:layout_toRightOf="@+id/ShakerStatus" 
-            	android:layout_alignTop="@+id/ShakerStatus" 
-            	android:layout_alignBottom="@+id/ShakerStatus">
-            </ImageView>
-             
-           <!--   <ImageView 
-            	android:layout_width="100dp" 
-            	android:src="@drawable/view_connect" 
-            	android:id="@+id/ConnectStatus" 
-            	android:layout_height="100dp" 
-            	android:layout_marginLeft="80dp"
-            	android:layout_toRightOf="@+id/SensorStatus" 
-            	android:layout_alignTop="@+id/SensorStatus" 
-            	android:layout_alignBottom="@+id/SensorStatus">
-            </ImageView> -->
+        	    <TextView 
+            	    android:id="@+id/ViewSensor" 
+            	    android:textAppearance="?android:attr/textAppearanceMedium"
+            	    android:layout_height="fill_parent"
+                    android:layout_width="fill_parent" 
+            	    android:text="Sensor"
+            	    android:gravity="center"
+            	    android:textSize="10pt"
+                    android:paddingTop = "15dp"
+                    android:paddingBottom = "5dp">
+                </TextView>
+            </LinearLayout>   
     </RelativeLayout>
-   
+ 
     
     <RelativeLayout 
         	android:layout_height="160dp" 
         	android:id="@+id/relativeLayout1" 
         	android:layout_width="fill_parent" 
-        	android:background="@drawable/border2">
+        	android:background="@drawable/border2_large">
         	
+       <LinearLayout 
+           android:id="@+id/StartLayout" 
+           android:orientation="vertical"
+           android:layout_width="60pt"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="20dp"
+           android:layout_marginLeft="20dp"
+           android:gravity="center">
+        	    
         	<TextView 
-            	android:id="@+id/textViewButton1" 
+            	android:id="@+id/textViewStartButton" 
             	android:textAppearance="?android:attr/textAppearanceMedium"
-            	android:layout_width="wrap_content" 
-            	android:layout_height="wrap_content" 
-            	android:layout_alignParentLeft="true" 
+            	android:layout_width="fill_parent" 
+            	android:layout_height="fill_parent" 
             	android:text="Start"
-            	android:layout_marginLeft="55dp"
-            	android:layout_marginTop="20dp"
-            	android:textStyle="bold">
+            	android:gravity="center"
+            	android:textSize="10pt">
             </TextView>
             
-        	<!-- <TextView 
-            	android:id="@+id/textViewButton2" 
-            	android:textAppearance="?android:attr/textAppearanceMedium"
-            	android:layout_width="wrap_content" 
-            	android:layout_height="wrap_content" 
-            	android:layout_toRightOf="@+id/textViewButton1" 
-            	android:layout_alignTop="@+id/textViewButton1" 
-            	android:layout_alignLeft="@+id/Button2"
-            	android:layout_alignBottom="@+id/textViewButton1"
-            	android:text="Get Data"
-            	android:textStyle="bold">
-            </TextView> -->
-            
-        	<TextView 
-            	android:id="@+id/textViewButton3" 
-            	android:textAppearance="?android:attr/textAppearanceMedium"
-            	android:layout_width="wrap_content" 
-            	android:layout_height="wrap_content" 
-            	android:layout_toRightOf="@+id/textViewButton1" 
-            	android:layout_alignLeft="@+id/Button3"
-            	android:layout_alignTop="@+id/textViewButton1" 
-            	android:layout_alignBottom="@+id/textViewButton1"
-            	android:text="Stop"
-            	android:textStyle="bold">
-            </TextView>
-            
-        	<TextView 
-            	android:id="@+id/textViewButton4" 
-            	android:textAppearance="?android:attr/textAppearanceMedium"
-            	android:layout_width="wrap_content" 
-            	android:layout_height="wrap_content" 
-            	android:layout_toRightOf="@+id/textViewButton3" 
-            	android:layout_alignLeft="@+id/Button4"
-            	android:layout_alignTop="@+id/textViewButton3" 
-            	android:layout_alignBottom="@+id/textViewButton3"
-            	android:text="Chart"
-            	android:textStyle="bold">
-            </TextView>
-            
-        	<TextView 
-            	android:id="@+id/textViewButton5" 
-            	android:textAppearance="?android:attr/textAppearanceMedium"
-            	android:layout_width="wrap_content" 
-            	android:layout_height="wrap_content" 
-            	android:layout_toRightOf="@+id/textViewButton4" 
-            	android:layout_alignLeft="@+id/Button5"
-            	android:layout_alignTop="@+id/textViewButton4" 
-            	android:layout_alignBottom="@+id/textViewButton4"
-            	android:text="Script Set"
-            	android:textStyle="bold">
-            </TextView>
-        	
-            <!-- <ToggleButton 
-                android:textOn="" 
-                android:textOff=""
-                android:background="@drawable/start_button" 
-            	android:scaleType="fitCenter" 
+        	<ImageButton 
+                android:background="@drawable/buttons_start" 
             	android:layout_width="80dp" 
             	android:layout_height="80dp" 
-            	android:id="@+id/Button1" 
-            	android:adjustViewBounds="false" 
-            	android:layout_marginTop="50dp"
-            	android:layout_marginLeft="42dp" android:focusable="true">
-            </ToggleButton> -->
+            	android:id="@+id/ButtonStart" 
+            	android:layout_marginTop="15dp">
+            </ImageButton>
+       </LinearLayout>
+            
+       <LinearLayout 
+           android:id="@+id/StopLayout" 
+           android:orientation="vertical"
+           android:layout_width="60pt"
+           android:layout_height="wrap_content"
+           android:layout_toRightOf="@+id/StartLayout" 
+           android:layout_marginTop="20dp"
+           android:gravity="center">
+        	
+        	<TextView 
+            	android:id="@+id/textViewStopButton" 
+            	android:textAppearance="?android:attr/textAppearanceMedium"
+            	android:layout_width="fill_parent" 
+            	android:layout_height="fill_parent" 
+            	android:text="Stop"
+            	android:gravity="center"
+            	android:textSize="10pt">
+            </TextView>
             
             <ImageButton 
-                android:background="@drawable/buttons_start" 
-            	android:scaleType="fitCenter" 
+            	android:background="@drawable/buttons_stop" 
             	android:layout_width="80dp" 
-            	android:layout_height="80dp" 
-            	android:id="@+id/Button1" 
-            	android:adjustViewBounds="false" 
-            	android:layout_marginTop="50dp"
-            	android:layout_marginLeft="42dp">
-            </ImageButton>
-            
-          <!--   <ImageButton
-           	 		android:background="@drawable/buttons_get_data" 
-           	 		android:id="@+id/Button2" 
-           	 		android:layout_height="80dp" 
-           	 		android:layout_width="80dp"
-           	 		android:scaleType="fitCenter" 
-            		android:adjustViewBounds="false"
-            		android:layout_marginLeft="30dp"   	 		
-           	 		android:layout_toRightOf="@+id/Button1" 
-           	 		android:layout_alignTop="@+id/Button1">
-           	</ImageButton> -->
-             
-           	<ImageButton 
-            		android:background="@drawable/buttons_stop" 
-            		android:layout_width="80dp" 
-            		android:id="@+id/Button3" 
-            		android:layout_height="80dp"
-            		android:adjustViewBounds="false" 
-            		android:layout_toRightOf="@+id/Button1"            		
-            		android:layout_alignTop="@+id/Button1"
-            		android:scaleType="fitCenter" 
-            		android:layout_marginLeft="30dp">
+            	android:layout_height="80dp"
+            	android:id="@+id/ButtonStop" 
+            	android:layout_marginTop="15dp">
             </ImageButton>           
-               
-           	<ImageButton 
-            		android:background="@drawable/buttons_chart" 
-            		android:layout_width="80dp" 
-            		android:id="@+id/Button4" 
-            		android:layout_height="80dp"
-            		android:adjustViewBounds="false" 
-            		android:layout_toRightOf="@+id/Button3"            		
-            		android:layout_alignTop="@+id/Button3"
-            		android:scaleType="fitCenter" 
-            		android:layout_marginLeft="30dp">
-            </ImageButton> 
+       </LinearLayout>
             
-           	<ImageButton 
-            		android:background="@drawable/buttons_script" 
-            		android:layout_width="80dp" 
-            		android:id="@+id/Button5" 
-            		android:layout_height="80dp"
-            		android:adjustViewBounds="false" 
-            		android:layout_toRightOf="@+id/Button4"            		
-            		android:layout_alignTop="@+id/Button4"
-            		android:scaleType="fitCenter"
-            		android:layout_marginLeft="30dp">
-            </ImageButton> 
-            
-           	<!-- <ImageButton 
-            		android:background="@drawable/buttons" 
-            		android:layout_width="80dp" 
-            		android:id="@+id/Button6" 
-            		android:layout_height="80dp"
-            		android:adjustViewBounds="false" 
-            		android:layout_toRightOf="@+id/Button5"            		
-            		android:layout_alignTop="@+id/Button5"
-            		android:scaleType="fitCenter"
-            		android:layout_marginLeft="30dp">
-            </ImageButton>  -->
-            
-        </RelativeLayout>          
-        
-        <RelativeLayout  
-        	android:layout_height="800dp" 
-        	android:id="@+id/frameLayoutShaker" 
-        	android:layout_width="match_parent" 
-        	android:background="@drawable/border2">
+       <LinearLayout 
+           android:id="@+id/ChartLayout" 
+           android:orientation="vertical"
+           android:layout_width="60pt"
+           android:layout_height="wrap_content"
+           android:layout_toRightOf="@+id/StopLayout" 
+           android:layout_marginTop="20dp"
+           android:gravity="center">
         	<TextView 
+            	android:id="@+id/textViewChartButton" 
+            	android:textAppearance="?android:attr/textAppearanceMedium"
+            	android:layout_width="fill_parent" 
+            	android:layout_height="fill_parent" 
+            	android:text="Chart"
+            	android:gravity="center"
+            	android:textSize="10pt">
+            </TextView>
+            
+        	<ImageButton 
+            	android:background="@drawable/buttons_chart" 
+            	android:layout_width="80dp" 
+            	android:layout_height="80dp"
+            	android:id="@+id/ButtonChart" 
+            	android:layout_marginTop="15dp">
+            </ImageButton> 
+       </LinearLayout>
+            
+       <LinearLayout 
+           android:id="@+id/ScriptLayout" 
+           android:orientation="vertical"
+           android:layout_width="60pt"
+           android:layout_height="wrap_content"
+           android:layout_toRightOf="@+id/ChartLayout" 
+           android:layout_marginTop="20dp"
+           android:gravity="center">
+        	
+        	<TextView 
+            	android:id="@+id/textViewScriptButton" 
+            	android:textAppearance="?android:attr/textAppearanceMedium"
+            	android:layout_width="fill_parent" 
+            	android:layout_height="fill_parent"
+            	android:text="Script Set"
+            	android:gravity="center"
+            	android:textSize="10pt">
+            </TextView>
+            
+           	<ImageButton 
+            	android:background="@drawable/buttons_script" 
+            	android:layout_width="80dp" 
+            	android:layout_height="80dp"
+            	android:id="@+id/ButtonScript" 
+            	android:layout_marginTop="15dp">
+            </ImageButton> 
+       </LinearLayout>             
+    </RelativeLayout>          
+        
+    <RelativeLayout  
+        android:layout_height="fill_parent" 
+        android:id="@+id/frameLayoutShaker" 
+        android:layout_width="fill_parent" 
+        android:background="@drawable/border2_large">
+       
+             <TextView
+                android:id="@+id/ExperimentTimer"
+                android:layout_marginLeft="25dp"
+                android:layout_width="fill_parent"
+                android:textStyle="bold"
+                android:layout_height="wrap_content">
+            </TextView>
+            
+             <LinearLayout 
+                 android:id="@+id/GridLayout" 
+                 android:orientation="vertical"
+                 android:layout_below="@+id/ExperimentTimer"
+                 android:layout_width="fill_parent"
+                 android:layout_height="600dp"
+                 android:layout_marginLeft="20dp"
+                 android:layout_marginRight="20dp">
+           	</LinearLayout>
+        	<!-- <TextView 
             	android:id="@+id/shaker" 
             	android:textAppearance="?android:attr/textAppearanceMedium"
             	android:layout_width="wrap_content" 
@@ -364,8 +297,7 @@
                 android:layout_width="fill_parent"
                 android:textStyle="bold"
                 android:layout_height="wrap_content">
-            </TextView>
+            </TextView> -->
                                  
-        </RelativeLayout>
-        
+    </RelativeLayout>    
 </LinearLayout> 

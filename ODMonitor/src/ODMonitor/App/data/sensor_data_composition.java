@@ -1,9 +1,14 @@
 package ODMonitor.App.data;
 
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class sensor_data_composition {
+public class sensor_data_composition implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5176695259056597839L;
 	public static final int raw_sensor_index_index = 0;
 	public static final int raw_sensor_ch1_index = 1;
 	public static final int raw_sensor_ch2_index = 2;
@@ -28,8 +33,9 @@ public class sensor_data_composition {
 	private static final int sensor_ch6_index = 36;
 	private static final int sensor_ch7_index = 40;
 	private static final int sensor_ch8_index = 44;
+	private static final int sensor_od_value_index = 48;
 	
-	public static final int total_size = 48;
+	public static final int total_size = 56;
 	
 	public byte[] buffer = new byte[total_size];
 	
@@ -56,6 +62,29 @@ public class sensor_data_composition {
         }
 		
 		return channel_data;
+	}
+	
+	public double get_sensor_od_value() {
+		ByteBuffer byte_buffer = ByteBuffer.wrap(buffer, sensor_od_value_index, 8);
+        return byte_buffer.getDouble();
+	}
+	
+	public String get_sensor_od_value_string() {
+		double od = get_sensor_od_value();
+		String str = "" + od;
+		return str;
+	}
+	
+	public String get_sensor_measurement_time_string() {
+		long date = get_sensor_measurement_time();
+		String str = "" + date;
+		return str;
+	}
+	
+	public String get_sensor_get_index_string() {
+		int index = get_sensor_get_index();
+		String str = "" + index;
+		return str;
 	}
 	
 	public int get_sensor_get_index() {
@@ -86,6 +115,11 @@ public class sensor_data_composition {
 	public void set_sensor_index(int index) {
 		byte[] index_bytes = ByteBuffer.allocate(4).putInt(index).array();
 		System.arraycopy(index_bytes, 0, buffer, sensor_index_index, 4);
+	}
+	
+	public void set_sensor_od_value(double od_value) {
+		byte[] od_value_bytes = ByteBuffer.allocate(8).putDouble(od_value).array();
+		System.arraycopy(od_value_bytes, 0, buffer, sensor_od_value_index, 8);
 	}
 	
 	public int set_raw_sensor_data(int[] raw_data) {
