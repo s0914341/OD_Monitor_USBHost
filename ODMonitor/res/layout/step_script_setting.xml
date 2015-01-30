@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_marginTop="20dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <TextView
+            android:id="@+id/textViewHighSpeedRPM"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="High Speed RPM" />
+
+        <EditText
+            android:id="@+id/editTextHighSpeedRPM"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:digits="0123456789"
+            android:inputType="number" >
+        </EditText>
+
+    </LinearLayout>
+    
+    <LinearLayout
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <TextView
+            android:id="@+id/textViewLowSpeedRPM"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="Low Speed RPM" />
+
+        <EditText
+            android:id="@+id/editTextLowSpeedRPM"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:digits="0123456789"
+            android:inputType="number" >
+        </EditText>
+
+    </LinearLayout>
+    
+    <LinearLayout
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <TextView
+            android:id="@+id/textViewHighSpeedOperationDuration"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="High Speed Operation Duration(sec)" />
+
+        <EditText
+            android:id="@+id/editTextHighSpeedOperationDuration"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:digits="0123456789"
+            android:inputType="number" >
+        </EditText>
+
+    </LinearLayout>
+    
+    <LinearLayout
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <TextView
+            android:id="@+id/textViewLowSpeedOperationDuration"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="Low Speed Operation Duration(sec)" />
+
+       <EditText
+            android:id="@+id/editTextLowSpeedOperationDuration"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:digits="0123456789"
+            android:inputType="number" >
+        </EditText>
+
+    </LinearLayout>
+    
+    <LinearLayout
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <TextView
+            android:id="@+id/textViewTemperature"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="Temperature(℃)" />
+
+       <EditText
+            android:id="@+id/editTextTemperature"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:digits="0123456789"
+            android:inputType="number" >
+        </EditText>
+
+    </LinearLayout>
+    
+    <LinearLayout
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <TextView
+            android:id="@+id/textViewExperimentOperationDuration"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="Experiment Operation Duration" />
+
+       <EditText
+            android:id="@+id/editExperimentOperationDuration"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:digits="0123456789"
+            android:inputType="number" >
+        </EditText>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_marginTop="30dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+        <Button
+            android:id="@+id/button_ok"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:textSize="20sp"
+            android:text="OK" />
+    </LinearLayout>
+
+</LinearLayout>

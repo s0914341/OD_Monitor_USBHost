@@ -17,7 +17,7 @@
         <activity android:name=".ODMonitorActivity"
                   android:label="@string/app_name"
                   android:theme="@android:style/Theme.Black.NoTitleBar"
-                  android:launchMode="singleTask">
+                  android:launchMode="singleTask" android:screenOrientation="reversePortrait">
  
             <intent-filter>
                <action android:name="android.intent.action.MAIN" />
@@ -34,18 +34,18 @@
         </activity>
         <activity android:name="org.achartengine.chartdemo.demo.chart.ODChartBuilder"
                   android:theme="@android:style/Theme.Black.NoTitleBar"
-                  android:launchMode="singleTask" />
+                  android:launchMode="singleTask" android:screenOrientation="reversePortrait"/>
         
-        <activity android:name="org.achartengine.GraphicalActivity" android:launchMode="singleTask"/>
+        <activity android:name="org.achartengine.GraphicalActivity" android:launchMode="singleTask" android:screenOrientation="reversePortrait"/>
         
         <activity android:name=".script_activity_list"
                   android:theme="@android:style/Theme.NoTitleBar"
-                  android:launchMode="standard" />
+                  android:launchMode="standard" android:screenOrientation="reversePortrait"/>
         
         <activity android:name=".script_setting_activity"
                   android:label="Script Setting"
                   android:theme="@style/ScriptSettingTheme"
-                  android:launchMode="standard"/>
+                  android:launchMode="standard" android:screenOrientation="reversePortrait"/>
         <!-- <activity
 	         android:name="org.achartengine.chartdemo.demo.chart.XYChartBuilder"
 	         android:theme="@android:style/Theme.Dialog" >

@@ -7,5 +7,6 @@
     <string name="script_clear_all">Clear All</string>
     <string name="script_save_script">Save Script</string>
     <string name="script_load_script">Load Script</string>
+    <string name="script_add_step">Add Step</string>
     <string name="link"><a href="http://www.maestrogen.com/ftp/i-track/user_manual.html">iTrack User Manual</a></string>
 </resources>

@@ -105,6 +105,7 @@ public class ODChartBuilder extends Activity {
       outState.putSerializable("renderer", mRenderer);
       outState.putSerializable("current_series", mCurrentSeries);
       outState.putSerializable("current_renderer", mCurrentRenderer);
+      Log.d(Tag, "onSaveInstanceState");
   }
 
   @Override
@@ -116,6 +117,7 @@ public class ODChartBuilder extends Activity {
       mRenderer = (XYMultipleSeriesRenderer) savedState.getSerializable("renderer");
       mCurrentSeries = (TimeSeries) savedState.getSerializable("current_series");
       mCurrentRenderer = (XYSeriesRenderer) savedState.getSerializable("current_renderer");
+      Log.d(Tag, "onRestoreInstanceState");
   }
 
   @Override
@@ -139,9 +141,9 @@ public class ODChartBuilder extends Activity {
       mRenderer.setLegendTextSize(15);
       mRenderer.setMargins(new int[] { 20, 30, 15, 0 });
       // long now = Math.round(new Date().getTime() / DAY) * DAY;
-      long now = new Date().getTime();
+      //long now = new Date().getTime();
     
-      mRenderer.setRange(new double[] {now, now+60000, 0, 50});
+     // mRenderer.setRange(new double[] {now, now+60000, 0, 50});
       //mRenderer.setZoomButtonsVisible(true);
       mRenderer.setZoomEnabled(true);
       mRenderer.setExternalZoomEnabled(true);

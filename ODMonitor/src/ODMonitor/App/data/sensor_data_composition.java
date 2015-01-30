@@ -3,6 +3,8 @@ package ODMonitor.App.data;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class sensor_data_composition implements Serializable {
 	/**
@@ -76,8 +78,9 @@ public class sensor_data_composition implements Serializable {
 	}
 	
 	public String get_sensor_measurement_time_string() {
-		long date = get_sensor_measurement_time();
-		String str = "" + date;
+		Date date = new Date(get_sensor_measurement_time());
+		SimpleDateFormat sdf = new SimpleDateFormat("MM/dd HH:mm:ss");
+		String str = sdf.format(date);
 		return str;
 	}
 	

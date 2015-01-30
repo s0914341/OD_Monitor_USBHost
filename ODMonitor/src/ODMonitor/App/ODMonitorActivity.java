@@ -204,22 +204,22 @@ public class ODMonitorActivity extends Activity {
 		shaker_status.setEnabled(false);
 		
 		table = new GVTable(this);
-		table.gvSetTableRowCount(50);//?置每?分?的ROW??
+		table.gvSetTableRowCount(50);
 		LinearLayout ly = (LinearLayout) findViewById(R.id.GridLayout);
 		table.setTableOnClickListener(new GVTable.OnTableClickListener() {
-			//@Override
-			public void onTableClickListener(int x,int y,Cursor c) {
+			public void onTableClickListener(int x, int y, Cursor c) {
 				c.moveToPosition(y);
-				String str=c.getString(x)+" 位置:("+String.valueOf(x)+","+String.valueOf(y)+")";
+				//String str=c.getString(x)+" Position:("+String.valueOf(x)+","+String.valueOf(y)+")";
+				String str = c.getString(x);
 				Toast.makeText(ODMonitorActivity.this, str, Toast.LENGTH_SHORT).show();
 			}
 		});
+		
 		table.setOnPageSwitchListener(new GVTable.OnPageSwitchListener() {
-			
-		//	@Override
 			public void onPageSwitchListener(int pageID,int pageCount) {
-				String str="共有"+String.valueOf(pageCount)+
-				" ?前第"+String.valueOf(pageID)+"?";
+				/*String str="Total:"+String.valueOf(pageCount)+
+				" Page:"+String.valueOf(pageID);*/
+				String str = "Page:"+String.valueOf(pageID);
 				Toast.makeText(ODMonitorActivity.this, str, Toast.LENGTH_SHORT).show();
 			}
 		});
@@ -297,6 +297,8 @@ public class ODMonitorActivity extends Activity {
         chart_button.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
         		show_chart_activity();
+				//db.close();
+				//table.gvRemoveAll();
 			}
 		});  
         
@@ -304,6 +306,15 @@ public class ODMonitorActivity extends Activity {
         script_button.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
         		show_script_activity();
+				/*sensor_data_composition sensor_data = new sensor_data_composition();
+				sensor_data.set_sensor_get_index(0);
+				sensor_data.set_sensor_measurement_time(new Date().getTime());
+				sensor_data.set_sensor_od_value(0.1);
+				CreateODDateDB();
+				InsertODDateToDB(sensor_data);
+        		table.gvUpdatePageBar("select count(*) from " + TABLE_NAME,db);
+				table.gvReadyTable("select * from " + TABLE_NAME,db);
+				table.refresh_last_table();*/
 			}
 		});  
         
@@ -358,12 +369,11 @@ public class ODMonitorActivity extends Activity {
         EnumerationDevice(getIntent());
     }
     
-	void CreateDB() {
-		// 在?存?建?据?
+	void CreateODDateDB() {
 		db = SQLiteDatabase.create(null);
-		Log.e("DB Path", db.getPath());
+		Log.d("DB Path", db.getPath());
 		String amount = String.valueOf(databaseList().length);
-		Log.e("DB amount", amount);
+		Log.d("DB amount", amount);
 		// ?建?据表
 		String sql = "CREATE TABLE " + TABLE_NAME + " (" + 
 		        INDEX	+ " text not null, " + DATE + " text not null," + OD1 + " text not null," +
@@ -375,7 +385,7 @@ public class ODMonitorActivity extends Activity {
 		} catch (SQLException e) {}
 	}
 
-	void InsertRecord(sensor_data_composition sensor_data) {
+	void InsertODDateToDB(sensor_data_composition sensor_data) {
 		String sql = "insert into " + TABLE_NAME + " (" + 
 			INDEX + ", " + DATE + ", " + OD1 + ", " + OD2 + ", " + OD3 + ", " + OD4
 					+ ") values('" + sensor_data.get_sensor_get_index_string()
@@ -599,7 +609,7 @@ public class ODMonitorActivity extends Activity {
 		        	experiment_time_thread= new Thread(myRunnableThread); 
 		        	experiment_time_run = true;
 		        	experiment_time_thread.start();
-		        	CreateDB();
+		        	CreateODDateDB();
 		        break;
 		        
 		        case EXPERIMENT_RUNNING:
@@ -627,7 +637,7 @@ public class ODMonitorActivity extends Activity {
 		        	notify_chart_receive_data();
 		        	sensor_data_composition sensor_data = (sensor_data_composition)b.getSerializable("sensor_data_composition");
 		        	if (null != sensor_data) {
-		        		InsertRecord(sensor_data);
+		        		InsertODDateToDB(sensor_data);
 		        		table.gvUpdatePageBar("select count(*) from " + TABLE_NAME,db);
 						table.gvReadyTable("select * from " + TABLE_NAME,db);
 						table.refresh_last_table();

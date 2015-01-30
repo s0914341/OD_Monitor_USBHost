@@ -78,7 +78,7 @@ public class GVTable extends LinearLayout {
 		});
 	}
 	/**
-	 * 清除所有数据
+	 * clear all data
 	 */
 	public void gvRemoveAll()
 	{
@@ -136,8 +136,8 @@ public class GVTable extends LinearLayout {
 		    LoadTable(srcPageID.size()-1);
 	}
 	/**
-	 * 设置表格的最多显示的行数
-	 * @param row 表格的行数
+	 * set the max row count for view
+	 * @param row
 	 */
 	public void gvSetTableRowCount(int row)
 	{
@@ -145,8 +145,8 @@ public class GVTable extends LinearLayout {
 	}
 	
 	/**
-	 * 取得表格的最大行数	
-	 * @return 行数
+	 * get max row count
+	 * @return
 	 */
 	public int gvGetTableRowCount()
 	{
