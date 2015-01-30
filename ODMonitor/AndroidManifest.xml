@@ -12,9 +12,9 @@
    
     <application android:icon="@drawable/incu_shaker_icon" 
                  android:label="@string/app_name"
-                 android:name=".ODMonitor_Application"
+                 android:name="od_monitor.app.ODMonitor_Application"
                  debuggable="true">
-        <activity android:name=".ODMonitorActivity"
+        <activity android:name="od_monitor.app.ODMonitorActivity"
                   android:label="@string/app_name"
                   android:theme="@android:style/Theme.Black.NoTitleBar"
                   android:launchMode="singleTask" android:screenOrientation="reversePortrait">
@@ -38,11 +38,12 @@
         
         <activity android:name="org.achartengine.GraphicalActivity" android:launchMode="singleTask" android:screenOrientation="reversePortrait"/>
         
-        <activity android:name=".script_activity_list"
+        
+        <activity android:name="od_monitor.script.script_activity_list"
                   android:theme="@android:style/Theme.NoTitleBar"
                   android:launchMode="standard" android:screenOrientation="reversePortrait"/>
         
-        <activity android:name=".script_setting_activity"
+        <activity android:name="od_monitor.script.script_setting_activity"
                   android:label="Script Setting"
                   android:theme="@style/ScriptSettingTheme"
                   android:launchMode="standard" android:screenOrientation="reversePortrait"/>
@@ -57,7 +58,7 @@
             </intent-filter>
         </receiver> -->
         
-        <receiver android:name=".led_appwidget_provider" 
+        <receiver android:name="od_monitor.app.led_appwidget_provider" 
                   android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

@@ -214,18 +214,33 @@
         android:layout_width="fill_parent" 
         android:background="@drawable/border2_large">
        
+            <LinearLayout 
+                android:id="@+id/ExperimentDataLayout" 
+                android:orientation="vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginLeft="25dp"
+                android:gravity="center">
+           	 <TextView
+                android:id="@+id/TextViewExperiment"
+                android:layout_width="fill_parent"
+                android:textSize="10pt"
+                android:text="Experiment Information"
+                android:layout_height="wrap_content">
+             </TextView>
              <TextView
                 android:id="@+id/ExperimentTimer"
-                android:layout_marginLeft="25dp"
                 android:layout_width="fill_parent"
-                android:textStyle="bold"
+                android:textSize="8pt"
                 android:layout_height="wrap_content">
-            </TextView>
+             </TextView>
+             </LinearLayout> 
             
              <LinearLayout 
                  android:id="@+id/GridLayout" 
                  android:orientation="vertical"
-                 android:layout_below="@+id/ExperimentTimer"
+                 android:layout_below="@+id/ExperimentDataLayout"
                  android:layout_width="fill_parent"
                  android:layout_height="600dp"
                  android:layout_marginLeft="20dp"
