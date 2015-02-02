@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import od_monitor.app.data.experiment_script_data;
+import od_monitor.app.data.step_experiment_script_data;
 
 import ODMonitor.App.R;
 import ODMonitor.App.R.id;
@@ -26,17 +27,16 @@ import android.widget.EditText;
 import android.widget.Spinner;
 
 public class step_script_setting_activity extends Activity {
-	public String Tag = "script_setting_activity";
+	public String Tag = "step_script_setting_activity";
 	public Button button_ok;
-	public EditText editText_repeat_count;
-	public EditText editText_repeat_time;
-	public EditText editText_shaker_temperature;
-	public EditText editText_shaker_speed;
-	public EditText editText_delay;
+	public EditText editText_high_speed_rpm;
+	public EditText editText_high_speed_operation_duration;
+	public EditText editText_low_speed_rpm;
+	public EditText editText_low_speed_operation_duration;
+	public EditText editText_temperature;
+	public EditText editText_experiment_operation_duration;
 	
-	public Spinner spinner_instruct;
-	public Spinner spinner_repeat_from;
-	experiment_script_data item_data;
+	public step_experiment_script_data item_data;
 	public int total_item = 0;
 	public long item_id = 0;
 	public int item_position = 0;
@@ -46,24 +46,37 @@ public class step_script_setting_activity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
-	    setContentView(R.layout.script_setting);
+	    setContentView(R.layout.step_script_setting);
 	    
 	    Intent intent = getIntent(); 
-	    item_data = (experiment_script_data)intent.getSerializableExtra("send_experiment_script_data");
+	    item_data = (step_experiment_script_data)intent.getSerializableExtra("send_step_experiment_script_data");
 	    total_item = intent.getIntExtra("send_total_item", 0);
 	    item_id = intent.getLongExtra("send_item_id", 0);
 	    item_position = intent.getIntExtra("send_item_position", 0);
 	    
-	    String title_string = String.format("Script Setting: %d", item_position+1);
+	    String title_string = "Step Setting: " + (item_position+1);
 	    setTitle(title_string);
 	    
-	    editText_repeat_count = (EditText) findViewById(R.id.editText_repeat_count);
-	    editText_repeat_time = (EditText) findViewById(R.id.editText_repeat_time);
-	    editText_shaker_temperature = (EditText) findViewById(R.id.editText_shaker_temperature);
-	    editText_shaker_speed = (EditText) findViewById(R.id.editText_shaker_speed);
-	    editText_delay = (EditText) findViewById(R.id.editText_delay);
+	    editText_high_speed_rpm = (EditText) findViewById(R.id.editTextHighSpeedRPM);
+	    editText_high_speed_rpm.setText(item_data.get_high_speed_rpm_string()); 
 	    
-	    editText_repeat_count.addTextChangedListener(new TextWatcher() {
+	    editText_high_speed_operation_duration = (EditText) findViewById(R.id.editTextHighSpeedOperationDuration);
+	    editText_high_speed_operation_duration.setText(item_data.get_high_speed_operation_duration_string()); 
+	    
+	    editText_low_speed_rpm = (EditText) findViewById(R.id.editTextLowSpeedRPM);
+	    editText_low_speed_rpm.setText(item_data.get_low_speed_rpm_string()); 
+	    
+	    editText_low_speed_operation_duration = (EditText) findViewById(R.id.editTextLowSpeedOperationDuration);
+	    editText_low_speed_operation_duration.setText(item_data.get_low_speed_operation_duration_string()); 
+	    
+	    editText_temperature = (EditText) findViewById(R.id.editTextTemperature);
+	    editText_temperature.setText(item_data.get_temperature_string()); 
+	    
+	    editText_experiment_operation_duration = (EditText) findViewById(R.id.editExperimentOperationDuration);
+	    editText_experiment_operation_duration.setText(item_data.get_experiment_operation_duration_string()); 
+	   
+	    
+	    editText_high_speed_rpm.addTextChangedListener(new TextWatcher() {
 	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
 	        }
@@ -76,7 +89,7 @@ public class step_script_setting_activity extends Activity {
 		    	     } else if(val < 1) {
 		    	        s.replace(0, s.length(), "1", 0, 1);
 		    	     }
-		    	     item_data.set_repeat_count_value(Integer.parseInt(s.toString()));
+		    	     item_data.set_high_speed_rpm(Integer.parseInt(s.toString()));
 		    	     Log.i(Tag, "afterTextChanged");
 		    	   } catch (NumberFormatException ex) {
 		    	      // Do something
@@ -90,7 +103,7 @@ public class step_script_setting_activity extends Activity {
 			}
 	    });
 	    
-	    editText_repeat_time.addTextChangedListener(new TextWatcher() {
+	    editText_high_speed_operation_duration.addTextChangedListener(new TextWatcher() {
 	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
 	        }
@@ -103,7 +116,7 @@ public class step_script_setting_activity extends Activity {
 		    	     } else if(val < 1) {
 		    	        s.replace(0, s.length(), "1", 0, 1);
 		    	     }
-		    	     item_data.set_repeat_time_value(Integer.parseInt(s.toString()));
+		    	     item_data.set_high_speed_operation_duration(Integer.parseInt(s.toString()));
 		    	   } catch (NumberFormatException ex) {
 		    	      // Do something
 		    	   }
@@ -116,7 +129,7 @@ public class step_script_setting_activity extends Activity {
 			}
 	    });
 	    
-	    editText_shaker_temperature.addTextChangedListener(new TextWatcher() {
+	    editText_temperature.addTextChangedListener(new TextWatcher() {
 	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
 	        }
@@ -130,7 +143,7 @@ public class step_script_setting_activity extends Activity {
 		    	     } else if(val < 1) {
 		    	        s.replace(0, s.length(), "1", 0, 1);
 		    	     }
-		    	     item_data.set_shaker_temperature_value(Integer.parseInt(s.toString()));
+		    	     item_data.set_temperature(Integer.parseInt(s.toString()));
 		    	   } catch (NumberFormatException ex) {
 		    	      // Do something
 		    	   }
@@ -144,7 +157,7 @@ public class step_script_setting_activity extends Activity {
 			}
 	    });
 	    
-	    editText_shaker_speed.addTextChangedListener(new TextWatcher() {
+	    editText_low_speed_rpm.addTextChangedListener(new TextWatcher() {
 	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
 	        }
@@ -158,7 +171,7 @@ public class step_script_setting_activity extends Activity {
 		    	     } else if(val < 1) {
 		    	        s.replace(0, s.length(), "1", 0, 1);
 		    	     }
-		    	     item_data.set_shaker_speed_value(Integer.parseInt(s.toString()));
+		    	     item_data.set_low_speed_rpm(Integer.parseInt(s.toString()));
 		    	   } catch (NumberFormatException ex) {
 		    	      // Do something
 		    	   }
@@ -172,7 +185,7 @@ public class step_script_setting_activity extends Activity {
 			}
 	    });
 	    
-	    editText_delay.addTextChangedListener(new TextWatcher() {
+	    editText_low_speed_operation_duration.addTextChangedListener(new TextWatcher() {
 	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
 	        }
@@ -186,7 +199,7 @@ public class step_script_setting_activity extends Activity {
 		    	     } else if(val < 1) {
 		    	        s.replace(0, s.length(), "1", 0, 1);
 		    	     }
-		    	     item_data.set_delay_value(Integer.parseInt(s.toString()));
+		    	     item_data.set_low_speed_operation_duration(Integer.parseInt(s.toString()));
 		    	   } catch (NumberFormatException ex) {
 		    	      // Do something
 		    	   }
@@ -199,29 +212,31 @@ public class step_script_setting_activity extends Activity {
 				
 			}
 	    });
-	  
-	    spinner_repeat_from = (Spinner)findViewById(R.id.spinner_repeat_from);
-        spinner_repeat_from_Adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, android.R.id.text1);
-        spinner_repeat_from_Adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner_repeat_from.setAdapter(spinner_repeat_from_Adapter);
-	    if ((item_data.get_instruct_value() == experiment_script_data.INSTRUCT_REPEAT_COUNT) || (item_data.get_instruct_value() == experiment_script_data.INSTRUCT_REPEAT_TIME)) {
-	        for (int i = 0; i < item_position; i++) {
-	    	    String str;
-	    	    str = String.format("%d", i+1);
-	    	    spinner_repeat_from_Adapter.add(str);
-	    	    spinner_repeat_from_Adapter.notifyDataSetChanged();
-	        }
-	        spinner_repeat_from.setSelection(item_data.get_repeat_from_value()-1);
-	    }
 	    
-	    spinner_repeat_from.setOnItemSelectedListener(new OnItemSelectedListener() { 
-	        public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-	        	item_data.set_repeat_from_value(position+1);
+	    editText_experiment_operation_duration.addTextChangedListener(new TextWatcher() {
+	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
 	        }
-	        
-	        public void onNothingSelected(AdapterView<?> parentView) {
-	            // your code here
-	        }
+	      
+	        public void afterTextChanged(Editable s) {
+		        try {
+		    	     int val = Integer.parseInt(s.toString());
+		    	     if(val > 86400) {
+		    	        s.replace(0, s.length(), "2147483000", 0, 10);
+		    	     } else if(val < 1) {
+		    	        s.replace(0, s.length(), "1", 0, 1);
+		    	     }
+		    	     item_data.set_experiment_operation_duration(Integer.parseInt(s.toString()));
+		    	   } catch (NumberFormatException ex) {
+		    	      // Do something
+		    	   }
+		    }
+
+			public void onTextChanged(CharSequence s, int start, int before,
+					int count) {
+				// TODO Auto-generated method stub
+				
+			}
 	    });
 	    
 	    button_ok = (Button) findViewById(R.id.button_ok);
@@ -237,96 +252,10 @@ public class step_script_setting_activity extends Activity {
                 }
         	}
 		});
-	    
-	    spinner_instruct = (Spinner)findViewById(R.id.spinner_instruct);
-	   // ArrayAdapter<String> spinner_instruct_Adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, android.R.id.text1);
-	    spinner_instruct_Adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, android.R.id.text1);
-	    spinner_instruct_Adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-	    spinner_instruct.setAdapter(spinner_instruct_Adapter);
-	    
-	    int size = experiment_script_data.SCRIPT_INSTRUCT.size();
-	    for (int i = 0; i < size; i++) {
-	    	if (item_position == 0) {
-	    		if ((i == experiment_script_data.INSTRUCT_REPEAT_COUNT) || (i == experiment_script_data.INSTRUCT_REPEAT_TIME)) { 
-	    			continue;
-	    		}
-	    	}
-	    	spinner_instruct_Adapter.add(experiment_script_data.SCRIPT_INSTRUCT.get(i));
-	    }
-	    spinner_instruct_Adapter.notifyDataSetChanged();
-	    spinner_instruct.setSelection(item_data.get_instruct_value());
-	    refresh_UI_object_enable(item_data.get_instruct_string());
-
-	    spinner_instruct.setOnItemSelectedListener(new OnItemSelectedListener() { 
-	        public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-	        	Log.i(Tag, "select item: "+ position);
-	        	      	
-	        	refresh_UI_object_enable(spinner_instruct_Adapter.getItem(position));
-	        	item_data.set_instruct_value(position);
-	        }
-
-	        public void onNothingSelected(AdapterView<?> parentView) {
-	            // your code here
-	        }
-	    });
-	}
-	
-	public void refresh_UI_object_enable(String instruct_str) {
-		int position = 0;
-		
-		for (int i = 0; i < experiment_script_data.SCRIPT_INSTRUCT.size(); i++) {
-    		String s = experiment_script_data.SCRIPT_INSTRUCT.get(i);
-    		if (s.equals(instruct_str)) {
-    			position = i;
-    			break;
-    		}
-    	}
-		
-    	spinner_repeat_from.setEnabled(experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(0));
-    	spinner_repeat_from_Adapter.clear();
-    	if ((position == experiment_script_data.INSTRUCT_REPEAT_COUNT) || (position == experiment_script_data.INSTRUCT_REPEAT_TIME)) { 
-    	    for (int i = 0; i < item_position; i++) {
-    	        String str;
-    	        str = String.format("%d", i+1);
-    	        spinner_repeat_from_Adapter.add(str);
-    	        spinner_repeat_from_Adapter.notifyDataSetChanged();
-            }
-    	    spinner_repeat_from.setSelection(item_data.get_repeat_from_value()-1);
-    	} 
-    	
-    	if (experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(1) == false)
-    		editText_repeat_count.setText("");
-    	else
-    		editText_repeat_count.setText(item_data.get_repeat_count_string()); 	
-    	editText_repeat_count.setEnabled(experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(1));
-    	
-    	if (experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(2) == false)
-    		editText_repeat_time.setText("");
-    	else
-    		editText_repeat_time.setText(item_data.get_repeat_time_string());      	
-    	editText_repeat_time.setEnabled(experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(2));
-    	
-    	if (experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(3) == false)
-    		editText_shaker_temperature.setText("");
-    	else
-    		editText_shaker_temperature.setText(item_data.get_shaker_temperature_string());
-    	editText_shaker_temperature.setEnabled(experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(3));
-    	
-    	if (experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(4) == false)
-    		editText_shaker_speed.setText("");
-    	else
-    		editText_shaker_speed.setText(item_data.get_shaker_speed_string());
-    	editText_shaker_speed.setEnabled(experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(4));
-    	
-    	if (experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(5) == false)
-    		editText_delay.setText("");
-    	else
-    		editText_delay.setText(item_data.get_delay_string());
-    	editText_delay.setEnabled(experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(5));
 	}
 	
 	public void save_experiment_script() throws NumberFormatException{	
-		if (spinner_instruct.getSelectedItemPosition() == experiment_script_data.INSTRUCT_SHAKER_SET_SPEED) {
+		/*if (spinner_instruct.getSelectedItemPosition() == experiment_script_data.INSTRUCT_SHAKER_SET_SPEED) {
 			try {
 			    int shaker_speed = Integer.parseInt(editText_shaker_speed.getText().toString());
 			    if (shaker_speed < 20) {
@@ -349,10 +278,10 @@ public class step_script_setting_activity extends Activity {
 				Log.d(Tag, "NumberFormatException");
 				throw new NumberFormatException("shaker_speed format exception");
 	    	}
-		}
+		}*/
 		
 		Intent intent = new Intent();
-		intent.putExtra("return_experiment_script_data", item_data); //value should be your string from the edittext
+		intent.putExtra("return_step_experiment_script_data", item_data); //value should be your string from the edittext
 		intent.putExtra("return_item_id", item_id);
 		intent.putExtra("return_item_position", item_position);
 		setResult(RESULT_OK, intent); //The data you want to send back

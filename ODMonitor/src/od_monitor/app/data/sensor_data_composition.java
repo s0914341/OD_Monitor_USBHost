@@ -11,6 +11,9 @@ public class sensor_data_composition implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = -5176695259056597839L;
+	public static final String sensor_raw_file_name = "sensor_experiment_data";
+	public static final String sensor_raw_folder_name = "sensor_od";
+	
 	public static final int raw_sensor_index_index = 0;
 	public static final int raw_sensor_ch1_index = 1;
 	public static final int raw_sensor_ch2_index = 2;

@@ -18,11 +18,11 @@
             android:id="@+id/textViewHighSpeedRPM"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:text="High Speed RPM" />
+            android:text="High Speed(rpm)" />
 
         <EditText
             android:id="@+id/editTextHighSpeedRPM"
-            android:layout_width="match_parent"
+            android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:digits="0123456789"
@@ -42,11 +42,11 @@
             android:id="@+id/textViewLowSpeedRPM"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:text="Low Speed RPM" />
+            android:text="Low Speed(rpm)" />
 
         <EditText
             android:id="@+id/editTextLowSpeedRPM"
-            android:layout_width="match_parent"
+            android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:digits="0123456789"
@@ -70,7 +70,7 @@
 
         <EditText
             android:id="@+id/editTextHighSpeedOperationDuration"
-            android:layout_width="match_parent"
+            android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:digits="0123456789"
@@ -94,7 +94,7 @@
 
        <EditText
             android:id="@+id/editTextLowSpeedOperationDuration"
-            android:layout_width="match_parent"
+            android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:digits="0123456789"
@@ -118,7 +118,7 @@
 
        <EditText
             android:id="@+id/editTextTemperature"
-            android:layout_width="match_parent"
+            android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:digits="0123456789"
@@ -138,11 +138,11 @@
             android:id="@+id/textViewExperimentOperationDuration"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:text="Experiment Operation Duration" />
+            android:text="Experiment Operation Duration(min)" />
 
        <EditText
             android:id="@+id/editExperimentOperationDuration"
-            android:layout_width="match_parent"
+            android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:digits="0123456789"

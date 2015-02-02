@@ -291,7 +291,7 @@ public class ODChartBuilder extends Activity {
 				}
 				
 				int file_data_offset = 0;
-				read_file = new file_operate_byte_array("od_sensor", "sensor_offline_byte", true);
+				read_file = new file_operate_byte_array(sensor_data_composition.sensor_raw_folder_name, sensor_data_composition.sensor_raw_file_name, true);
 		        try {
 		        	size = read_file.open_read_file(read_file.generate_filename_no_date());
 		        	long position = (current_raw_index+1)*sensor_data_composition.total_size;
@@ -361,7 +361,7 @@ public class ODChartBuilder extends Activity {
         long size = 0;
         
    
-        file_operate_byte_array read_file = new file_operate_byte_array("od_sensor", "sensor_offline_byte", true);
+        file_operate_byte_array read_file = new file_operate_byte_array(sensor_data_composition.sensor_raw_folder_name, sensor_data_composition.sensor_raw_file_name, true);
         try {
         	size = read_file.open_read_file(read_file.generate_filename_no_date());
         } catch (IOException e) {

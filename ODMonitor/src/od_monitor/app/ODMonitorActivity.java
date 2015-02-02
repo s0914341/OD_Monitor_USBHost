@@ -25,6 +25,7 @@ import od_monitor.app.file.file_operation;
 import od_monitor.experiment.ExperimentalOperationInstruct;
 import od_monitor.experiment.ODMonitor_Sensor.CMD_T;
 import od_monitor.script.script_activity_list;
+import od_monitor.script.step_script_activity_list;
 
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
@@ -113,7 +114,6 @@ public class ODMonitorActivity extends Activity {
 	public static final int EXPERIMENT_START = 0;
 	public static final int EXPERIMENT_RUNNING = 1;
 	public static final int EXPERIMENT_STOP = 2;
-	//public static final int EXPERIMENT_SHOW_SENSOR_DATA = 3;
 	public static final int EXPERIMENT_NOTIFY_CHART = 3;
 	public static final int EXPERIMENT_OPEN_SCRIPT_ERROR = 4;
 	
@@ -258,7 +258,6 @@ public class ODMonitorActivity extends Activity {
     	}
   
         SetupD2xxLibrary();
-		//shaker = new DeviceUART(this, ftD2xx, shaker_return);
 		//experiment = new ExperimentalOperationInstruct(context, ftD2xx, shaker_return);
         experiment = new ExperimentalOperationInstruct(context, ftD2xx, null);
                
@@ -273,6 +272,11 @@ public class ODMonitorActivity extends Activity {
 		    	} else {
 		    	    if (false == experiment_thread_run) {
 		    	        if (0 == experiment.initial_experiment_devices()) {
+		    	        	if (null != db) {
+		    	        	    if (true == db.isOpen())
+		    	        		    db.close();
+		    	        	}
+		    	        	
 		    	        	table.gvRemoveAll();
 		    	            experiment_stop = false;
 		    	            experiment_thread_run = true;
@@ -301,8 +305,6 @@ public class ODMonitorActivity extends Activity {
         chart_button.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
         		show_chart_activity();
-				//db.close();
-				//table.gvRemoveAll();
 			}
 		});  
         
@@ -310,15 +312,6 @@ public class ODMonitorActivity extends Activity {
         script_button.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
         		show_script_activity();
-				/*sensor_data_composition sensor_data = new sensor_data_composition();
-				sensor_data.set_sensor_get_index(0);
-				sensor_data.set_sensor_measurement_time(new Date().getTime());
-				sensor_data.set_sensor_od_value(0.1);
-				CreateODDateDB();
-				InsertODDateToDB(sensor_data);
-        		table.gvUpdatePageBar("select count(*) from " + TABLE_NAME,db);
-				table.gvReadyTable("select * from " + TABLE_NAME,db);
-				table.refresh_last_table();*/
 			}
 		});  
         
@@ -365,6 +358,7 @@ public class ODMonitorActivity extends Activity {
          } 
          });*/
         
+        FileToODDataDB();
         Log.d ( Tag, "intent get action: " +this.getIntent().getAction());
         Log.d(Tag, "on Create");
         mRequest_USB_permission = false;
@@ -373,12 +367,12 @@ public class ODMonitorActivity extends Activity {
         EnumerationDevice(getIntent());
     }
     
-	void CreateODDateDB() {
+	void CreateODDataDB() {
 		db = SQLiteDatabase.create(null);
 		Log.d("DB Path", db.getPath());
 		String amount = String.valueOf(databaseList().length);
 		Log.d("DB amount", amount);
-		// ?«Ø?Õuªí
+
 		String sql = "CREATE TABLE " + TABLE_NAME + " (" + 
 		        INDEX	+ " text not null, " + DATE + " text not null," + OD1 + " text not null," +
 		        OD2	+ " text not null, " + OD3 + " text not null," +
@@ -388,13 +382,51 @@ public class ODMonitorActivity extends Activity {
 			db.execSQL(sql);
 		} catch (SQLException e) {}
 	}
+	
+	void FileToODDataDB() {
+		Date date = null;
+        double od_value = 0;
+        long size = 0;
+        
+        file_operate_byte_array read_file = new file_operate_byte_array(sensor_data_composition.sensor_raw_folder_name, sensor_data_composition.sensor_raw_file_name, true);
+        try {
+        	size = read_file.open_read_file(read_file.generate_filename_no_date());
+        } catch (IOException e) {
+	        // TODO Auto-generated catch block
+        	Log.d(Tag, "file open fail!");
+	        e.printStackTrace();
+	        return;
+        }
+        
+        if (size >= sensor_data_composition.total_size) {
+			int offset = 0;
+		    byte[] data = new byte[(int) size];
+		    read_file.read_file(data);
+		    sensor_data_composition one_sensor_data = new sensor_data_composition();
+		    CreateODDataDB();
+			
+			while ((size-offset) >= sensor_data_composition.total_size) {
+				one_sensor_data.set_buffer(data, offset, sensor_data_composition.total_size);
+				date = new Date(one_sensor_data.get_sensor_measurement_time());
+				od_value = one_sensor_data.get_sensor_od_value();    
+				offset += sensor_data_composition.total_size;
+				InsertODDateToDB(one_sensor_data);
+			}
+			
+			table.gvUpdatePageBar("select count(*) from " + TABLE_NAME,db);
+		    table.gvReadyTable("select * from " + TABLE_NAME,db);
+			table.refresh_last_table();
+		} else {
+			Log.d(Tag, "file is nothing to show!");
+		}
+	}
 
 	void InsertODDateToDB(sensor_data_composition sensor_data) {
 		String sql = "insert into " + TABLE_NAME + " (" + 
 			INDEX + ", " + DATE + ", " + OD1 + ", " + OD2 + ", " + OD3 + ", " + OD4
 					+ ") values('" + sensor_data.get_sensor_get_index_string()
 					+ "', '" + sensor_data.get_sensor_measurement_time_string() + "','"
-					+ sensor_data.get_sensor_od_value_string() + "','0.2','0.3','0.4');";
+					+ sensor_data.get_sensor_od_value_string() + "','NA','NA','NA');";
 		try {
 			db.execSQL(sql);
 		} catch (SQLException e) {
@@ -488,7 +520,7 @@ public class ODMonitorActivity extends Activity {
     
     public void show_script_activity() {
         	Intent intent = null;
-        	intent = new Intent(this, script_activity_list.class);
+        	intent = new Intent(this, step_script_activity_list.class);
         	startActivity(intent);
     }
     
@@ -613,7 +645,7 @@ public class ODMonitorActivity extends Activity {
 		        	experiment_time_thread= new Thread(myRunnableThread); 
 		        	experiment_time_run = true;
 		        	experiment_time_thread.start();
-		        	CreateODDateDB();
+		        	CreateODDataDB();
 		        break;
 		        
 		        case EXPERIMENT_RUNNING:
@@ -629,13 +661,8 @@ public class ODMonitorActivity extends Activity {
 		        case EXPERIMENT_STOP:
 		        	experiment_time_run = false;
 		        	//experiment_timer.stop();
-					db.close();
 		        	experiment.close_shaker_port();
 		        break;
-		        
-		     /*   case EXPERIMENT_SHOW_SENSOR_DATA:
-		        	sensor_data_view.setText(b.getString("experiment sensor data", "no sensor data"));
-		        break;*/
 		        
 		        case EXPERIMENT_NOTIFY_CHART:
 		        	notify_chart_receive_data();
@@ -757,7 +784,8 @@ public class ODMonitorActivity extends Activity {
 					break;
 						
 					case experiment_script_data.INSTRUCT_REPEAT_TIME:
-						ret = experiment.repeat_time_instruct(current_instruct_data);
+						//ret = experiment.repeat_time_instruct(current_instruct_data);
+						ret = experiment.step_experiment_duration_instruct(current_instruct_data);
 					break;
 
 					case experiment_script_data.INSTRUCT_DELAY:

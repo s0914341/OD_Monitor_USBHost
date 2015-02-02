@@ -47,6 +47,15 @@
                   android:label="Script Setting"
                   android:theme="@style/ScriptSettingTheme"
                   android:launchMode="standard" android:screenOrientation="reversePortrait"/>
+        
+        <activity android:name="od_monitor.script.step_script_activity_list"
+                  android:theme="@android:style/Theme.NoTitleBar"
+                  android:launchMode="standard" android:screenOrientation="reversePortrait"/>
+        
+        <activity android:name="od_monitor.script.step_script_setting_activity"
+                  android:label="Script Setting"
+                  android:theme="@style/ScriptSettingTheme"
+                  android:launchMode="standard" android:screenOrientation="reversePortrait"/>
         <!-- <activity
 	         android:name="org.achartengine.chartdemo.demo.chart.XYChartBuilder"
 	         android:theme="@android:style/Theme.Dialog" >

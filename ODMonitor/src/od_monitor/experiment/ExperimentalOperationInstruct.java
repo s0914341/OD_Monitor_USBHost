@@ -28,7 +28,10 @@ public class ExperimentalOperationInstruct {
 	public static Context ExperimentalOperationInstructContext;
 	public D2xxManager ftdid2xx;
 	
-	private long start_system_time = 0;
+	private long delay_start_system_time = 0;
+	private long step_experiment_start_system_time = 0;
+	private static final int shaker_command_retry_count = 5;
+	private static final int sensor_command_retry_count = 5;
 	
     /*graphical objects*/
     public TextView readText;
@@ -88,8 +91,10 @@ public class ExperimentalOperationInstruct {
 		int ret = 0;
 		
 		sensor_data_index = 0;
+		step_experiment_start_system_time = new Date().getTime();
+		mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_HELLO, 0, 0, null, 1 );
 		if (0 == open_shaker_port()) {
-			file_operate_byte_array write_file = new file_operate_byte_array("od_sensor", "sensor_offline_byte", true);
+			file_operate_byte_array write_file = new file_operate_byte_array(sensor_data_composition.sensor_raw_folder_name, sensor_data_composition.sensor_raw_file_name, true);
 	    	try {
 	    		write_file.delete_file(write_file.generate_filename_no_date());
 			} catch (IOException e) {
@@ -211,7 +216,7 @@ public class ExperimentalOperationInstruct {
 	/*public int save_sensor_data_to_file(int index, long time, String inStr) {
 		int ret = 0;
 		
-        file_operate_byte_array write_file = new file_operate_byte_array("od_sensor", "sensor_offline_byte", true);
+        file_operate_byte_array write_file = new file_operate_byte_array(sensor_data_composition.sensor_raw_folder_name, sensor_data_composition.sensor_raw_file_name, true);
     	try {
     	//	write_file.delete_file(write_file.generate_filename_no_date());
             write_file.create_file(write_file.generate_filename_no_date());
@@ -243,11 +248,11 @@ public class ExperimentalOperationInstruct {
     	return ret;
 	}*/
 	
-	public int save_sensor_data_to_file(int index, long time, int[] raw_data) {
+	public int save_sensor_data_to_file(int index, long time, int[] raw_data, String file_name) {
 		int ret = 0;
 		double od_value = 0;
 		
-        file_operate_byte_array write_file = new file_operate_byte_array("od_sensor", "sensor_offline_byte", true);
+        file_operate_byte_array write_file = new file_operate_byte_array(sensor_data_composition.sensor_raw_folder_name, file_name, true);
     	try {
             write_file.create_file(write_file.generate_filename_no_date());
             
@@ -283,7 +288,7 @@ public class ExperimentalOperationInstruct {
 		int ret = -1;
 		char[] readDataChar = new char[128];
 		int receive_length = 0;
-		int try_count = 3;
+		int try_count = sensor_command_retry_count;
 		
 		if (mODMonitorSensor.isDeviceOnline() ) {
 	        mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_REQUEST_RAW_DATA, 0, 0, null, 1 );
@@ -298,15 +303,21 @@ public class ExperimentalOperationInstruct {
 	        raw_IntBuffer.get(raw_data);
 	        Log.d(Tag, raw_data[0]+","+ raw_data[1]+","+ raw_data[2]+","+raw_data[3]+","+raw_data[4]+","+raw_data[5]+","+raw_data[6]+","+raw_data[7]+","+raw_data[8]+","+raw_data[9]);
 	        int[] raw_data_save = new int[sensor_data_composition.raw_total_sensor_data_size];
-	        for (int i = 0; i < sensor_data_composition.raw_total_sensor_data_size; i++) {
-	        	raw_data_save[i] = raw_data[1+i];
+	        
+	        for (int j = 0; j < 4; j++) {
+	        	if (1 == raw_data[j*10]) {
+	                for (int i = 0; i < sensor_data_composition.raw_total_sensor_data_size; i++) {
+	        	        raw_data_save[i] = raw_data[1+i+j*10];
+	                }
+	        
+	                String file_name = sensor_data_composition.sensor_raw_file_name + (j+1);
+	                if (0 == save_sensor_data_to_file(sensor_data_index, new Date().getTime(), raw_data_save, sensor_data_composition.sensor_raw_file_name)) {
+			            ret = 0;
+			        }
+	        	}
 	        }
 	        
-	        if (0 == save_sensor_data_to_file(sensor_data_index, new Date().getTime(), raw_data_save)) {
-	        	sensor_data_index++;
-			    ret = 0;
-			}
-	        
+	        sensor_data_index++;
 			current_instruct_data.next_instruct_index++;
 	    }
 		
@@ -341,7 +352,7 @@ public class ExperimentalOperationInstruct {
 	
 	public int shaker_on_instruct(experiment_script_data current_instruct_data) {
 		int ret = -1;
-		int try_count = 3;
+		int try_count = shaker_command_retry_count;
 	
 		while ((try_count--) > 0) {
 		    if (0 == send_shaker_command(shaker_on)) {
@@ -358,7 +369,7 @@ public class ExperimentalOperationInstruct {
 	
 	public int shaker_off_instruct(experiment_script_data current_instruct_data) {
 		int ret = -1;
-		int try_count = 3;
+		int try_count = shaker_command_retry_count;
 		
 		while ((try_count--) > 0) {
 		    if (0 == send_shaker_command(shaker_off)) {
@@ -375,7 +386,7 @@ public class ExperimentalOperationInstruct {
 	
 	public int shaker_set_temperature_instruct(experiment_script_data current_instruct_data) {
 		int ret = 0;
-		int try_count = 3;
+		int try_count = shaker_command_retry_count;
 		
 		while ((try_count--) > 0) {
             ret = 0;
@@ -399,7 +410,7 @@ public class ExperimentalOperationInstruct {
 	
 	public int shaker_set_speed_instruct(experiment_script_data current_instruct_data) {
 		int ret = -1;
-        int try_count = 3;
+        int try_count = shaker_command_retry_count;
 		
 		while ((try_count--) > 0) {
             ret = 0;
@@ -472,7 +483,7 @@ public class ExperimentalOperationInstruct {
 		return ret;
 	}
 	
-	public int repeat_time_instruct(experiment_script_data current_instruct_data) {
+	/*public int repeat_time_instruct(experiment_script_data current_instruct_data) {
 		int ret = 0;
 		int size = list_repeat_time.size();
 		boolean has_repeat_in_list = false;
@@ -501,24 +512,56 @@ public class ExperimentalOperationInstruct {
 		}
 		
 		return ret;
+	}*/
+	
+	public int step_experiment_duration_instruct(experiment_script_data current_instruct_data) {
+		int ret = 0;
+		int size = list_repeat_time.size();
+		boolean has_repeat_in_list = false;
+			
+		for (int i = 0; i < size; i++) {
+			if (list_repeat_time.get(i).repeat_instruct_index == current_instruct_data.current_instruct_index) {
+				if ((new Date().getTime() - list_repeat_time.get(i).repeat_time) >= (current_instruct_data.get_repeat_time_value()*60000)) {
+					list_repeat_time.remove(i);
+					step_experiment_start_system_time = new Date().getTime();
+					current_instruct_data.next_instruct_index++;
+				} else {
+					current_instruct_data.next_instruct_index = list_repeat_time.get(i).repeat_instruct_from;
+				}
+				has_repeat_in_list = true;
+				break;
+			}
+		}
+	    
+		if (false == has_repeat_in_list) {
+			repeat_informat repeat_time = new repeat_informat();
+			repeat_time.repeat_instruct_index = current_instruct_data.current_instruct_index;
+			// because get_repeat_from_value() from 1 to ..., so we need to -1
+			repeat_time.repeat_instruct_from = current_instruct_data.get_repeat_from_value()-1;
+			repeat_time.repeat_time = step_experiment_start_system_time;
+			list_repeat_time.add(repeat_time);
+			current_instruct_data.next_instruct_index = repeat_time.repeat_instruct_from;
+		}
+		
+		return ret;
 	}
 	
 	public int experiment_delay_instruct(experiment_script_data current_instruct_data) {
 		int ret = -1;
 		
 		try {
-			if (0 == start_system_time) {
-				start_system_time = new Date().getTime();
+			if (0 == delay_start_system_time) {
+				delay_start_system_time = new Date().getTime();
 			} else {
 				long current_system_time = new Date().getTime();
 				long delay_time = (long)current_instruct_data.get_delay_value() * 1000;
-				if ((current_system_time - start_system_time) > delay_time) {
-					start_system_time = 0;
+				if ((current_system_time - delay_start_system_time) > delay_time) {
+					delay_start_system_time = 0;
 					current_instruct_data.next_instruct_index++;
 				}
 			}
 			
-			if (start_system_time != 0)
+			if (delay_start_system_time != 0)
 			    Thread.sleep((long)(1000));
 			ret = 0;
 		} catch (InterruptedException e) {

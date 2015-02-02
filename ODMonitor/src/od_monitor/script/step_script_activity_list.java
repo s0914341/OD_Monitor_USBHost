@@ -13,6 +13,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import od_monitor.app.data.experiment_script_data;
+import od_monitor.app.data.step_experiment_script_data;
 import od_monitor.app.file.file_operate_byte_array;
 import od_monitor.script.SwipeDismissListViewTouchListener.DismissCallbacks;
 
@@ -52,16 +53,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class step_script_activity_list extends Activity {
-	public static String Tag = "script_activity_list";
+	public static String Tag = "step_script_activity_list";
 	private final static String key_experiment = "experiment";
 	private final static String key_picture = "picture";
 	private final static String key_index = "index"; 
-	private final static String key_instruction = "instruction"; 
-	private final static String key_repeat_from = "repeat_from"; 
-	private final static String key_repeat_count = "repeat_count"; 
-	private final static String key_repeat_time = "repeat_time";
-	private final static String key_shaker_argument = "shaker_argument";
-	private final static String key_delay = "delay";
+	private final static String key_step = "step"; 
+	private final static String key_high_speed_rpm = "high_speed_rpm"; 
+	private final static String key_high_speed_duration = "high_speed_duration"; 
+	private final static String key_low_speed_rpm = "low_speed_rpm"; 
+	private final static String key_low_speed_duration = "low_speed_duration"; 
+	private final static String key_temperature = "temperature"; 
+	private final static String key_operation_duration = "operation_duration"; 
 	
 	private static final int INSERT_BEFORE=Menu.FIRST-1;  
     private static final int DELETE=Menu.FIRST;  
@@ -92,15 +94,15 @@ public class step_script_activity_list extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
 	  //把資料加入ArrayList中
-	    setContentView(R.layout.script_layout);
-	    list_view = (ListView) findViewById(R.id.listView1);
+	    setContentView(R.layout.step_script_layout);
+	    list_view = (ListView) findViewById(R.id.listViewStep);
 	    
 	    add_default_experiment_script();
 	    
 	  //新增SimpleAdapter
-	    adapter = new SimpleAdapter(this, list, R.layout.script_list,
-	                                new String[] {key_picture, key_index, key_instruction, key_repeat_from, key_repeat_count, key_repeat_time, key_shaker_argument, key_delay},
-	                                new int[] { R.id.imageView1, R.id.textViewIndex, R.id.textViewInstruction, R.id.textViewFrom, R.id.textViewCount, R.id.textViewTime, R.id.textViewShakerArgument, R.id.textViewDelay } );
+	    adapter = new SimpleAdapter(this, list, R.layout.step_script_list,
+	                                new String[] {key_picture, key_index, key_step, key_high_speed_rpm, key_high_speed_duration, key_temperature, key_low_speed_rpm, key_low_speed_duration, key_operation_duration},
+	                                new int[] { R.id.imageViewStepPicture, R.id.textViewStepIndex, R.id.textViewStep, R.id.textViewHighSpeed, R.id.textViewHighSpeedDuration, R.id.textViewTemperature, R.id.textViewLowSpeed, R.id.textViewLowSpeedDuration, R.id.textViewOperationDuration } );
 	    
 	    //listview物件使用setAdapter方法（比對ListActivity是用setListAdapter）
 	    list_view.setAdapter(adapter);
@@ -114,24 +116,23 @@ public class step_script_activity_list extends Activity {
 	   
 	    registerForContextMenu(list_view);
 	    
-	    
 	    touchListener = new SwipeDismissListViewTouchListener(
-	    		        		  list_view,
-	    		                  new SwipeDismissListViewTouchListener.DismissCallbacks() {
-	    		                      public void onDismiss(ListView listView, int[] reverseSortedPositions) {
-	    		                          for (int position : reverseSortedPositions) {
-	    		                        	 delete_instruct(position, experiment_item, list);
-	    		                        	 Log.i(Tag, "onDismiss position:"+position);
-	    		                          }
-	    		                          adapter.notifyDataSetChanged();
-	    		                      }
+	    		        list_view,
+	    		        new SwipeDismissListViewTouchListener.DismissCallbacks() {
+	    		            public void onDismiss(ListView listView, int[] reverseSortedPositions) {
+	    		                for (int position : reverseSortedPositions) {
+	    		                    delete_instruct(position, experiment_item, list);
+	    		                    Log.i(Tag, "onDismiss position:"+position);
+	    		                }
+	    		                adapter.notifyDataSetChanged();
+	    		            }
 
-									  public boolean canDismiss(int position) {
-										// TODO Auto-generated method stub
-										Log.i(Tag, "canDismiss");
-										return true;
-									  }
-	    		                  });
+							public boolean canDismiss(int position) {
+							    // TODO Auto-generated method stub
+								Log.i(Tag, "canDismiss");
+								return true;
+							}
+	    		        });
 	    
 	   
 	    list_view.setOnTouchListener(touchListener);
@@ -177,47 +178,75 @@ public class step_script_activity_list extends Activity {
 	    button_save_script.setOnClickListener(new View.OnClickListener() {
         	public void onClick(View v) {
         		/* check repeat instruction of script if is over 3 recursive level */
-        		if (3 <= check_script_recursive()) {
+        	/*	if (3 <= check_script_recursive()) {
         			 Toast.makeText(step_script_activity_list.this, "repeat recursive over 3 level", Toast.LENGTH_SHORT).show(); 
         			 return;
-        		}
+        		}*/
         		
         		file_operate_byte_array write_file = new file_operate_byte_array("ExperimentScript", "ExperimentScript", true);
         		try {
         			write_file.delete_file(write_file.generate_filename_no_date());
         			write_file.create_file(write_file.generate_filename_no_date());
         			byte[] header = new byte[5];
-        			int total_instruction_number = list.size();
+        			int total_step_count = list.size();
+        			int total_instruct_count = total_step_count*step_experiment_script_data.TOTAL_INSTRUCT_COUNT + 2; //need add power on & power off instruct
         			{
         			    ByteBuffer byteBuffer = ByteBuffer.allocate(4);
         	    	    byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
         	    	
-        			    byte[] total_instruction_number_bytes = byteBuffer.putInt(total_instruction_number).array();
-    	        	    System.arraycopy(total_instruction_number_bytes, 0, header, 1, 4);
+        			    byte[] total_step_count_bytes = byteBuffer.putInt(total_instruct_count).array();
+    	        	    System.arraycopy(total_step_count_bytes, 0, header, 1, 4);
         			    header[0] = SCRIPT_HEADER;
+        			    write_file.write_file(header);
         			}
-
-        			write_file.write_file(header);
-        			for (int i = 0; i < total_instruction_number; i++) {
-        				 experiment_script_data temp;
-        				 ByteBuffer byteBuffer = ByteBuffer.allocate(4);
-         	    	     byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-         	    	
-        			     temp = (experiment_script_data)experiment_item.get(list.get(i));
-        			     byte[] buffer = temp.get_buffer();
-        			     byte[] index_bytes = byteBuffer.putInt(i+1).array();
-        	        	 System.arraycopy(index_bytes, 0, buffer, experiment_script_data.INDEX_START, experiment_script_data.INDEX_SIZE);
-        			     write_file.write_file(buffer);
-        			}
-        			experiment_script_data final_instruct = new experiment_script_data();
-        			final_instruct.set_instruct_value(experiment_script_data.INSTRUCT_FINISH);
+        	
+        			int current_instruct_index = 1;
         			{
-        				 ByteBuffer byteBuffer = ByteBuffer.allocate(4);
-        	    	     byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-        			     byte[] buffer = final_instruct.get_buffer();
-   			             byte[] index_bytes = byteBuffer.putInt(total_instruction_number+1).array();
-   	        	         System.arraycopy(index_bytes, 0, buffer, experiment_script_data.INDEX_START, experiment_script_data.INDEX_SIZE);
-   	        	         write_file.write_file(buffer);
+        				experiment_script_data shaker_on = new experiment_script_data();
+        				shaker_on.set_instruct_value(experiment_script_data.INSTRUCT_SHAKER_ON);
+        				ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+        	    	    byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        	    	
+       			        byte[] buffer = shaker_on.get_buffer();
+       			        byte[] index_bytes = byteBuffer.putInt(current_instruct_index).array();
+       			        current_instruct_index++;
+       	        	    System.arraycopy(index_bytes, 0, buffer, experiment_script_data.INDEX_START, experiment_script_data.INDEX_SIZE);
+       			        write_file.write_file(buffer);
+        			}
+        			
+        			byte[] file_buffer = new byte[step_experiment_script_data.TOTAL_INSTRUCT_COUNT * experiment_script_data.BUFFER_SIZE];
+        			for (int i = 0; i < total_step_count; i++) {
+        		        step_experiment_script_data temp;
+        				ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+         	    	    byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+         	    	
+        			    temp = (step_experiment_script_data)experiment_item.get(list.get(i));
+        			    current_instruct_index = temp.get_step_instruct_to_file_buffer(current_instruct_index, file_buffer);
+        			    write_file.write_file(file_buffer);
+        			}
+        			
+        			{
+        				experiment_script_data shaker_off = new experiment_script_data();
+        				shaker_off.set_instruct_value(experiment_script_data.INSTRUCT_SHAKER_OFF);
+        				ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+        	    	    byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        	    	
+       			        byte[] buffer = shaker_off.get_buffer();
+       			        byte[] index_bytes = byteBuffer.putInt(current_instruct_index).array();
+       			        current_instruct_index++;
+       	        	    System.arraycopy(index_bytes, 0, buffer, experiment_script_data.INDEX_START, experiment_script_data.INDEX_SIZE);
+       			        write_file.write_file(buffer);
+        			}
+        			
+        			{
+        				experiment_script_data final_instruct = new experiment_script_data();
+            			final_instruct.set_instruct_value(experiment_script_data.INSTRUCT_FINISH);
+        				ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+        	    	    byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        			    byte[] buffer = final_instruct.get_buffer();
+   			            byte[] index_bytes = byteBuffer.putInt(current_instruct_index).array();
+   	        	        System.arraycopy(index_bytes, 0, buffer, experiment_script_data.INDEX_START, experiment_script_data.INDEX_SIZE);
+   	        	        write_file.write_file(buffer);
         			}
         	
 		            write_file.flush_close_file();
@@ -232,13 +261,62 @@ public class step_script_activity_list extends Activity {
 	    button_load_script = (Button) findViewById(R.id.button_load);
 	    button_load_script.setOnClickListener(new View.OnClickListener() {
         	public void onClick(View v) {	
-        		if (0 == load_script(list, experiment_item)) {
+        		if (0 == load_script_to_step(list, experiment_item)) {
         		    adapter.notifyDataSetChanged();
                     Toast.makeText(step_script_activity_list.this, "Load Script Success", Toast.LENGTH_SHORT).show(); 
         		}
         	}
 		});
     }
+	
+	public static int load_script_to_step(List<HashMap<String,Object>> load_list, HashMap<Object, Object> load_experiment_item) {
+		int ret = 0;
+		List<HashMap<String,Object>> temp_list = new ArrayList<HashMap<String,Object>>();
+		HashMap<Object, Object> temp_experiment_item = new HashMap<Object, Object>();
+		
+		load_list.clear();
+		load_experiment_item.clear();
+		if (0 ==load_script(temp_list, temp_experiment_item)) {
+			experiment_script_data instruct = (experiment_script_data)temp_experiment_item.get(temp_list.get(0));
+			if (experiment_script_data.INSTRUCT_SHAKER_ON == instruct.get_instruct_value()) {
+				temp_list.remove(0);
+				instruct = (experiment_script_data)temp_experiment_item.get(temp_list.get(temp_list.size()-1));
+				if (experiment_script_data.INSTRUCT_SHAKER_OFF == instruct.get_instruct_value()) {
+					temp_list.remove(temp_list.size()-1);
+					int total_instruct = temp_list.size();
+					if ((total_instruct > 0) && (total_instruct%step_experiment_script_data.TOTAL_INSTRUCT_COUNT == 0)) {
+						int list_pos = 0;
+						int step_position = 0;
+					    do { 
+					    	step_experiment_script_data step = new step_experiment_script_data();
+					    	list_pos = step.set_step_instruct_data(list_pos, temp_list, temp_experiment_item);
+					    	HashMap<String, Object> item_string_view = new HashMap<String, Object>();
+					    	
+					    	refresh_step_script_list_view(step_position, step, item_string_view);
+							load_list.add(step_position, item_string_view);
+							step_position++;
+						    if (null == load_experiment_item.put(item_string_view, step))
+						        	Log.d(Tag, "load_script step = " + step_position);
+					    } while (total_instruct > list_pos);
+					} else {
+						ret = -3;
+						Log.d(Tag, "script file is noy match step instruct count!");
+					}
+				} else {
+					ret = -2;
+					Log.d(Tag, "script last instruct is not shaker off!");
+				}
+			} else {
+				ret = -2;
+				Log.d(Tag, "script first instruct is not shaker on!");
+			}
+		} else {
+			ret = -1;
+			Log.d(Tag, "load script fail!");
+		}
+		
+		return ret;
+	}
 	
 	public static int load_script(List<HashMap<String,Object>> load_list, HashMap<Object, Object> load_experiment_item) {
 		int ret = 0;
@@ -292,102 +370,15 @@ public class step_script_activity_list extends Activity {
 		return ret;
 	}
 	
-	public int check_script_recursive() {
-		int start_instruction_number = list.size();
-		int recursive_level = 0;
-		List<int[]> list_repeat = new ArrayList<int[]>();
-		
-		while((start_instruction_number--) > 0) {
-            experiment_script_data temp;
-	        temp = (experiment_script_data)experiment_item.get(list.get(start_instruction_number));
-		    if ((temp.get_instruct_value() == experiment_script_data.INSTRUCT_REPEAT_COUNT) || 
-		        (temp.get_instruct_value() == experiment_script_data.INSTRUCT_REPEAT_TIME)) {
-		    	int[] repeat= new int[2];
-		    	repeat[0] = start_instruction_number;
-		    	repeat[1] = temp.get_repeat_from_value();
-		    	list_repeat.add(repeat);
-		    }	
-		}
-		
-		for (int i = 0; i < list_repeat.size(); i++) {
-			int[] recursive_range = list_repeat.get(i); 
-			recursive_level = 1;
-			for (int j = i+1; j < list_repeat.size(); j++) {
-				int[] temp_recursive = list_repeat.get(j);
-				
-				if ((temp_recursive[0] < recursive_range[0]) && (temp_recursive[0] > recursive_range[1])) {
-					if (temp_recursive[1] > recursive_range[1])
-						recursive_range[1] = temp_recursive[1];
-					
-					recursive_level++;
-				}
-				
-				if ((recursive_level) > 3)
-					return recursive_level;
-			}
-			
-		}
-		
-		return recursive_level;
-	}
-	
 	public void add_default_experiment_script() {
-		int position = 0;
+		int position = list.size();
 		
-        for (int i = 1; i <= 9; i++) {
-        	HashMap<String, Object> item_string_view = new HashMap<String, Object>();
-            experiment_script_data new_item_data = new experiment_script_data();
-            position = list.size();
-            
-        	switch (i) {
-        	    case 1:
-                    new_item_data.set_instruct_value(experiment_script_data.INSTRUCT_SHAKER_ON);
-                break;
-                
-        	    case 2:
-                    new_item_data.set_instruct_value(experiment_script_data.INSTRUCT_SHAKER_SET_SPEED);
-                    new_item_data.set_shaker_speed_value(250);
-                break;
-                
-        	    case 3:
-                    new_item_data.set_instruct_value(experiment_script_data.INSTRUCT_SHAKER_SET_TEMPERATURE);
-                    new_item_data.set_shaker_temperature_value(25);
-                break;
-                
-        	    case 4:
-                    new_item_data.set_instruct_value(experiment_script_data.INSTRUCT_DELAY);
-                    new_item_data.set_delay_value(150);
-                break;
-                
-        	    case 5:
-                    new_item_data.set_instruct_value(experiment_script_data.INSTRUCT_SHAKER_SET_SPEED);
-                    new_item_data.set_shaker_speed_value(100);
-                break;
-                
-        	    case 6:
-                    new_item_data.set_instruct_value(experiment_script_data.INSTRUCT_DELAY);
-                    new_item_data.set_delay_value(30);
-                break;
-                
-        	    case 7:
-                    new_item_data.set_instruct_value(experiment_script_data.INSTRUCT_READ_SENSOR);
-                break;
-                
-        	    case 8:
-                    new_item_data.set_instruct_value(experiment_script_data.INSTRUCT_REPEAT_COUNT);
-                    new_item_data.set_repeat_from_value(2);
-                    new_item_data.set_repeat_count_value(10);   
-                break;
-                
-        	    case 9:
-                    new_item_data.set_instruct_value(experiment_script_data.INSTRUCT_SHAKER_OFF);
-                break;
-        	}
+        HashMap<String, Object> item_string_view = new HashMap<String, Object>();
+        step_experiment_script_data new_item_data = new step_experiment_script_data();
         	
-            refresh_script_list_view(position, new_item_data, item_string_view);
-            list.add(position, item_string_view);
-            experiment_item.put(item_string_view, new_item_data);
-        }
+        refresh_step_script_list_view(position, new_item_data, item_string_view);
+        list.add(position, item_string_view);
+        experiment_item.put(item_string_view, new_item_data);
 	}
 	
 	protected void delete_instruct(int position, HashMap<Object, Object> item_data, List<HashMap<String,Object>> local_list) {
@@ -398,8 +389,8 @@ public class step_script_activity_list extends Activity {
 	
 	protected void add_new_instruct(int position, HashMap<Object, Object> item_data, List<HashMap<String,Object>> local_list) {
 		HashMap<String, Object> item_string_view = new HashMap<String, Object>();
-        experiment_script_data new_item_data = new experiment_script_data();
-        refresh_script_list_view(position, new_item_data, item_string_view);
+        step_experiment_script_data new_item_data = new step_experiment_script_data();
+        refresh_step_script_list_view(position, new_item_data, item_string_view);
         local_list.add(position, item_string_view);
         if (null == item_data.put(item_string_view, new_item_data))
         	Log.d(Tag, "add_new_instruct position = " + position);
@@ -408,13 +399,13 @@ public class step_script_activity_list extends Activity {
 	protected void refresh_experiment_script_index(int position, HashMap<Object, Object> item_data, List<HashMap<String,Object>> local_list) {
 		Log.d(Tag, "refresh_experiment_script_index size = " + item_data.size()); 
         for(int i = position; i < local_list.size(); i++) {
-	        experiment_script_data temp;
+	        step_experiment_script_data temp;
 	        HashMap<String, Object> item_string_view = local_list.get(i);
 	
-	        temp = (experiment_script_data)item_data.get(item_string_view);
+	        temp = (step_experiment_script_data)item_data.get(item_string_view);
 	        item_data.remove(item_string_view);
-	        refresh_script_list_view(i, temp, item_string_view);
-	        Log.d(Tag, "refresh_experiment_script index: " + i + "string:"+item_string_view.get(key_instruction)); 
+	        refresh_step_script_list_view(i, temp, item_string_view);
+	        Log.d(Tag, "refresh_experiment_script index: " + i); 
 	        if (null == item_data.put(item_string_view, temp))
 	        	 Log.d(Tag, "refresh_experiment_script_index index = " + i);
         }	
@@ -424,7 +415,7 @@ public class step_script_activity_list extends Activity {
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
-	    if (v.getId()==R.id.listView1) {
+	    if (v.getId()==R.id.listViewStep) {
 	        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
 	        menu.setHeaderTitle("Edit");
 	        String[] menuItems = getResources().getStringArray(R.array.list_menu);
@@ -474,14 +465,12 @@ public class step_script_activity_list extends Activity {
 	
 	public void show_script_setting_dialog(long id, int position) {
 		    //In the method that is called when click on "update"
-	    	Intent intent = new Intent(this, script_setting_activity.class);
-	    	intent.setClass(step_script_activity_list.this, script_setting_activity.class); 
-	    	intent.putExtra("send_experiment_script_data", (experiment_script_data)experiment_item.get(list.get(position))); 
+	    	Intent intent = new Intent(this, step_script_setting_activity.class);
+	    	intent.setClass(step_script_activity_list.this, step_script_setting_activity.class); 
+	    	intent.putExtra("send_step_experiment_script_data", (step_experiment_script_data)experiment_item.get(list.get(position))); 
 	    	intent.putExtra("send_total_item", list.size()); 
 	    	intent.putExtra("send_item_id", id); 
 	    	intent.putExtra("send_item_position", position); 
-	    	
-	    	//startActivity(intent);
 	    	
 	    	startActivityForResult(intent, PICK_CONTACT_REQUEST); //I always put 0 for someIntValue
     }
@@ -497,14 +486,14 @@ public class step_script_activity_list extends Activity {
 	        	long id = data.getLongExtra("return_item_id", -1);
 	        	int position = data.getIntExtra("return_item_position", -1);
 	     	    if (id >= 0 && position >= 0) {
-	     	        experiment_script_data item_data = (experiment_script_data)data.getSerializableExtra("return_experiment_script_data");  
+	     	        step_experiment_script_data item_data = (step_experiment_script_data)data.getSerializableExtra("return_step_experiment_script_data");  
 	     	        experiment_item.remove(list.get(position));
 	     	        
 	     	      //  HashMap<String, Object> item_string_view = new HashMap<String, Object>();
 	     	     //   refresh_script_list_view((int)id, item_data, item_string_view);
 	   	          //  list.set(position, item_string_view);
 	     	       // experiment_item.put(list.get((int)id), item_data);
-	     	        refresh_script_list_view(position, item_data, list.get(position));
+	     	        refresh_step_script_list_view(position, item_data, list.get(position));
 	     	        experiment_item.put(list.get(position), item_data);
 	   	            adapter.notifyDataSetChanged();  
 	     	    }
@@ -514,69 +503,25 @@ public class step_script_activity_list extends Activity {
 	    }
 	}
 	
-	public static void refresh_script_list_view(int index,  experiment_script_data item_data, HashMap<String, Object> item_string_view) {
-		 String str_index;
-        str_index = String.format("%d", index+1);
-        int instruct = item_data.get_instruct_value();
-        
-        Log.d(Tag, "instruct:"+ item_data.get_instruct_string());
+	public static void refresh_step_script_list_view(int index, step_experiment_script_data item_data, HashMap<String, Object> item_string_view) {
         /* avoid item_string_view object is the same for HashMap, need let item_string_view has a key value always different */
         item_string_view.put(key_experiment, item_data);
-        item_string_view.put(key_picture, mPics[instruct]);
-        Log.d(Tag, "instruct:"+ instruct);
+        item_string_view.put(key_picture, mPics[0]);
+
+        String str_index = String.format("%d", index+1);
         item_string_view.put(key_index, str_index);
-        item_string_view.put(key_instruction, experiment_script_data.SCRIPT_INSTRUCT.get(instruct));
-        switch(instruct) {
-            case  experiment_script_data.INSTRUCT_READ_SENSOR:
-            case  experiment_script_data.INSTRUCT_SHAKER_ON:
-            case  experiment_script_data.INSTRUCT_SHAKER_OFF:
-	                item_string_view.put(key_repeat_from,"");
-	                item_string_view.put(key_repeat_count, "");
-	                item_string_view.put(key_repeat_time, "");
-	   	            item_string_view.put(key_shaker_argument, "");
-	   	            item_string_view.put(key_delay, "");
-            break;
-            
-            case  experiment_script_data.INSTRUCT_REPEAT_COUNT:
-	                item_string_view.put(key_repeat_from, "From："+item_data.get_repeat_from_string()+"   ");
-	                item_string_view.put(key_repeat_count, "Count："+item_data.get_repeat_count_string());
-	                item_string_view.put(key_repeat_time, "");
-	   	            item_string_view.put(key_shaker_argument, "");
-	   	            item_string_view.put(key_delay, "");
-            break;
-            
-            case  experiment_script_data.INSTRUCT_REPEAT_TIME:
-	                item_string_view.put(key_repeat_from, "From："+item_data.get_repeat_from_string()+"   ");
-	                item_string_view.put(key_repeat_count, "");
-	                item_string_view.put(key_repeat_time, "Time："+item_data.get_repeat_time_string()+"min");
-	   	            item_string_view.put(key_shaker_argument, "");
-	   	            item_string_view.put(key_delay, "");
-            break;
-            
-            case  experiment_script_data.INSTRUCT_SHAKER_SET_SPEED:
-	                item_string_view.put(key_repeat_from, "");
-	                item_string_view.put(key_repeat_count, "");
-	                item_string_view.put(key_repeat_time, "");
-	   	            item_string_view.put(key_shaker_argument, "Shaker speed：" + item_data.get_shaker_speed_string()+"rpm");
-	   	            item_string_view.put(key_delay, "");
-            break;
-            
-            case  experiment_script_data.INSTRUCT_SHAKER_SET_TEMPERATURE:
-	                item_string_view.put(key_repeat_from, "");
-	                item_string_view.put(key_repeat_count, "");
-	                item_string_view.put(key_repeat_time, "");
-	   	            item_string_view.put(key_shaker_argument, "shaker temperature：" + item_data.get_shaker_temperature_string() + "℃");
-	   	            item_string_view.put(key_delay, "");
-            break;
-            
-            case  experiment_script_data.INSTRUCT_DELAY:
-                    item_string_view.put(key_repeat_from, "");
-                    item_string_view.put(key_repeat_count, "");
-                    item_string_view.put(key_repeat_time, "");
-   	                item_string_view.put(key_shaker_argument, "");
-   	                item_string_view.put(key_delay, "Time:" + item_data.get_delay_string()+"second");
-        break;
-        }
+        item_string_view.put(key_step, "Step");
+        item_string_view.put(key_high_speed_rpm,"high speed: " + item_data.get_high_speed_rpm_string() + "rpm");
+        item_string_view.put(key_high_speed_duration, "high speed duration: " + item_data.get_low_speed_operation_duration_string() + "sec");
+        item_string_view.put(key_temperature, "temperature: " + item_data.get_temperature_string() + "℃");
+        item_string_view.put(key_low_speed_rpm, "low speed: " + item_data.get_low_speed_rpm() + "rpm");
+        item_string_view.put(key_low_speed_duration, "low speed duration: " + item_data.get_low_speed_operation_duration_string() + "sec");
+        item_string_view.put(key_operation_duration, "experiment duration: " + item_data.get_experiment_operation_duration_string() + "min");
+	}
+	
+	public static void refresh_script_list_view(int index, experiment_script_data item_data, HashMap<String, Object> item_string_view) {
+        /* avoid item_string_view object is the same for HashMap, need let item_string_view has a key value always different */
+        item_string_view.put(key_experiment, item_data);
 	}
 	
 	@Override
