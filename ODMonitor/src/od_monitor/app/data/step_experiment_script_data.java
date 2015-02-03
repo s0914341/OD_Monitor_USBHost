@@ -26,7 +26,7 @@ public class step_experiment_script_data implements Serializable{
 	public static final int high_speed_operation_duration = 150;
 	public static final int low_speed_operation_duration = 30;
 	public static final int temperature = 37;
-	public static final int experiment_operation_duration = 3600;
+	public static final int experiment_operation_duration = 360;
 	private experiment_script_data[] instruct = new experiment_script_data[7];
 	
 	public step_experiment_script_data() {

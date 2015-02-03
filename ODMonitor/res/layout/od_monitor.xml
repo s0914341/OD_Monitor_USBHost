@@ -20,7 +20,7 @@
             	android:layout_width="wrap_content" 
             	android:layout_height="wrap_content" 
             	android:layout_alignParentLeft="true" 
-            	android:text="Devices status information"
+            	android:text="Devices status information/App version:0.10"
             	android:layout_marginLeft="25dp"
             	android:layout_marginTop="10dp"
             	android:textStyle="bold">
@@ -205,7 +205,35 @@
             	android:id="@+id/ButtonScript" 
             	android:layout_marginTop="15dp">
             </ImageButton> 
-       </LinearLayout>             
+       </LinearLayout>
+       
+       <LinearLayout 
+           android:id="@+id/MailLayout" 
+           android:orientation="vertical"
+           android:layout_width="60pt"
+           android:layout_height="wrap_content"
+           android:layout_toRightOf="@+id/ScriptLayout" 
+           android:layout_marginTop="20dp"
+           android:gravity="center">
+        	
+        	<TextView 
+            	android:id="@+id/textViewMailButton" 
+            	android:textAppearance="?android:attr/textAppearanceMedium"
+            	android:layout_width="fill_parent" 
+            	android:layout_height="fill_parent"
+            	android:text="E-mail Alert"
+            	android:gravity="center"
+            	android:textSize="10pt">
+            </TextView>
+            
+           	<ImageButton 
+            	android:background="@drawable/buttons_mail" 
+            	android:layout_width="80dp" 
+            	android:layout_height="80dp"
+            	android:id="@+id/ButtonMail" 
+            	android:layout_marginTop="15dp">
+            </ImageButton> 
+       </LinearLayout>      
     </RelativeLayout>          
         
     <RelativeLayout  
@@ -225,8 +253,9 @@
            	 <TextView
                 android:id="@+id/TextViewExperiment"
                 android:layout_width="fill_parent"
+                android:textAppearance="?android:attr/textAppearanceMedium"
                 android:textSize="10pt"
-                android:text="Experiment Information"
+                android:text="Experiment Information:"
                 android:layout_height="wrap_content">
              </TextView>
              <TextView

@@ -6,20 +6,13 @@
     android:focusableInTouchMode="true" >
 
     <TextView
-        android:id="@+id/textView1"
+        android:id="@+id/textViewTitle"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:text="TextView1" >
-    </TextView>
-
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/textView1"
-        android:layout_centerHorizontal="true"
-        android:text="TextView2" >
+        android:background="#FF5577AA"
+        android:textSize="12pt"
+        android:text="Experiment Script Setting" >
     </TextView>
 
     <LinearLayout
@@ -66,7 +59,7 @@
         android:id="@+id/listViewStep"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/textView2"
+        android:layout_below="@+id/textViewTitle"
         android:layout_above="@+id/liner_layout_button"
         android:layout_marginBottom="10dp"
         android:layout_marginTop="10dp"

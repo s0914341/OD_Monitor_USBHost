@@ -3,7 +3,7 @@ package od_monitor.app;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import ODMonitor.App.R;
+import od_monitor.app.R;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -16,40 +16,40 @@ import android.widget.AdapterView.OnItemClickListener;
 
 public class GVTable extends LinearLayout {
 	protected GridView gvTable,gvPage;	
-	protected SimpleAdapter saPageID,saTable;// ?‚é?å™¨
-	protected ArrayList<HashMap<String, String>> srcPageID,srcTable;// ?•°?®æº?
+	protected SimpleAdapter saPageID,saTable;// ?ï¿½ï¿½?ï¿½å™¨
+	protected ArrayList<HashMap<String, String>> srcPageID,srcTable;// ?ï¿½ï¿½?ï¿½ï¿½ï¿½?
 	
-	protected int TableRowCount=10;//??†é¡µ?—¶ï¼Œæ?é¡µ??„Row?»æ•°
-	protected int TableColCount=0;//æ¯é¡µcol??„æ•°???
+	protected int TableRowCount=10;//??ï¿½é¡µ?ï¿½ï¿½ï¼Œï¿½?ï¿½é¡µ??ï¿½Row?ï¿½æ•°
+	protected int TableColCount=0;//æ¯é¡µcol??ï¿½æ•°???
 	protected SQLiteDatabase db;
 	protected String rawSQL="";
-	protected Cursor curTable;//??†é¡µ?—¶ä½¿ç”¨??„Cursor
-	protected OnTableClickListener clickListener;//?•´ä¸ªå?†é¡µ?§ä»¶è¢«?‚¹?‡»?—¶??„å?è?ƒå‡½?•°
-	protected OnPageSwitchListener switchListener;//??†é¡µ??‡æ¢?—¶??„å?è?ƒå‡½?•°
+	protected Cursor curTable;//??ï¿½é¡µ?ï¿½ï¿½ä½¿ç”¨??ï¿½Cursor
+	protected OnTableClickListener clickListener;//?ï¿½ï¿½ä¸ªï¿½?ï¿½é¡µ?ï¿½ï¿½ä»¶è¢«?ï¿½ï¿½?ï¿½ï¿½?ï¿½ï¿½??ï¿½ï¿½?ï¿½ï¿½?ï¿½å‡½?ï¿½ï¿½
+	protected OnPageSwitchListener switchListener;//??ï¿½é¡µ??ï¿½æ¢?ï¿½ï¿½??ï¿½ï¿½?ï¿½ï¿½?ï¿½å‡½?ï¿½ï¿½
 	
 	public GVTable(Context context) {
 		super(context);
-		this.setOrientation(VERTICAL);//??‚ç›´
+		this.setOrientation(VERTICAL);//??ï¿½ç›´
 		
 		//----------------------------------------
 		gvPage=new GridView(context);
 		gvPage.setColumnWidth(80);
-		gvPage.setNumColumns(GridView.AUTO_FIT);//??†é¡µ??‰é’®?•°??è‡ª?Š¨è®¾ç½®
+		gvPage.setNumColumns(GridView.AUTO_FIT);//??ï¿½é¡µ??ï¿½é’®?ï¿½ï¿½??ï¿½è‡ª?ï¿½ï¿½è®¾ç½®
 		addView(gvPage, new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT,
 		        LayoutParams.WRAP_CONTENT));//å®½é•¿å¼æ ·
 		srcPageID = new ArrayList<HashMap<String, String>>();
 		saPageID = new SimpleAdapter(context,
-				srcPageID,// ?•°?®?¥æº?
+				srcPageID,// ?ï¿½ï¿½?ï¿½ï¿½?ï¿½ï¿½ï¿½?
 				R.layout.items,//XMLå®ç°
-				new String[] { "ItemText" },// ?Š¨?æ•°ç»„ä?ImageItemå¯¹å?”ç?„å?é¡¹
+				new String[] { "ItemText" },// ?ï¿½ï¿½?ï¿½æ•°ç»„ï¿½?ï¿½ImageItemå¯¹ï¿½?ï¿½ï¿½?ï¿½ï¿½?ï¿½é¡¹
 				new int[] { R.id.ItemText });
-		// æ·»å? å¹¶ä¸”æ˜¾ç¤?
+		// æ·»ï¿½?ï¿½å¹¶ä¸”æ˜¾ï¿½?
 		gvPage.setAdapter(saPageID);
-	    // æ·»å? æ?ˆæ¯å¤„ç??
+	    // æ·»ï¿½?ï¿½ï¿½?ï¿½æ¯å¤„ï¿½??
 		gvPage.setOnItemClickListener(new OnItemClickListener(){
 		    public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-		        LoadTable(arg2);//? ¹?®???‰å?†é¡µè¯»å?–å¯¹åº”ç?„æ•°?®
-			    if(switchListener!=null){//??†é¡µ??‡æ¢?—¶
+		        LoadTable(arg2);//?ï¿½ï¿½?ï¿½ï¿½???ï¿½ï¿½?ï¿½é¡µè¯»ï¿½?ï¿½å¯¹åº”ï¿½?ï¿½æ•°?ï¿½ï¿½
+			    if(switchListener!=null){//??ï¿½é¡µ??ï¿½æ¢?ï¿½ï¿½
 		            switchListener.onPageSwitchListener(arg2,srcPageID.size());
 			    }
 		    }
@@ -61,19 +61,19 @@ public class GVTable extends LinearLayout {
 		
 		srcTable = new ArrayList<HashMap<String, String>>();
 		saTable = new SimpleAdapter(context,
-				srcTable,// ?•°?®?¥æº?
+				srcTable,// ?ï¿½ï¿½?ï¿½ï¿½?ï¿½ï¿½ï¿½?
 				R.layout.items,//XMLå®ç°
-				new String[] { "ItemText" },// ?Š¨?æ•°ç»„ä?ImageItemå¯¹å?”ç?„å?é¡¹
+				new String[] { "ItemText" },// ?ï¿½ï¿½?ï¿½æ•°ç»„ï¿½?ï¿½ImageItemå¯¹ï¿½?ï¿½ï¿½?ï¿½ï¿½?ï¿½é¡¹
 				new int[] { R.id.ItemText });
-		// æ·»å? å¹¶ä¸”æ˜¾ç¤?
+		// æ·»ï¿½?ï¿½å¹¶ä¸”æ˜¾ï¿½?
 		gvTable.setAdapter(saTable);
 		gvTable.setOnItemClickListener(new OnItemClickListener(){
 			public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
 					long arg3) {
-				int y=arg2/curTable.getColumnCount()-1;//??‡é?˜æ?ç?„ä?ç??
+				int y=arg2/curTable.getColumnCount()-1;//??ï¿½ï¿½?ï¿½ï¿½?ï¿½ï¿½?ï¿½ï¿½?ï¿½ï¿½??
 				int x=arg2 % curTable.getColumnCount();
-				if (clickListener != null//??†é¡µ?•°?®è¢«ç‚¹?‡»
-						&& y!=-1) {//?‚¹ä¸­ç?„ä?æ˜¯??‡é?˜æ?æ—¶
+				if (clickListener != null//??ï¿½é¡µ?ï¿½ï¿½?ï¿½ï¿½è¢«ç‚¹?ï¿½ï¿½
+						&& y!=-1) {//?ï¿½ï¿½ä¸­ï¿½?ï¿½ï¿½?ï¿½æ˜¯??ï¿½ï¿½?ï¿½ï¿½?ï¿½æ—¶
 					clickListener.onTableClickListener(x,y,curTable);
 				}
 			}
@@ -94,23 +94,23 @@ public class GVTable extends LinearLayout {
 		
 	}
 	/**
-	 * è¯»å?–æ?‡å?šID??„å?†é¡µ?•°?®,è¿”å?å?“å?é¡µ??„æ?»æ•°?®
+	 * è¯»ï¿½?ï¿½ï¿½?ï¿½ï¿½?ï¿½ID??ï¿½ï¿½?ï¿½é¡µ?ï¿½ï¿½?ï¿½ï¿½,è¿”ï¿½?ï¿½ï¿½?ï¿½ï¿½?ï¿½é¡µ??ï¿½ï¿½?ï¿½æ•°?ï¿½ï¿½
 	 * SQL:Select * From TABLE_NAME Limit 9 Offset 10;
-	 * è¡¨ç¤ºä»TABLE_NAMEè¡¨è·??–æ•°?®ï¼Œè·³è¿?10è¡Œï?Œå??9è¡?
-	 * @param pageID ??‡å?šç?„å?†é¡µID
+	 * è¡¨ç¤ºä»TABLE_NAMEè¡¨è·??ï¿½æ•°?ï¿½ï¿½ï¼Œè·³ï¿½?10è¡Œï¿½?ï¿½ï¿½??9ï¿½?
+	 * @param pageID ??ï¿½ï¿½?ï¿½ï¿½?ï¿½ï¿½?ï¿½é¡µID
 	 */
 	protected void LoadTable(int pageID)
 	{
-		if(curTable!=null)//??Šæ”¾ä¸Šæ¬¡??„æ•°?®
+		if(curTable!=null)//??ï¿½æ”¾ä¸Šæ¬¡??ï¿½æ•°?ï¿½ï¿½
 			curTable.close();
 		
 	    String sql= rawSQL+" Limit "+String.valueOf(TableRowCount)+ " Offset " +String.valueOf(pageID*TableRowCount);
 	    curTable = db.rawQuery(sql, null);
 	    
-	    gvTable.setNumColumns(curTable.getColumnCount());//è¡¨ç°ä¸ºè¡¨? ¼??„å…³?”®?‚¹ï¼?
+	    gvTable.setNumColumns(curTable.getColumnCount());//è¡¨ç°ä¸ºè¡¨?ï¿½ï¿½??ï¿½å…³?ï¿½ï¿½?ï¿½ï¿½ï¿½?
 	    TableColCount=curTable.getColumnCount();
 	    srcTable.clear();
-	    // ??–å?—å?—æ®µ??ç§°
+	    // ??ï¿½ï¿½?ï¿½ï¿½?ï¿½æ®µ??ï¿½ç§°
 	    int colCount = curTable.getColumnCount();
 		for (int i = 0; i < colCount; i++) {
 			HashMap<String, String> map = new HashMap<String, String>();
@@ -118,11 +118,11 @@ public class GVTable extends LinearLayout {
 			srcTable.add(map);
 		}
 		
-		// ??—ä¸¾?‡º????‰æ•°?®
+		// ??ï¿½ä¸¾?ï¿½ï¿½????ï¿½æ•°?ï¿½ï¿½
 		int recCount=curTable.getCount();
-		for (int i = 0; i < recCount; i++) {//å®šä?åˆ°ä¸??¡?•°?®
+		for (int i = 0; i < recCount; i++) {//å®šï¿½?ï¿½åˆ°ï¿½??ï¿½ï¿½?ï¿½ï¿½?ï¿½ï¿½
 			curTable.moveToPosition(i);
-			for(int ii=0;ii<colCount;ii++)//å®šä?åˆ°ä¸??¡?•°?®ä¸­ç?„æ?ä¸ªå­—æ®µ
+			for(int ii=0;ii<colCount;ii++)//å®šï¿½?ï¿½åˆ°ï¿½??ï¿½ï¿½?ï¿½ï¿½?ï¿½ï¿½ä¸­ï¿½?ï¿½ï¿½?ï¿½ä¸ªå­—æ®µ
 			{
 				HashMap<String, String> map = new HashMap<String, String>();
 				map.put("ItemText", curTable.getString(ii));
@@ -156,8 +156,8 @@ public class GVTable extends LinearLayout {
 	}
 	
 	/**
-	 * ??–å?—å?“å?å?†é¡µ??„Cursor
-	 * @return å½“å?å?†é¡µ??„Cursor
+	 * ??ï¿½ï¿½?ï¿½ï¿½?ï¿½ï¿½?ï¿½ï¿½?ï¿½é¡µ??ï¿½Cursor
+	 * @return å½“ï¿½?ï¿½ï¿½?ï¿½é¡µ??ï¿½Cursor
 	 */
 	public Cursor gvGetCurrentTable()
 	{
@@ -165,9 +165,9 @@ public class GVTable extends LinearLayout {
 	}
 		
 	/**
-	 * ??†å?‡å?†é¡µ?˜¾ç¤ºæ•°?®
+	 * ??ï¿½ï¿½?ï¿½ï¿½?ï¿½é¡µ?ï¿½ï¿½ç¤ºæ•°?ï¿½ï¿½
 	 * @param rawSQL sqlè¯­å¥
-	 * @param db ?•°?®åº?
+	 * @param db ?ï¿½ï¿½?ï¿½ï¿½ï¿½?
 	 */
 	public void gvReadyTable(String rawSQL,SQLiteDatabase db)
 	{
@@ -176,29 +176,29 @@ public class GVTable extends LinearLayout {
 	}
 	
 	/**
-	 * ?ˆ·?–°??†é¡µ??ï?Œæ›´?–°??‰é’®?•°???
+	 * ?ï¿½ï¿½?ï¿½ï¿½??ï¿½é¡µ??ï¿½ï¿½?ï¿½æ›´?ï¿½ï¿½??ï¿½é’®?ï¿½ï¿½???
 	 * @param sql SQLè¯­å¥
-	 * @param db ?•°?®åº?
+	 * @param db ?ï¿½ï¿½?ï¿½ï¿½ï¿½?
 	 */
 	public void gvUpdatePageBar(String sql,SQLiteDatabase db)
 	{
 		Cursor rec = db.rawQuery(sql, null);
 		rec.moveToLast();
-		long recSize=rec.getLong(0);//??–å?—æ?»æ•°
+		long recSize=rec.getLong(0);//??ï¿½ï¿½?ï¿½ï¿½?ï¿½æ•°
 		rec.close();
-		int pageNum=(int)(recSize/TableRowCount) + 1;//??–å?—å?†é¡µ?•°
+		int pageNum=(int)(recSize/TableRowCount) + 1;//??ï¿½ï¿½?ï¿½ï¿½?ï¿½é¡µ?ï¿½ï¿½
 		
 		srcPageID.clear();
 		for (int i = 0; i < pageNum; i++) {
 			HashMap<String, String> map = new HashMap<String, String>();
-			map.put("ItemText", "Page." + String.valueOf(i));// æ·»å? å›¾??è?„æ?ç?„ID
+			map.put("ItemText", "Page." + String.valueOf(i));// æ·»ï¿½?ï¿½å›¾??ï¿½ï¿½?ï¿½ï¿½?ï¿½ï¿½?ï¿½ID
 			srcPageID.add(map);
 		}
 		saPageID.notifyDataSetChanged();
 	}
 	//---------------------------------------------------------
 	/**
-	 * è¡¨æ ¼è¢«ç‚¹?‡»?—¶??„å?è?ƒå‡½?•°
+	 * è¡¨æ ¼è¢«ç‚¹?ï¿½ï¿½?ï¿½ï¿½??ï¿½ï¿½?ï¿½ï¿½?ï¿½å‡½?ï¿½ï¿½
 	 */
 	public void setTableOnClickListener(OnTableClickListener click) {
 		this.clickListener = click;
@@ -209,7 +209,7 @@ public class GVTable extends LinearLayout {
 	}
 	//---------------------------------------------------------
 	/**
-	 * ??†é¡µ??è¢«?‚¹?‡»?—¶??„å?è?ƒå‡½?•°
+	 * ??ï¿½é¡µ??ï¿½è¢«?ï¿½ï¿½?ï¿½ï¿½?ï¿½ï¿½??ï¿½ï¿½?ï¿½ï¿½?ï¿½å‡½?ï¿½ï¿½
 	 */
 	public void setOnPageSwitchListener(OnPageSwitchListener pageSwitch) {
 		this.switchListener = pageSwitch;

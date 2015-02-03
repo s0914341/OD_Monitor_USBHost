@@ -5,9 +5,9 @@ import java.nio.ByteBuffer;
 
 import od_monitor.app.data.experiment_script_data;
 
-import ODMonitor.App.R;
-import ODMonitor.App.R.id;
-import ODMonitor.App.R.layout;
+import od_monitor.app.R;
+import od_monitor.app.R.id;
+import od_monitor.app.R.layout;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;

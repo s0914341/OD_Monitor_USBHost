@@ -25,7 +25,7 @@ public class file_operation {
 	private BufferedReader file_buf_read;
 	//SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd-HHmmss");
 	protected SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
-	protected static SimpleDateFormat df1 = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+	protected SimpleDateFormat df1 = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	protected static String Flush_File = ""; 
 	protected boolean file_append = false;
 	

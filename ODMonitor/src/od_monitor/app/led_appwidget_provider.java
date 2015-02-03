@@ -1,6 +1,6 @@
 package od_monitor.app;
 
-import ODMonitor.App.R;
+import od_monitor.app.R;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;

@@ -1,6 +1,7 @@
 package od_monitor.app.file;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import android.graphics.Bitmap;
@@ -10,6 +11,7 @@ import android.util.Log;
 public class file_operate_bmp extends file_operate_byte_array {
 	private String Tag = "file_operate_bmp";
 	protected String file_extension = "png";
+	protected SimpleDateFormat file_date = new SimpleDateFormat("yyyyMMdd_HHmmss");
 	
 	public file_operate_bmp(String dir_name, String file_name, String file_extension) {
 		super(dir_name, file_name, false);
@@ -21,7 +23,7 @@ public class file_operate_bmp extends file_operate_byte_array {
 	@Override
 	public String generate_filename() {
 	    String filename;
-		filename = CreateFileName + df.format(new Date()) + "." + file_extension;
+		filename = CreateFileName + file_date.format(new Date()) + "." + file_extension;
 		Log.d(Tag, filename);
 		return filename;
 	}

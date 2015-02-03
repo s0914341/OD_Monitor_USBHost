@@ -19,6 +19,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -45,7 +46,7 @@ import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
 
-import ODMonitor.App.R;
+import od_monitor.app.R;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -92,10 +93,12 @@ public class ODChartBuilder extends Activity {
   private ImageButton zoom_out_button;
   private ImageButton zoom_fit_button;
   private ImageButton save_chart_button;
-  private long chart_start_time = new Date().getTime();
+  private long chart_start_time = System.currentTimeMillis();
   private long chart_end_time = chart_start_time + 20000;
   private double chart_max_od_value = 0;
   private double chart_min_od_value = 0;
+  private boolean refresh_view_range = true;
+  private long refresh_view_range_wait = 0;
 
 
   @Override
@@ -169,16 +172,15 @@ public class ODChartBuilder extends Activity {
       zoom_fit_button = (ImageButton) findViewById(R.id.zoomFit);
       zoom_fit_button.setOnClickListener(new View.OnClickListener() {
           public void onClick(View v) {
-        	  double margin = 0;
-        	  if (chart_start_time >= chart_end_time)
-        		  chart_end_time = chart_start_time + 20000;
-        	  
-        	  margin = (chart_max_od_value - chart_min_od_value)/10;
-        	  if (0 == margin)
-        		  margin = 1;
-        	  mRenderer.setRange(new double[] {chart_start_time, chart_end_time, chart_min_od_value - margin , chart_max_od_value + margin});
-        	  mChartView.repaint();
-    	      //mChartView.zoomReset();
+        	  if (mCurrentSeries.getItemCount() > 1) {
+        	      double margin = 0;
+        	      Log.d(Tag, mCurrentSeries.getMaxX()+","+ mCurrentSeries.getMinX()+","+mCurrentSeries.getItemCount());
+        	      margin = (mCurrentSeries.getMaxY() - mCurrentSeries.getMinY())/10;
+        	      if (0 == margin)
+        		      margin = 1;
+        	      mRenderer.setRange(new double[] {mCurrentSeries.getMinX(), mCurrentSeries.getMaxX(), mCurrentSeries.getMinY() - margin , mCurrentSeries.getMaxY() + margin});
+        	      mChartView.repaint();
+        	  }
       	  }
 	  });
       
@@ -187,7 +189,7 @@ public class ODChartBuilder extends Activity {
           public void onClick(View v) {
               file_operate_bmp write_file = new file_operate_bmp("od_chart", "chart", "png");
       		  try {
-      			  write_file.create_file(write_file.generate_filename_no_date());
+      			  write_file.create_file(write_file.generate_filename());
       		  } catch (IOException e) {
       			  // TODO Auto-generated catch block
       			  e.printStackTrace();
@@ -217,8 +219,11 @@ public class ODChartBuilder extends Activity {
   }
 
   public void SerialAdd(Date x, double y) {
-      // add a new data point to the current series
-	  refresh_current_view_range(x, y);
+	  
+	  if ((System.currentTimeMillis() - refresh_view_range_wait) > 30000) {
+          // add a new data point to the current series
+	      refresh_current_view_range(x, y);
+	  }
       mCurrentSeries.add(x, y);
       // repaint the chart such as the newly added point to be visible
       mChartView.repaint();
@@ -350,10 +355,6 @@ public class ODChartBuilder extends Activity {
 			}
 		}
 	}
-  
-    public void init_renderer_range(long x_start, double y_max, double y_min) {
-    	mRenderer.setRange(new double[] {x_start, x_start+20000, y_min, y_max});
-    }
     
     public void init_time_series() {
         Date date = null;
@@ -437,7 +438,7 @@ public class ODChartBuilder extends Activity {
         super.onResume();
         if (mChartView == null) {
             LinearLayout layout = (LinearLayout) findViewById(R.id.chart);
-            mChartView = ChartFactory.getTimeChartView(this, mDataset, mRenderer, "MM-dd h:mm:ss a");
+            mChartView = ChartFactory.getTimeChartView(this, mDataset, mRenderer, "MM/dd h:mm:ss a");
             //mChartView = ChartFactory.getLineChartView(this, mDataset, mRenderer);
             // enable the chart click events
             mRenderer.setClickEnabled(true);
@@ -445,17 +446,19 @@ public class ODChartBuilder extends Activity {
             mChartView.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
             // handle the click event on the chart
+            	refresh_view_range_wait = System.currentTimeMillis();
                 SeriesSelection seriesSelection = mChartView.getCurrentSeriesAndPoint();
                 if (seriesSelection == null) {
                    // Toast.makeText(ODChartBuilder.this, "No chart element", Toast.LENGTH_SHORT).show();
                 } else {
                     // display information of the clicked point
                 	Date date = new Date((long)seriesSelection.getXValue());
+                	SimpleDateFormat date_format = new SimpleDateFormat("MM/dd h:mm:ss a");
                 	Toast.makeText(
                     ODChartBuilder.this,
                     SERIES_NAME + (seriesSelection.getSeriesIndex()+1)
-                    + "\nclosest point value X=" + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() 
-                    + "\nY=" + seriesSelection.getValue(), Toast.LENGTH_SHORT).show();
+                    + "\nclosest point value X = " + date_format.format(date)
+                    + "\nY = " + seriesSelection.getValue(), Toast.LENGTH_SHORT).show();
                     /*Toast.makeText(
                         ODChartBuilder.this,
                         "Chart element in series index= " + seriesSelection.getSeriesIndex()

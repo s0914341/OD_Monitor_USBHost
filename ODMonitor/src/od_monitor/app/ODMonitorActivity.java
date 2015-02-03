@@ -20,10 +20,12 @@ import od_monitor.app.data.experiment_script_data;
 import od_monitor.app.data.machine_information;
 import od_monitor.app.data.sensor_data_composition;
 import od_monitor.app.data.sync_data;
+import od_monitor.app.file.ExportDatabaseCSVTask;
 import od_monitor.app.file.file_operate_byte_array;
 import od_monitor.app.file.file_operation;
 import od_monitor.experiment.ExperimentalOperationInstruct;
 import od_monitor.experiment.ODMonitor_Sensor.CMD_T;
+import od_monitor.mail.SendMailSmtp;
 import od_monitor.script.script_activity_list;
 import od_monitor.script.step_script_activity_list;
 
@@ -41,8 +43,8 @@ import org.achartengine.renderer.XYSeriesRenderer;
 
 import com.ftdi.j2xx.D2xxManager;
 
-import ODMonitor.App.R;
-import ODMonitor.App.R.drawable;
+import od_monitor.app.R;
+import od_monitor.app.R.drawable;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -127,13 +129,11 @@ public class ODMonitorActivity extends Activity {
 	public SeekBar volumecontrol;
     public ProgressBar slider;
     
-    public ImageButton start_button; //Button led1;
-    public ImageButton stop_button; //Button led3;
-    public ImageButton chart_button; //Button led4;
+    public ImageButton start_button;
+    public ImageButton stop_button;
+    public ImageButton chart_button;
     public ImageButton script_button;
-    public ImageButton button6;
-    
-    public ImageView ledvolume;
+    public ImageButton mail_button;
     
     public ImageView sensor_status;
     public ImageView shaker_status;
@@ -172,7 +172,7 @@ public class ODMonitorActivity extends Activity {
     GVTable table;
 	SQLiteDatabase db;
 	int id;
-	private static final String TABLE_NAME = "stu";
+	private static final String TABLE_NAME = "od";
 	private static final String INDEX = "NO";
 	private static final String DATE = "date";
 	private static final String OD1 = "OD1";
@@ -229,12 +229,6 @@ public class ODMonitorActivity extends Activity {
 		});
 		
 		ly.addView(table);
-		
-		//data_write_thread = new data_write_thread(handler);
-		//data_write_thread.start();
-	//	textView2 = (TextView) findViewById(R.id.test);
-	//	textView2.setText( Html.fromHtml("<a href=\"http://www.maestrogen.com/ftp/i-track/user_manual.html\">iTrack User Manual</a>") );
-	//	textView2.setMovementMethod(LinkMovementMethod.getInstance());
 		
 		mypDialog = new ProgressDialog(this);
 		mypDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -312,18 +306,19 @@ public class ODMonitorActivity extends Activity {
         script_button.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
         		show_script_activity();
+			/*	new ExportDatabaseCSVTask(context, db, TABLE_NAME).execute("");
+				SendMailSmtp mail = new SendMailSmtp();
+				mail.SendMailSMTPMethod1();*/
 			}
 		});  
         
-      /*  button6 = (ImageButton) findViewById(R.id.Button6);
-        button6.setOnClickListener(new View.OnClickListener() {
+        mail_button = (ImageButton) findViewById(R.id.ButtonMail);
+        mail_button.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				//set_tablet_on_off_line((byte)0, false);
 				//SensorDataReceive();
-				experiment_script_data current_instruct_data = new experiment_script_data();
-				experiment.shaker_on_instruct(current_instruct_data);
 			}
-		});*/
+		});
         
        /* etInput = (EditText)findViewById(R.id.etInput); 
         etInput.setOnKeyListener(new OnKeyListener() {

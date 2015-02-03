@@ -18,11 +18,11 @@ import od_monitor.app.file.file_operate_byte_array;
 
 
 
-import ODMonitor.App.R;
-import ODMonitor.App.R.array;
-import ODMonitor.App.R.drawable;
-import ODMonitor.App.R.id;
-import ODMonitor.App.R.layout;
+import od_monitor.app.R;
+import od_monitor.app.R.array;
+import od_monitor.app.R.drawable;
+import od_monitor.app.R.id;
+import od_monitor.app.R.layout;
 import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Intent;

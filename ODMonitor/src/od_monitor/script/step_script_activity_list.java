@@ -20,11 +20,11 @@ import od_monitor.script.SwipeDismissListViewTouchListener.DismissCallbacks;
 import org.achartengine.chartdemo.demo.chart.IDemoChart;
 import org.achartengine.chartdemo.demo.chart.ODChartBuilder;
 
-import ODMonitor.App.R;
-import ODMonitor.App.R.array;
-import ODMonitor.App.R.drawable;
-import ODMonitor.App.R.id;
-import ODMonitor.App.R.layout;
+import od_monitor.app.R;
+import od_monitor.app.R.array;
+import od_monitor.app.R.drawable;
+import od_monitor.app.R.id;
+import od_monitor.app.R.layout;
 import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Intent;
@@ -84,8 +84,7 @@ public class step_script_activity_list extends Activity {
 	SwipeDismissListViewTouchListener touchListener;
 	
 	private static final int[] mPics=new int[]{
-        R.drawable.sensor_read,R.drawable.on,R.drawable.off, R.drawable.shaker_temperature,R.drawable.shaker_speed,
-        R.drawable.repeat_count,R.drawable.repeat_time,R.drawable.delay
+        R.drawable.experiment_step
     };
 	
 	/** Called when the activity is first created. */
@@ -97,7 +96,9 @@ public class step_script_activity_list extends Activity {
 	    setContentView(R.layout.step_script_layout);
 	    list_view = (ListView) findViewById(R.id.listViewStep);
 	    
-	    add_default_experiment_script();
+	    if (0 != load_script_to_step(list, experiment_item)) {
+	        add_default_experiment_script();
+	    }
 	    
 	  //·s¼WSimpleAdapter
 	    adapter = new SimpleAdapter(this, list, R.layout.step_script_list,
@@ -263,7 +264,9 @@ public class step_script_activity_list extends Activity {
         	public void onClick(View v) {	
         		if (0 == load_script_to_step(list, experiment_item)) {
         		    adapter.notifyDataSetChanged();
-                    Toast.makeText(step_script_activity_list.this, "Load Script Success", Toast.LENGTH_SHORT).show(); 
+                    Toast.makeText(step_script_activity_list.this, "Load script success!", Toast.LENGTH_SHORT).show(); 
+        		} else {
+        			Toast.makeText(step_script_activity_list.this, "No script file existed!", Toast.LENGTH_SHORT).show(); 
         		}
         	}
 		});
@@ -511,12 +514,14 @@ public class step_script_activity_list extends Activity {
         String str_index = String.format("%d", index+1);
         item_string_view.put(key_index, str_index);
         item_string_view.put(key_step, "Step");
-        item_string_view.put(key_high_speed_rpm,"high speed: " + item_data.get_high_speed_rpm_string() + "rpm");
-        item_string_view.put(key_high_speed_duration, "high speed duration: " + item_data.get_low_speed_operation_duration_string() + "sec");
-        item_string_view.put(key_temperature, "temperature: " + item_data.get_temperature_string() + "¢J");
-        item_string_view.put(key_low_speed_rpm, "low speed: " + item_data.get_low_speed_rpm() + "rpm");
-        item_string_view.put(key_low_speed_duration, "low speed duration: " + item_data.get_low_speed_operation_duration_string() + "sec");
-        item_string_view.put(key_operation_duration, "experiment duration: " + item_data.get_experiment_operation_duration_string() + "min");
+        item_string_view.put(key_high_speed_rpm,"High Speed: " + item_data.get_high_speed_rpm_string() + "rpm");
+        item_string_view.put(key_high_speed_duration, "High Speed Duration: " + item_data.get_low_speed_operation_duration_string() + "sec");
+        item_string_view.put(key_temperature, "Temperature: " + item_data.get_temperature_string() + "¢J");
+        item_string_view.put(key_low_speed_rpm, "Low Speed: " + item_data.get_low_speed_rpm() + "rpm");
+        item_string_view.put(key_low_speed_duration, "Low Speed Duration: " + item_data.get_low_speed_operation_duration_string() + "sec");
+        String duration_hour = "" + item_data.get_experiment_operation_duration()/60;
+	    String duration_min = "" + item_data.get_experiment_operation_duration()%60;
+        item_string_view.put(key_operation_duration, "Experiment Duration: " + duration_hour + "hour " + duration_min + "min");
 	}
 	
 	public static void refresh_script_list_view(int index, experiment_script_data item_data, HashMap<String, Object> item_string_view) {
@@ -526,8 +531,8 @@ public class step_script_activity_list extends Activity {
 	
 	@Override
     public void onResume() {
-    		super.onResume();
-    		Log.d(Tag, "on Resume");
+    	super.onResume();
+    	Log.d(Tag, "on Resume");
     }
     
     @Override

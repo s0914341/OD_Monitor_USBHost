@@ -6,9 +6,9 @@ import java.nio.ByteBuffer;
 import od_monitor.app.data.experiment_script_data;
 import od_monitor.app.data.step_experiment_script_data;
 
-import ODMonitor.App.R;
-import ODMonitor.App.R.id;
-import ODMonitor.App.R.layout;
+import od_monitor.app.R;
+import od_monitor.app.R.id;
+import od_monitor.app.R.layout;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
@@ -16,6 +16,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
@@ -34,7 +35,8 @@ public class step_script_setting_activity extends Activity {
 	public EditText editText_low_speed_rpm;
 	public EditText editText_low_speed_operation_duration;
 	public EditText editText_temperature;
-	public EditText editText_experiment_operation_duration;
+	public EditText editText_experiment_operation_duration_hour;
+	public EditText editText_experiment_operation_duration_min;
 	
 	public step_experiment_script_data item_data;
 	public int total_item = 0;
@@ -72,171 +74,142 @@ public class step_script_setting_activity extends Activity {
 	    editText_temperature = (EditText) findViewById(R.id.editTextTemperature);
 	    editText_temperature.setText(item_data.get_temperature_string()); 
 	    
-	    editText_experiment_operation_duration = (EditText) findViewById(R.id.editExperimentOperationDuration);
-	    editText_experiment_operation_duration.setText(item_data.get_experiment_operation_duration_string()); 
+	    String duration_hour = "" + item_data.get_experiment_operation_duration()/60;
+	    String duration_min = "" + item_data.get_experiment_operation_duration()%60;
+	    editText_experiment_operation_duration_hour = (EditText) findViewById(R.id.editExperimentOperationDurationHour);
+	    editText_experiment_operation_duration_hour.setText(duration_hour); 
+	    
+	    editText_experiment_operation_duration_min = (EditText) findViewById(R.id.editExperimentOperationDurationMin);
+	    editText_experiment_operation_duration_min.setText(duration_min); 
 	   
 	    
-	    editText_high_speed_rpm.addTextChangedListener(new TextWatcher() {
-	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
+	    editText_high_speed_rpm.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+	        public void onFocusChange(View v, boolean hasFocus) {
+	            // TODO Auto-generated method stub
+	            if (!hasFocus) {
+	            	if (editText_high_speed_rpm.getText().toString().trim().equals("")) {
+	            		editText_high_speed_rpm.setText(item_data.get_high_speed_rpm_string()); 
+	            	} else {
+	            	    int val = Integer.parseInt(editText_high_speed_rpm.getText().toString().trim());
+	                    if ((val > 300) || (val < 50)) {
+	        	            editText_high_speed_rpm.setError("50~300");
+	                    } else {
+	                        editText_high_speed_rpm.setError(null);
+	                    }
+	            	}
+	            }
 	        }
-
-	        public void afterTextChanged(Editable s) {
-		        try {
-		    	     int val = Integer.parseInt(s.toString());
-		    	     if(val > 255) {
-		    	        s.replace(0, s.length(), "255", 0, 3);
-		    	     } else if(val < 1) {
-		    	        s.replace(0, s.length(), "1", 0, 1);
-		    	     }
-		    	     item_data.set_high_speed_rpm(Integer.parseInt(s.toString()));
-		    	     Log.i(Tag, "afterTextChanged");
-		    	   } catch (NumberFormatException ex) {
-		    	      // Do something
-		    	   }
-		    }
-
-			public void onTextChanged(CharSequence s, int start, int before,
-					int count) {
-				// TODO Auto-generated method stub
-				Log.i(Tag, "onTextChanged");
-			}
 	    });
 	    
-	    editText_high_speed_operation_duration.addTextChangedListener(new TextWatcher() {
-	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
+	    editText_high_speed_operation_duration.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+	        public void onFocusChange(View v, boolean hasFocus) {
+	            // TODO Auto-generated method stub
+	            if (!hasFocus) {
+	            	if (editText_high_speed_operation_duration.getText().toString().trim().equals("")) {
+	            		editText_high_speed_operation_duration.setText(item_data.get_high_speed_operation_duration_string()); 
+	            	} else {
+	            	    int val = Integer.parseInt(editText_high_speed_operation_duration.getText().toString().trim());
+	                    if ((val > 99999) || (val < 10)) {
+	                	    editText_high_speed_operation_duration.setError("10~99999");
+	                    } else {
+	                	    editText_high_speed_operation_duration.setError(null);
+	                    }
+	            	}
+	            }
 	        }
-	      
-	        public void afterTextChanged(Editable s) {
-		        try {
-		    	     int val = Integer.parseInt(s.toString());
-		    	     if(val > 86400) {
-		    	        s.replace(0, s.length(), "2147483000", 0, 10);
-		    	     } else if(val < 1) {
-		    	        s.replace(0, s.length(), "1", 0, 1);
-		    	     }
-		    	     item_data.set_high_speed_operation_duration(Integer.parseInt(s.toString()));
-		    	   } catch (NumberFormatException ex) {
-		    	      // Do something
-		    	   }
-		    }
-
-			public void onTextChanged(CharSequence s, int start, int before,
-					int count) {
-				// TODO Auto-generated method stub
-				
-			}
 	    });
 	    
-	    editText_temperature.addTextChangedListener(new TextWatcher() {
-	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
+	    editText_temperature.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+	        public void onFocusChange(View v, boolean hasFocus) {
+	            // TODO Auto-generated method stub
+	            if (!hasFocus) {
+	            	if (editText_temperature.getText().toString().trim().equals("")) {
+	            		editText_temperature.setText(item_data.get_temperature_string()); 
+	            	} else {
+	            	    int val = Integer.parseInt(editText_temperature.getText().toString().trim());
+	                    if ((val > 70) || (val < 0)) {
+	                	    editText_temperature.setError("0~70");
+	                    } else {
+	                	    editText_temperature.setError(null);
+	                    }
+	                    
+	            	}
+	            }
 	        }
-
-	      
-	        public void afterTextChanged(Editable s) {
-		        try {
-		    	     int val = Integer.parseInt(s.toString());
-		    	     if(val > 255) {
-		    	        s.replace(0, s.length(), "255", 0, 3);
-		    	     } else if(val < 1) {
-		    	        s.replace(0, s.length(), "1", 0, 1);
-		    	     }
-		    	     item_data.set_temperature(Integer.parseInt(s.toString()));
-		    	   } catch (NumberFormatException ex) {
-		    	      // Do something
-		    	   }
-		    }
-
-
-			public void onTextChanged(CharSequence s, int start, int before,
-					int count) {
-				// TODO Auto-generated method stub
-				
-			}
 	    });
 	    
-	    editText_low_speed_rpm.addTextChangedListener(new TextWatcher() {
-	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
+	    editText_low_speed_rpm.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+	        public void onFocusChange(View v, boolean hasFocus) {
+	            // TODO Auto-generated method stub
+	            if (!hasFocus) {
+	            	if (editText_low_speed_rpm.getText().toString().trim().equals("")) {
+	            		editText_low_speed_rpm.setText(item_data.get_low_speed_rpm_string()); 
+	            	} else {
+	            	    int val = Integer.parseInt(editText_low_speed_rpm.getText().toString().trim());
+	                    if ((val > 300) || (val < 50)) {
+	                	    editText_low_speed_rpm.setError("50~300");
+	                    } else {
+	                	    editText_low_speed_rpm.setError(null);
+	                    }
+	            	}
+	            }
 	        }
-
-	      
-	        public void afterTextChanged(Editable s) {
-		        try {
-		    	     int val = Integer.parseInt(s.toString());
-		    	     if(val > 255) {
-		    	        s.replace(0, s.length(), "255", 0, 3);
-		    	     } else if(val < 1) {
-		    	        s.replace(0, s.length(), "1", 0, 1);
-		    	     }
-		    	     item_data.set_low_speed_rpm(Integer.parseInt(s.toString()));
-		    	   } catch (NumberFormatException ex) {
-		    	      // Do something
-		    	   }
-		    }
-
-
-			public void onTextChanged(CharSequence s, int start, int before,
-					int count) {
-				// TODO Auto-generated method stub
-				
-			}
 	    });
 	    
-	    editText_low_speed_operation_duration.addTextChangedListener(new TextWatcher() {
-	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
+	    editText_low_speed_operation_duration.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+	        public void onFocusChange(View v, boolean hasFocus) {
+	            // TODO Auto-generated method stub
+	            if (!hasFocus) {
+	            	if (editText_low_speed_operation_duration.getText().toString().trim().equals("")) {
+	            		editText_low_speed_operation_duration.setText(item_data.get_low_speed_operation_duration_string()); 
+	            	} else {
+	            	    int val = Integer.parseInt(editText_low_speed_operation_duration.getText().toString().trim());
+	                    if ((val > 99999) || (val < 10)) {
+	                	    editText_low_speed_operation_duration.setError("10~99999");
+	                    } else {
+	                	    editText_low_speed_operation_duration.setError(null);
+	                    }
+	            	}
+	            }
 	        }
-
-	      
-	        public void afterTextChanged(Editable s) {
-		        try {
-		    	     int val = Integer.parseInt(s.toString());
-		    	     if(val > 255) {
-		    	        s.replace(0, s.length(), "255", 0, 3);
-		    	     } else if(val < 1) {
-		    	        s.replace(0, s.length(), "1", 0, 1);
-		    	     }
-		    	     item_data.set_low_speed_operation_duration(Integer.parseInt(s.toString()));
-		    	   } catch (NumberFormatException ex) {
-		    	      // Do something
-		    	   }
-		    }
-
-
-			public void onTextChanged(CharSequence s, int start, int before,
-					int count) {
-				// TODO Auto-generated method stub
-				
-			}
 	    });
 	    
-	    editText_experiment_operation_duration.addTextChangedListener(new TextWatcher() {
-	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
+	    editText_experiment_operation_duration_hour.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+	        public void onFocusChange(View v, boolean hasFocus) {
+	            // TODO Auto-generated method stub
+	            if (!hasFocus) {
+	            	if (editText_experiment_operation_duration_hour.getText().toString().trim().equals("")) {
+	            		String duration_hour = "" + item_data.get_experiment_operation_duration()/60;
+	            		editText_experiment_operation_duration_hour.setText(duration_hour); 
+	            	} else {
+	            	    int val = Integer.parseInt(editText_experiment_operation_duration_hour.getText().toString().trim());
+	                    if ((val > 90) || (val < 0)) {
+	                	    editText_experiment_operation_duration_hour.setError("0~90");
+	                    } else {
+	                	    editText_experiment_operation_duration_hour.setError(null);
+	                    }
+	            	}
+	            }
 	        }
-	      
-	        public void afterTextChanged(Editable s) {
-		        try {
-		    	     int val = Integer.parseInt(s.toString());
-		    	     if(val > 86400) {
-		    	        s.replace(0, s.length(), "2147483000", 0, 10);
-		    	     } else if(val < 1) {
-		    	        s.replace(0, s.length(), "1", 0, 1);
-		    	     }
-		    	     item_data.set_experiment_operation_duration(Integer.parseInt(s.toString()));
-		    	   } catch (NumberFormatException ex) {
-		    	      // Do something
-		    	   }
-		    }
-
-			public void onTextChanged(CharSequence s, int start, int before,
-					int count) {
-				// TODO Auto-generated method stub
-				
-			}
+	    });
+	    
+	    editText_experiment_operation_duration_min.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+	        public void onFocusChange(View v, boolean hasFocus) {
+	            // TODO Auto-generated method stub
+	            if (!hasFocus) {
+	            	if (editText_experiment_operation_duration_min.getText().toString().trim().equals("")) {
+	            		String duration_min = "" + item_data.get_experiment_operation_duration()%60;
+	            		editText_experiment_operation_duration_min.setText(duration_min); 
+	            	} else {
+	                 	int val = Integer.parseInt(editText_experiment_operation_duration_min.getText().toString().trim());
+	                    if ((val > 59) || (val < 0)) {
+	                	    editText_experiment_operation_duration_min.setError("0~59");
+	                    } else {
+	                	    editText_experiment_operation_duration_min.setError(null);
+	                    }
+	            	}
+	            }
+	        }
 	    });
 	    
 	    button_ok = (Button) findViewById(R.id.button_ok);
@@ -279,12 +252,71 @@ public class step_script_setting_activity extends Activity {
 				throw new NumberFormatException("shaker_speed format exception");
 	    	}
 		}*/
-		
-		Intent intent = new Intent();
-		intent.putExtra("return_step_experiment_script_data", item_data); //value should be your string from the edittext
-		intent.putExtra("return_item_id", item_id);
-		intent.putExtra("return_item_position", item_position);
-		setResult(RESULT_OK, intent); //The data you want to send back
-		Log.d(Tag, "save_experiment_script = " + item_id);
+		boolean fail = false; 
+		int val = Integer.parseInt(editText_high_speed_rpm.getText().toString().trim());
+        if ((val > 300) || (val < 50))
+        	fail = true;
+        else
+        	item_data.set_high_speed_rpm(val);
+        
+        val = Integer.parseInt(editText_high_speed_operation_duration.getText().toString().trim());
+        if ((val > 99999) || (val < 10)) 
+        	fail = true;
+        else
+        	item_data.set_high_speed_operation_duration(val);
+      
+        val = Integer.parseInt(editText_temperature.getText().toString().trim());
+        if ((val > 70) || (val < 0))
+        	fail = true;
+        else
+        	item_data.set_temperature(val);
+     
+        val = Integer.parseInt(editText_low_speed_rpm.getText().toString().trim());
+        if ((val > 300) || (val < 50))
+        	fail = true;
+        else
+        	item_data.set_low_speed_rpm(val);
+        
+        val = Integer.parseInt(editText_low_speed_operation_duration.getText().toString().trim());
+        if ((val > 99999) || (val < 10)) 
+        	fail = true;
+        else
+        	item_data.set_low_speed_operation_duration(val);
+        
+        int duration_hour = Integer.parseInt(editText_experiment_operation_duration_hour.getText().toString().trim());
+        if ((duration_hour > 90) || (duration_hour < 0))
+        	fail = true;
+        
+        int duration_min = Integer.parseInt(editText_experiment_operation_duration_min.getText().toString().trim());
+        if ((duration_min > 59) || (duration_min < 0))
+        	fail = true;
+        
+        if (false == fail) {
+        	if ((0 == duration_hour) && (0 == duration_min)) {
+        		fail = true;
+        	} else {
+        		item_data.set_experiment_operation_duration(duration_hour*60 + duration_min);
+        	}
+        }
+        
+        if (false == fail) {
+		    Intent intent = new Intent();
+		    intent.putExtra("return_step_experiment_script_data", item_data); //value should be your string from the edittext
+		    intent.putExtra("return_item_id", item_id);
+		    intent.putExtra("return_item_position", item_position);
+		    setResult(RESULT_OK, intent); //The data you want to send back
+		    Log.d(Tag, "save_experiment_script = " + item_id);
+        } else {
+        	Builder WarrningDialog = new AlertDialog.Builder(this);
+			WarrningDialog.setTitle("Warrning");
+			WarrningDialog.setMessage("please enter correct number");
+			WarrningDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+	            public void onClick(DialogInterface dialog, int i) {
+	            }
+	        });
+			WarrningDialog.show();
+			Log.d(Tag, "NumberFormatException");
+			throw new NumberFormatException("shaker_speed format exception");
+        }
 	}
 }
