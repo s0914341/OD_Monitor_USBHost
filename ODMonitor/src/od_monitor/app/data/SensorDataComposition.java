@@ -1,12 +1,15 @@
 package od_monitor.app.data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class sensor_data_composition implements Serializable {
+public class SensorDataComposition implements Serializable {
 	/**
 	 * 
 	 */
@@ -44,8 +47,16 @@ public class sensor_data_composition implements Serializable {
 	
 	public byte[] buffer = new byte[total_size];
 	
-	public sensor_data_composition () {
+	public SensorDataComposition () {
 
+	}
+	
+	public static double od_round(double value, int places) {
+	    if (places < 0) throw new IllegalArgumentException();
+
+	    BigDecimal bd = new BigDecimal(value);
+	    bd = bd.setScale(places, RoundingMode.HALF_UP);
+	    return bd.doubleValue();
 	}
 	
 	public int set_buffer(byte[] indata, int indata_start_pos, int len) {
@@ -76,7 +87,7 @@ public class sensor_data_composition implements Serializable {
 	
 	public String get_sensor_od_value_string() {
 		double od = get_sensor_od_value();
-		String str = "" + od;
+		String str = ""+ od;
 		return str;
 	}
 	
@@ -124,6 +135,7 @@ public class sensor_data_composition implements Serializable {
 	}
 	
 	public void set_sensor_od_value(double od_value) {
+		od_value = od_round(od_value, 3);
 		byte[] od_value_bytes = ByteBuffer.allocate(8).putDouble(od_value).array();
 		System.arraycopy(od_value_bytes, 0, buffer, sensor_od_value_index, 8);
 	}

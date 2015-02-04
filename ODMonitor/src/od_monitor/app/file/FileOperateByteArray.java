@@ -7,12 +7,12 @@ import java.io.IOException;
 
 import android.util.Log;
 
-public class file_operate_byte_array extends file_operation {
-	private String Tag = "file_operate_byte_array";
+public class FileOperateByteArray extends FileOperation {
+	private String Tag = "FileOperateByteArray";
 	protected FileOutputStream fos;
 	protected FileInputStream fis;
 	
-	public file_operate_byte_array(String dir_name, String file_name,
+	public FileOperateByteArray(String dir_name, String file_name,
 			boolean append) {
 		super(dir_name, file_name, append);
 		// TODO Auto-generated constructor stub

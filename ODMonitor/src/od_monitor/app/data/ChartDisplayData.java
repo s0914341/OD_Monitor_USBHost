@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
-public class chart_display_data implements Serializable{
+public class ChartDisplayData implements Serializable{
 	/**
 	 * we need define a serial version UID value myself, 
 	 * avoid different JVM version which general different UID value,
@@ -21,11 +21,11 @@ public class chart_display_data implements Serializable{
 	
 	private static final int total_length = index_length+date_length+concentration_length;
 	
-	public chart_display_data() {
+	public ChartDisplayData() {
 
 	}
 	
-	public chart_display_data(long local_index, double local_concentration) {
+	public ChartDisplayData(long local_index, double local_concentration) {
 		date = new Date().getTime();
 		concentration = local_concentration;
 		index = local_index;

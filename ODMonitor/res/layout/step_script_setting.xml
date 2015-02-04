@@ -148,7 +148,7 @@
             android:id="@+id/textViewExperimentOperationDuration"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:text="Experiment Operation Duration(min)" />
+            android:text="Experiment Operation Duration" />
 
        <EditText
             android:id="@+id/editExperimentOperationDurationHour"

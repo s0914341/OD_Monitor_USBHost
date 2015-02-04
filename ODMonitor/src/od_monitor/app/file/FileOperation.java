@@ -14,10 +14,11 @@ import java.util.Date;
 import android.os.Environment;
 import android.util.Log;
 
-public class file_operation {
-	private String Tag = "file_operation";
+public class FileOperation {
+	private String Tag = "FileOperation";
+	public final static String work_directory = "/OD_Monitor/";
 	public File sdcard = Environment.getExternalStorageDirectory();
-	private String file_Dir = sdcard.getPath() + "/"; 
+	private String file_Dir = sdcard.getPath() + work_directory; 
 	protected String CreateFileName = "Default";
 	protected File file_MetaData;
 	protected File file;
@@ -28,14 +29,18 @@ public class file_operation {
 	protected SimpleDateFormat df1 = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	protected static String Flush_File = ""; 
 	protected boolean file_append = false;
+	protected String file_extension = ".txt";
 	
-	public file_operation(String dir_name, String file_name, boolean append) {
+	public FileOperation(String dir_name, String file_name, boolean append) {
 	    file_Dir = file_Dir + dir_name;
 	    file_MetaData =  new File(file_Dir);
 	    CreateFileName = file_name;
 	    file_append = append;
 	}
 	
+	public void set_file_extension(String name) {
+		file_extension = name;
+	}
 /*	public void Show_Toast_Msg(String msg ) {
 		Toast mToastMsg;
 		
@@ -99,14 +104,14 @@ public class file_operation {
 	 /* file naming format logyyyymmdd-hhmmss.txt*/
 	public String generate_filename() {
 		String filename;
-		filename = CreateFileName + df.format(new Date()) + ".txt";
+		filename = CreateFileName + df.format(new Date()) + file_extension;
 		Log.d(Tag, filename);
 		return filename;
 	}
 	
 	public String generate_filename_no_date() {
 		String filename;
-		filename = CreateFileName + ".txt";
+		filename = CreateFileName + file_extension;
 		Log.d(Tag, filename);
 		return filename;
 	}

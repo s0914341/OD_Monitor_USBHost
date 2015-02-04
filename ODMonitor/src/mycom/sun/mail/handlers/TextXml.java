@@ -64,11 +64,11 @@ import myjava.awt.datatransfer.DataFlavor;
  * @author Anil Vijendran
  * @author Bill Shannon
  */
-public class text_xml extends text_plain {
+public class TextXml extends TextPlain {
 
     private final DataFlavor[] flavors;
 
-    public text_xml() {
+    public TextXml() {
 	flavors = new DataFlavor[] {
 	    new ActivationDataFlavor(String.class, "text/xml", "XML String"),
 	    new ActivationDataFlavor(String.class, "application/xml",

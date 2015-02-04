@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class experiment_script_data implements Serializable{
+public class ExperimentScriptData implements Serializable{
 	/**
 	 * 
 	 */

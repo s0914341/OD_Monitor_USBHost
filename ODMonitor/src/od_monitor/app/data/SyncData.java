@@ -2,7 +2,7 @@ package od_monitor.app.data;
 
 import java.io.Serializable;
 
-public class sync_data{
+public class SyncData{
 	public static final int STATUS_END = 1;
 	public static final int STATUS_CONTINUE = 2;
 	public static final int STATUS_DATA_AVAILABLE = 3;
@@ -11,7 +11,7 @@ public class sync_data{
 	private int meta_data;
 	private boolean is_timeout = true;
 	
-	public sync_data() {
+	public SyncData() {
 		status = 0;
 		meta_data = 0;
 	}

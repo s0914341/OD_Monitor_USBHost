@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class step_experiment_script_data implements Serializable{
+public class StepExperimentScriptData implements Serializable{
 	/**
 	 * 
 	 */
@@ -27,34 +27,34 @@ public class step_experiment_script_data implements Serializable{
 	public static final int low_speed_operation_duration = 30;
 	public static final int temperature = 37;
 	public static final int experiment_operation_duration = 360;
-	private experiment_script_data[] instruct = new experiment_script_data[7];
+	private ExperimentScriptData[] instruct = new ExperimentScriptData[7];
 	
-	public step_experiment_script_data() {
-		instruct[INSTRUCT_SET_HIGH_SPEED] = new experiment_script_data();
-        instruct[INSTRUCT_SET_HIGH_SPEED].set_instruct_value(experiment_script_data.INSTRUCT_SHAKER_SET_SPEED);
+	public StepExperimentScriptData() {
+		instruct[INSTRUCT_SET_HIGH_SPEED] = new ExperimentScriptData();
+        instruct[INSTRUCT_SET_HIGH_SPEED].set_instruct_value(ExperimentScriptData.INSTRUCT_SHAKER_SET_SPEED);
         instruct[INSTRUCT_SET_HIGH_SPEED].set_shaker_speed_value(high_speed_rpm);
              
-        instruct[INSTRUCT_SET_TEMPERATURE] = new experiment_script_data();
-        instruct[INSTRUCT_SET_TEMPERATURE].set_instruct_value(experiment_script_data.INSTRUCT_SHAKER_SET_TEMPERATURE);
+        instruct[INSTRUCT_SET_TEMPERATURE] = new ExperimentScriptData();
+        instruct[INSTRUCT_SET_TEMPERATURE].set_instruct_value(ExperimentScriptData.INSTRUCT_SHAKER_SET_TEMPERATURE);
         instruct[INSTRUCT_SET_TEMPERATURE].set_shaker_temperature_value(temperature);
          
-        instruct[INSTRUCT_SET_HIGH_SPEED_OPERATION_DURATION] = new experiment_script_data();
-        instruct[INSTRUCT_SET_HIGH_SPEED_OPERATION_DURATION].set_instruct_value(experiment_script_data.INSTRUCT_DELAY);
+        instruct[INSTRUCT_SET_HIGH_SPEED_OPERATION_DURATION] = new ExperimentScriptData();
+        instruct[INSTRUCT_SET_HIGH_SPEED_OPERATION_DURATION].set_instruct_value(ExperimentScriptData.INSTRUCT_DELAY);
         instruct[INSTRUCT_SET_HIGH_SPEED_OPERATION_DURATION].set_delay_value(high_speed_operation_duration);
           
-        instruct[INSTRUCT_SET_LOW_SPEED] = new experiment_script_data();
-        instruct[INSTRUCT_SET_LOW_SPEED].set_instruct_value(experiment_script_data.INSTRUCT_SHAKER_SET_SPEED);
+        instruct[INSTRUCT_SET_LOW_SPEED] = new ExperimentScriptData();
+        instruct[INSTRUCT_SET_LOW_SPEED].set_instruct_value(ExperimentScriptData.INSTRUCT_SHAKER_SET_SPEED);
         instruct[INSTRUCT_SET_LOW_SPEED].set_shaker_speed_value(low_speed_rpm);
      
-        instruct[INSTRUCT_SET_LOW_SPEED_OPERATION_DURATION] = new experiment_script_data();
-        instruct[INSTRUCT_SET_LOW_SPEED_OPERATION_DURATION].set_instruct_value(experiment_script_data.INSTRUCT_DELAY);
+        instruct[INSTRUCT_SET_LOW_SPEED_OPERATION_DURATION] = new ExperimentScriptData();
+        instruct[INSTRUCT_SET_LOW_SPEED_OPERATION_DURATION].set_instruct_value(ExperimentScriptData.INSTRUCT_DELAY);
         instruct[INSTRUCT_SET_LOW_SPEED_OPERATION_DURATION].set_delay_value(low_speed_operation_duration);
       
-        instruct[INSTRUCT_READ_SENSOR] = new experiment_script_data();
-        instruct[INSTRUCT_READ_SENSOR].set_instruct_value(experiment_script_data.INSTRUCT_READ_SENSOR);
+        instruct[INSTRUCT_READ_SENSOR] = new ExperimentScriptData();
+        instruct[INSTRUCT_READ_SENSOR].set_instruct_value(ExperimentScriptData.INSTRUCT_READ_SENSOR);
     
-        instruct[INSTRUCT_SET_EXPERIMENT_OPERATION_DURATION] = new experiment_script_data();
-        instruct[INSTRUCT_SET_EXPERIMENT_OPERATION_DURATION].set_instruct_value(experiment_script_data.INSTRUCT_REPEAT_TIME);
+        instruct[INSTRUCT_SET_EXPERIMENT_OPERATION_DURATION] = new ExperimentScriptData();
+        instruct[INSTRUCT_SET_EXPERIMENT_OPERATION_DURATION].set_instruct_value(ExperimentScriptData.INSTRUCT_REPEAT_TIME);
         instruct[INSTRUCT_SET_EXPERIMENT_OPERATION_DURATION].set_repeat_from_value(0);
         instruct[INSTRUCT_SET_EXPERIMENT_OPERATION_DURATION].set_repeat_time_value(experiment_operation_duration);
 	}
@@ -142,60 +142,60 @@ public class step_experiment_script_data implements Serializable{
 		    byte[] buffer = instruct[i].get_buffer();
 		    byte[] index_bytes = byteBuffer.putInt(current_instruct_index).array();
 		    current_instruct_index++;
-       	    System.arraycopy(index_bytes, 0, buffer, experiment_script_data.INDEX_START, experiment_script_data.INDEX_SIZE);
-       	    System.arraycopy(buffer, 0, file_buffer, i*experiment_script_data.BUFFER_SIZE, experiment_script_data.BUFFER_SIZE);
+       	    System.arraycopy(index_bytes, 0, buffer, ExperimentScriptData.INDEX_START, ExperimentScriptData.INDEX_SIZE);
+       	    System.arraycopy(buffer, 0, file_buffer, i*ExperimentScriptData.BUFFER_SIZE, ExperimentScriptData.BUFFER_SIZE);
 		}
 		
 		return current_instruct_index;
 	}
 	
 	public int set_step_instruct_data(int list_pos, List<HashMap<String,Object>> list, HashMap<Object, Object> experiment_item) {
-		experiment_script_data data = (experiment_script_data)experiment_item.get(list.get(list_pos));
+		ExperimentScriptData data = (ExperimentScriptData)experiment_item.get(list.get(list_pos));
 		list_pos++;
 	
-		if (data.get_instruct_value() == experiment_script_data.INSTRUCT_SHAKER_SET_SPEED)
+		if (data.get_instruct_value() == ExperimentScriptData.INSTRUCT_SHAKER_SET_SPEED)
             instruct[INSTRUCT_SET_HIGH_SPEED].set_shaker_speed_value(data.get_shaker_speed_value());
 		else
 			return -1;
           
-		data = (experiment_script_data)experiment_item.get(list.get(list_pos));
+		data = (ExperimentScriptData)experiment_item.get(list.get(list_pos));
 		list_pos++;
-		if (data.get_instruct_value() == experiment_script_data.INSTRUCT_SHAKER_SET_TEMPERATURE)
+		if (data.get_instruct_value() == ExperimentScriptData.INSTRUCT_SHAKER_SET_TEMPERATURE)
             instruct[INSTRUCT_SET_TEMPERATURE].set_shaker_temperature_value(data.get_shaker_temperature_value());
 		else
 			return -2;
          
-		data = (experiment_script_data)experiment_item.get(list.get(list_pos));
+		data = (ExperimentScriptData)experiment_item.get(list.get(list_pos));
 		list_pos++;
-		if (data.get_instruct_value() == experiment_script_data.INSTRUCT_DELAY)
+		if (data.get_instruct_value() == ExperimentScriptData.INSTRUCT_DELAY)
             instruct[INSTRUCT_SET_HIGH_SPEED_OPERATION_DURATION].set_delay_value(data.get_delay_value());
 		else
 			return -3;
           
-		data = (experiment_script_data)experiment_item.get(list.get(list_pos));
+		data = (ExperimentScriptData)experiment_item.get(list.get(list_pos));
 		list_pos++;
-		if (data.get_instruct_value() == experiment_script_data.INSTRUCT_SHAKER_SET_SPEED)
+		if (data.get_instruct_value() == ExperimentScriptData.INSTRUCT_SHAKER_SET_SPEED)
             instruct[INSTRUCT_SET_LOW_SPEED].set_shaker_speed_value(data.get_shaker_speed_value());
 		else
 			return -4;
      
-		data = (experiment_script_data)experiment_item.get(list.get(list_pos));
+		data = (ExperimentScriptData)experiment_item.get(list.get(list_pos));
 		list_pos++;
-		if (data.get_instruct_value() == experiment_script_data.INSTRUCT_DELAY)
+		if (data.get_instruct_value() == ExperimentScriptData.INSTRUCT_DELAY)
             instruct[INSTRUCT_SET_LOW_SPEED_OPERATION_DURATION].set_delay_value(data.get_delay_value());
 		else
 			return -5;
       
-		data = (experiment_script_data)experiment_item.get(list.get(list_pos));
+		data = (ExperimentScriptData)experiment_item.get(list.get(list_pos));
 		list_pos++;
-		if (data.get_instruct_value() == experiment_script_data.INSTRUCT_READ_SENSOR)
-            instruct[INSTRUCT_READ_SENSOR].set_instruct_value(experiment_script_data.INSTRUCT_READ_SENSOR);
+		if (data.get_instruct_value() == ExperimentScriptData.INSTRUCT_READ_SENSOR)
+            instruct[INSTRUCT_READ_SENSOR].set_instruct_value(ExperimentScriptData.INSTRUCT_READ_SENSOR);
 		else
 			return -6;
     
-		data = (experiment_script_data)experiment_item.get(list.get(list_pos));
+		data = (ExperimentScriptData)experiment_item.get(list.get(list_pos));
 		list_pos++;
-		if (data.get_instruct_value() == experiment_script_data.INSTRUCT_REPEAT_TIME)
+		if (data.get_instruct_value() == ExperimentScriptData.INSTRUCT_REPEAT_TIME)
             instruct[INSTRUCT_SET_EXPERIMENT_OPERATION_DURATION].set_repeat_time_value(data.get_repeat_time_value());
 		else
 			return -7;

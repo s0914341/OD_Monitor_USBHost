@@ -2,7 +2,7 @@ package od_monitor.experiment;
 
 import java.util.ArrayList;
 
-import od_monitor.app.data.chart_display_data;
+import od_monitor.app.data.ChartDisplayData;
 
 import android.content.Context;
 import android.hardware.usb.UsbDevice;

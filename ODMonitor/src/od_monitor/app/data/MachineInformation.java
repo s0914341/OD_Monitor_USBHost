@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class machine_information {
+public class MachineInformation {
 	public static final Map<Byte, String> EXPERIMENT_STATUS;
 	static {
         Map<Byte, String> aMap = new HashMap<Byte, String>();
@@ -45,7 +45,7 @@ public class machine_information {
 
 	public byte[] buffer = new byte[TOTAL_SIZE]; /* data content */
 	
-	public machine_information () {
+	public MachineInformation () {
 
 	}
 	

@@ -64,7 +64,7 @@ import android.widget.AbsListView;
  * top is not changed.
  * *********************************************************************************
  */
-public class mySwipeRefreshLayout extends ViewGroup {
+public class MySwipeRefreshLayout extends ViewGroup {
     private static final long RETURN_TO_ORIGINAL_POSITION_TIMEOUT = 300;
     private static final float ACCELERATE_INTERPOLATION_FACTOR = 1.5f;
     private static final float DECELERATE_INTERPOLATION_FACTOR = 2f;
@@ -171,7 +171,7 @@ public class mySwipeRefreshLayout extends ViewGroup {
      * Simple constructor to use when creating a SwipeRefreshLayout from code.
      * @param context
      */
-    public mySwipeRefreshLayout(Context context) {
+    public MySwipeRefreshLayout(Context context) {
         this(context, null);
     }
 
@@ -180,7 +180,7 @@ public class mySwipeRefreshLayout extends ViewGroup {
      * @param context
      * @param attrs
      */
-    public mySwipeRefreshLayout(Context context, AttributeSet attrs) {
+    public MySwipeRefreshLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
 
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();

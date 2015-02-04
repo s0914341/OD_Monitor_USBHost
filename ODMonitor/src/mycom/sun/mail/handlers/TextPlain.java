@@ -49,7 +49,7 @@ import javax.mail.internet.*;
  * DataContentHandler for text/plain.
  *
  */
-public class text_plain implements DataContentHandler {
+public class TextPlain implements DataContentHandler {
     private static ActivationDataFlavor myDF = new ActivationDataFlavor(
 	java.lang.String.class,
 	"text/plain",

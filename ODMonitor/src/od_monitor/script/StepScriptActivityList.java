@@ -12,9 +12,9 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import od_monitor.app.data.experiment_script_data;
-import od_monitor.app.data.step_experiment_script_data;
-import od_monitor.app.file.file_operate_byte_array;
+import od_monitor.app.data.ExperimentScriptData;
+import od_monitor.app.data.StepExperimentScriptData;
+import od_monitor.app.file.FileOperateByteArray;
 import od_monitor.script.SwipeDismissListViewTouchListener.DismissCallbacks;
 
 import org.achartengine.chartdemo.demo.chart.IDemoChart;
@@ -52,8 +52,8 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class step_script_activity_list extends Activity {
-	public static String Tag = "step_script_activity_list";
+public class StepScriptActivityList extends Activity {
+	public static String Tag = "StepScriptActivityList";
 	private final static String key_experiment = "experiment";
 	private final static String key_picture = "picture";
 	private final static String key_index = "index"; 
@@ -184,13 +184,13 @@ public class step_script_activity_list extends Activity {
         			 return;
         		}*/
         		
-        		file_operate_byte_array write_file = new file_operate_byte_array("ExperimentScript", "ExperimentScript", true);
+        		FileOperateByteArray write_file = new FileOperateByteArray("ExperimentScript", "ExperimentScript", true);
         		try {
         			write_file.delete_file(write_file.generate_filename_no_date());
         			write_file.create_file(write_file.generate_filename_no_date());
         			byte[] header = new byte[5];
         			int total_step_count = list.size();
-        			int total_instruct_count = total_step_count*step_experiment_script_data.TOTAL_INSTRUCT_COUNT + 2; //need add power on & power off instruct
+        			int total_instruct_count = total_step_count*StepExperimentScriptData.TOTAL_INSTRUCT_COUNT + 2; //need add power on & power off instruct
         			{
         			    ByteBuffer byteBuffer = ByteBuffer.allocate(4);
         	    	    byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -203,55 +203,55 @@ public class step_script_activity_list extends Activity {
         	
         			int current_instruct_index = 1;
         			{
-        				experiment_script_data shaker_on = new experiment_script_data();
-        				shaker_on.set_instruct_value(experiment_script_data.INSTRUCT_SHAKER_ON);
+        				ExperimentScriptData shaker_on = new ExperimentScriptData();
+        				shaker_on.set_instruct_value(ExperimentScriptData.INSTRUCT_SHAKER_ON);
         				ByteBuffer byteBuffer = ByteBuffer.allocate(4);
         	    	    byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
         	    	
        			        byte[] buffer = shaker_on.get_buffer();
        			        byte[] index_bytes = byteBuffer.putInt(current_instruct_index).array();
        			        current_instruct_index++;
-       	        	    System.arraycopy(index_bytes, 0, buffer, experiment_script_data.INDEX_START, experiment_script_data.INDEX_SIZE);
+       	        	    System.arraycopy(index_bytes, 0, buffer, ExperimentScriptData.INDEX_START, ExperimentScriptData.INDEX_SIZE);
        			        write_file.write_file(buffer);
         			}
         			
-        			byte[] file_buffer = new byte[step_experiment_script_data.TOTAL_INSTRUCT_COUNT * experiment_script_data.BUFFER_SIZE];
+        			byte[] file_buffer = new byte[StepExperimentScriptData.TOTAL_INSTRUCT_COUNT * ExperimentScriptData.BUFFER_SIZE];
         			for (int i = 0; i < total_step_count; i++) {
-        		        step_experiment_script_data temp;
+        		        StepExperimentScriptData temp;
         				ByteBuffer byteBuffer = ByteBuffer.allocate(4);
          	    	    byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
          	    	
-        			    temp = (step_experiment_script_data)experiment_item.get(list.get(i));
+        			    temp = (StepExperimentScriptData)experiment_item.get(list.get(i));
         			    current_instruct_index = temp.get_step_instruct_to_file_buffer(current_instruct_index, file_buffer);
         			    write_file.write_file(file_buffer);
         			}
         			
         			{
-        				experiment_script_data shaker_off = new experiment_script_data();
-        				shaker_off.set_instruct_value(experiment_script_data.INSTRUCT_SHAKER_OFF);
+        				ExperimentScriptData shaker_off = new ExperimentScriptData();
+        				shaker_off.set_instruct_value(ExperimentScriptData.INSTRUCT_SHAKER_OFF);
         				ByteBuffer byteBuffer = ByteBuffer.allocate(4);
         	    	    byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
         	    	
        			        byte[] buffer = shaker_off.get_buffer();
        			        byte[] index_bytes = byteBuffer.putInt(current_instruct_index).array();
        			        current_instruct_index++;
-       	        	    System.arraycopy(index_bytes, 0, buffer, experiment_script_data.INDEX_START, experiment_script_data.INDEX_SIZE);
+       	        	    System.arraycopy(index_bytes, 0, buffer, ExperimentScriptData.INDEX_START, ExperimentScriptData.INDEX_SIZE);
        			        write_file.write_file(buffer);
         			}
         			
         			{
-        				experiment_script_data final_instruct = new experiment_script_data();
-            			final_instruct.set_instruct_value(experiment_script_data.INSTRUCT_FINISH);
+        				ExperimentScriptData final_instruct = new ExperimentScriptData();
+            			final_instruct.set_instruct_value(ExperimentScriptData.INSTRUCT_FINISH);
         				ByteBuffer byteBuffer = ByteBuffer.allocate(4);
         	    	    byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
         			    byte[] buffer = final_instruct.get_buffer();
    			            byte[] index_bytes = byteBuffer.putInt(current_instruct_index).array();
-   	        	        System.arraycopy(index_bytes, 0, buffer, experiment_script_data.INDEX_START, experiment_script_data.INDEX_SIZE);
+   	        	        System.arraycopy(index_bytes, 0, buffer, ExperimentScriptData.INDEX_START, ExperimentScriptData.INDEX_SIZE);
    	        	        write_file.write_file(buffer);
         			}
         	
 		            write_file.flush_close_file();
-		            Toast.makeText(step_script_activity_list.this, "Save Script Success", Toast.LENGTH_SHORT).show(); 
+		            Toast.makeText(StepScriptActivityList.this, "Save Script Success", Toast.LENGTH_SHORT).show(); 
         		} catch (IOException e) {
         			// TODO Auto-generated catch block
         			e.printStackTrace();
@@ -264,9 +264,9 @@ public class step_script_activity_list extends Activity {
         	public void onClick(View v) {	
         		if (0 == load_script_to_step(list, experiment_item)) {
         		    adapter.notifyDataSetChanged();
-                    Toast.makeText(step_script_activity_list.this, "Load script success!", Toast.LENGTH_SHORT).show(); 
+                    Toast.makeText(StepScriptActivityList.this, "Load script success!", Toast.LENGTH_SHORT).show(); 
         		} else {
-        			Toast.makeText(step_script_activity_list.this, "No script file existed!", Toast.LENGTH_SHORT).show(); 
+        			Toast.makeText(StepScriptActivityList.this, "No script file existed!", Toast.LENGTH_SHORT).show(); 
         		}
         	}
 		});
@@ -277,21 +277,21 @@ public class step_script_activity_list extends Activity {
 		List<HashMap<String,Object>> temp_list = new ArrayList<HashMap<String,Object>>();
 		HashMap<Object, Object> temp_experiment_item = new HashMap<Object, Object>();
 		
-		load_list.clear();
-		load_experiment_item.clear();
 		if (0 ==load_script(temp_list, temp_experiment_item)) {
-			experiment_script_data instruct = (experiment_script_data)temp_experiment_item.get(temp_list.get(0));
-			if (experiment_script_data.INSTRUCT_SHAKER_ON == instruct.get_instruct_value()) {
+			ExperimentScriptData instruct = (ExperimentScriptData)temp_experiment_item.get(temp_list.get(0));
+			if (ExperimentScriptData.INSTRUCT_SHAKER_ON == instruct.get_instruct_value()) {
 				temp_list.remove(0);
-				instruct = (experiment_script_data)temp_experiment_item.get(temp_list.get(temp_list.size()-1));
-				if (experiment_script_data.INSTRUCT_SHAKER_OFF == instruct.get_instruct_value()) {
+				instruct = (ExperimentScriptData)temp_experiment_item.get(temp_list.get(temp_list.size()-1));
+				if (ExperimentScriptData.INSTRUCT_SHAKER_OFF == instruct.get_instruct_value()) {
 					temp_list.remove(temp_list.size()-1);
 					int total_instruct = temp_list.size();
-					if ((total_instruct > 0) && (total_instruct%step_experiment_script_data.TOTAL_INSTRUCT_COUNT == 0)) {
+					if ((total_instruct > 0) && (total_instruct%StepExperimentScriptData.TOTAL_INSTRUCT_COUNT == 0)) {
 						int list_pos = 0;
 						int step_position = 0;
+						load_list.clear();
+						load_experiment_item.clear();
 					    do { 
-					    	step_experiment_script_data step = new step_experiment_script_data();
+					    	StepExperimentScriptData step = new StepExperimentScriptData();
 					    	list_pos = step.set_step_instruct_data(list_pos, temp_list, temp_experiment_item);
 					    	HashMap<String, Object> item_string_view = new HashMap<String, Object>();
 					    	
@@ -324,7 +324,7 @@ public class step_script_activity_list extends Activity {
 	public static int load_script(List<HashMap<String,Object>> load_list, HashMap<Object, Object> load_experiment_item) {
 		int ret = 0;
 		
-		file_operate_byte_array read_file = new file_operate_byte_array("ExperimentScript", "ExperimentScript", true);
+		FileOperateByteArray read_file = new FileOperateByteArray("ExperimentScript", "ExperimentScript", true);
 		try {
 	        long file_len = 0;
 	        
@@ -335,24 +335,24 @@ public class step_script_activity_list extends Activity {
 			
 				load_list.clear();
 				load_experiment_item.clear();
-			    for (int i = 0; i < (file_len-SCRIPT_HEADER_SIZE)/experiment_script_data.BUFFER_SIZE; i++) {
-			        experiment_script_data script = new experiment_script_data();
-				    byte[] set_data_bytes = new byte[experiment_script_data.BUFFER_SIZE];
-				    byte[] index_bytes = new byte[experiment_script_data.INDEX_SIZE];
-	                int offset = (i*experiment_script_data.BUFFER_SIZE)+SCRIPT_HEADER_SIZE;
+			    for (int i = 0; i < (file_len-SCRIPT_HEADER_SIZE)/ExperimentScriptData.BUFFER_SIZE; i++) {
+			        ExperimentScriptData script = new ExperimentScriptData();
+				    byte[] set_data_bytes = new byte[ExperimentScriptData.BUFFER_SIZE];
+				    byte[] index_bytes = new byte[ExperimentScriptData.INDEX_SIZE];
+	                int offset = (i*ExperimentScriptData.BUFFER_SIZE)+SCRIPT_HEADER_SIZE;
 				    int index = 0;
 				    int position = 0;
 				    HashMap<String, Object> item_string_view = new HashMap<String, Object>();
 				 
-				    System.arraycopy(read_buf, offset, index_bytes, 0, experiment_script_data.INDEX_SIZE);
+				    System.arraycopy(read_buf, offset, index_bytes, 0, ExperimentScriptData.INDEX_SIZE);
 
-				    ByteBuffer buffer = ByteBuffer.wrap(index_bytes, 0, experiment_script_data.INDEX_SIZE);
+				    ByteBuffer buffer = ByteBuffer.wrap(index_bytes, 0, ExperimentScriptData.INDEX_SIZE);
 				    buffer.order(ByteOrder.LITTLE_ENDIAN);
 				    index = buffer.getInt();
-				    System.arraycopy(read_buf, offset, set_data_bytes, 0, experiment_script_data.BUFFER_SIZE);
+				    System.arraycopy(read_buf, offset, set_data_bytes, 0, ExperimentScriptData.BUFFER_SIZE);
 				    script.set_buffer(set_data_bytes);
 				
-				    if (script.get_instruct_value() == experiment_script_data.INSTRUCT_FINISH)
+				    if (script.get_instruct_value() == ExperimentScriptData.INSTRUCT_FINISH)
 				    	break;
 				    
 				    position = index-1;
@@ -377,7 +377,7 @@ public class step_script_activity_list extends Activity {
 		int position = list.size();
 		
         HashMap<String, Object> item_string_view = new HashMap<String, Object>();
-        step_experiment_script_data new_item_data = new step_experiment_script_data();
+        StepExperimentScriptData new_item_data = new StepExperimentScriptData();
         	
         refresh_step_script_list_view(position, new_item_data, item_string_view);
         list.add(position, item_string_view);
@@ -392,7 +392,7 @@ public class step_script_activity_list extends Activity {
 	
 	protected void add_new_instruct(int position, HashMap<Object, Object> item_data, List<HashMap<String,Object>> local_list) {
 		HashMap<String, Object> item_string_view = new HashMap<String, Object>();
-        step_experiment_script_data new_item_data = new step_experiment_script_data();
+        StepExperimentScriptData new_item_data = new StepExperimentScriptData();
         refresh_step_script_list_view(position, new_item_data, item_string_view);
         local_list.add(position, item_string_view);
         if (null == item_data.put(item_string_view, new_item_data))
@@ -402,10 +402,10 @@ public class step_script_activity_list extends Activity {
 	protected void refresh_experiment_script_index(int position, HashMap<Object, Object> item_data, List<HashMap<String,Object>> local_list) {
 		Log.d(Tag, "refresh_experiment_script_index size = " + item_data.size()); 
         for(int i = position; i < local_list.size(); i++) {
-	        step_experiment_script_data temp;
+	        StepExperimentScriptData temp;
 	        HashMap<String, Object> item_string_view = local_list.get(i);
 	
-	        temp = (step_experiment_script_data)item_data.get(item_string_view);
+	        temp = (StepExperimentScriptData)item_data.get(item_string_view);
 	        item_data.remove(item_string_view);
 	        refresh_step_script_list_view(i, temp, item_string_view);
 	        Log.d(Tag, "refresh_experiment_script index: " + i); 
@@ -468,9 +468,9 @@ public class step_script_activity_list extends Activity {
 	
 	public void show_script_setting_dialog(long id, int position) {
 		    //In the method that is called when click on "update"
-	    	Intent intent = new Intent(this, step_script_setting_activity.class);
-	    	intent.setClass(step_script_activity_list.this, step_script_setting_activity.class); 
-	    	intent.putExtra("send_step_experiment_script_data", (step_experiment_script_data)experiment_item.get(list.get(position))); 
+	    	Intent intent = new Intent(this, StepScriptSettingActivity.class);
+	    	intent.setClass(StepScriptActivityList.this, StepScriptSettingActivity.class); 
+	    	intent.putExtra("send_step_experiment_script_data", (StepExperimentScriptData)experiment_item.get(list.get(position))); 
 	    	intent.putExtra("send_total_item", list.size()); 
 	    	intent.putExtra("send_item_id", id); 
 	    	intent.putExtra("send_item_position", position); 
@@ -489,7 +489,7 @@ public class step_script_activity_list extends Activity {
 	        	long id = data.getLongExtra("return_item_id", -1);
 	        	int position = data.getIntExtra("return_item_position", -1);
 	     	    if (id >= 0 && position >= 0) {
-	     	        step_experiment_script_data item_data = (step_experiment_script_data)data.getSerializableExtra("return_step_experiment_script_data");  
+	     	        StepExperimentScriptData item_data = (StepExperimentScriptData)data.getSerializableExtra("return_step_experiment_script_data");  
 	     	        experiment_item.remove(list.get(position));
 	     	        
 	     	      //  HashMap<String, Object> item_string_view = new HashMap<String, Object>();
@@ -506,7 +506,7 @@ public class step_script_activity_list extends Activity {
 	    }
 	}
 	
-	public static void refresh_step_script_list_view(int index, step_experiment_script_data item_data, HashMap<String, Object> item_string_view) {
+	public static void refresh_step_script_list_view(int index, StepExperimentScriptData item_data, HashMap<String, Object> item_string_view) {
         /* avoid item_string_view object is the same for HashMap, need let item_string_view has a key value always different */
         item_string_view.put(key_experiment, item_data);
         item_string_view.put(key_picture, mPics[0]);
@@ -524,7 +524,7 @@ public class step_script_activity_list extends Activity {
         item_string_view.put(key_operation_duration, "Experiment Duration: " + duration_hour + "hour " + duration_min + "min");
 	}
 	
-	public static void refresh_script_list_view(int index, experiment_script_data item_data, HashMap<String, Object> item_string_view) {
+	public static void refresh_script_list_view(int index, ExperimentScriptData item_data, HashMap<String, Object> item_string_view) {
         /* avoid item_string_view object is the same for HashMap, need let item_string_view has a key value always different */
         item_string_view.put(key_experiment, item_data);
 	}

@@ -3,6 +3,10 @@ package od_monitor.app.file;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import od_monitor.app.data.SensorDataComposition;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -38,11 +42,18 @@ public class ExportDatabaseCSVTask extends AsyncTask<String, Void, Boolean> {
     protected Boolean doInBackground(final String... args) {
         File dbFile = context.getDatabasePath("myDatabase.db");
         System.out.println(dbFile);  // displays the data base path in your logcat 
-        File exportDir = new File(Environment.getExternalStorageDirectory(), "");
-
+        
+        File sdcard = Environment.getExternalStorageDirectory();
+    	String file_Dir = sdcard.getPath() + FileOperation.work_directory; 
+    	file_Dir = file_Dir + SensorDataComposition.sensor_raw_folder_name;
+    	File exportDir =  new File(file_Dir);
+        
         if (!exportDir.exists()) { exportDir.mkdirs(); }
 
-        File file = new File(exportDir, "myfile.csv");
+        SimpleDateFormat file_date = new SimpleDateFormat("yyyyMMdd_HHmmss");
+        String filename;
+		filename = "ODExperimentData" + file_date.format(new Date()) + ".csv";
+        File file = new File(exportDir, filename);
         try {
             file.createNewFile();
             CSVWriter csvWrite = new CSVWriter(new FileWriter(file));

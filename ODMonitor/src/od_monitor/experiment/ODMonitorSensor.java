@@ -26,9 +26,9 @@ import android.media.ToneGenerator;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
-public class ODMonitor_Sensor {
+public class ODMonitorSensor {
 	//usb host
-	public final String Tag = "ODMonitor_Sensor";
+	public final String Tag = "ODMonitorSensor";
 	private Context mContext;
     private UsbManager mManager;
     private UsbDevice mDevice;
@@ -69,7 +69,7 @@ public class ODMonitor_Sensor {
 	unsigned char check_digits[16];*/
 
     
-    public ODMonitor_Sensor(Context context) {
+    public ODMonitorSensor(Context context) {
     	mContext = context;
     	mDevice = null;
     	mInterface = null;

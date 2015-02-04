@@ -8,12 +8,12 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.util.Log;
 
-public class file_operate_bmp extends file_operate_byte_array {
-	private String Tag = "file_operate_bmp";
+public class FileOperateBmp extends FileOperateByteArray {
+	private String Tag = "FileOperateBmp";
 	protected String file_extension = "png";
 	protected SimpleDateFormat file_date = new SimpleDateFormat("yyyyMMdd_HHmmss");
 	
-	public file_operate_bmp(String dir_name, String file_name, String file_extension) {
+	public FileOperateBmp(String dir_name, String file_name, String file_extension) {
 		super(dir_name, file_name, false);
 		this.file_extension = file_extension;
 		// TODO Auto-generated constructor stub

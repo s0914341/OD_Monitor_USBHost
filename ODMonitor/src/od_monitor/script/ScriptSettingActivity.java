@@ -3,7 +3,7 @@ package od_monitor.script;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import od_monitor.app.data.experiment_script_data;
+import od_monitor.app.data.ExperimentScriptData;
 
 import od_monitor.app.R;
 import od_monitor.app.R.id;
@@ -25,8 +25,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 
-public class script_setting_activity extends Activity {
-	public String Tag = "script_setting_activity";
+public class ScriptSettingActivity extends Activity {
+	public String Tag = "ScriptSettingActivity";
 	public Button button_ok;
 	public EditText editText_repeat_count;
 	public EditText editText_repeat_time;
@@ -36,7 +36,7 @@ public class script_setting_activity extends Activity {
 	
 	public Spinner spinner_instruct;
 	public Spinner spinner_repeat_from;
-	experiment_script_data item_data;
+	ExperimentScriptData item_data;
 	public int total_item = 0;
 	public long item_id = 0;
 	public int item_position = 0;
@@ -49,7 +49,7 @@ public class script_setting_activity extends Activity {
 	    setContentView(R.layout.script_setting);
 	    
 	    Intent intent = getIntent(); 
-	    item_data = (experiment_script_data)intent.getSerializableExtra("send_experiment_script_data");
+	    item_data = (ExperimentScriptData)intent.getSerializableExtra("send_experiment_script_data");
 	    total_item = intent.getIntExtra("send_total_item", 0);
 	    item_id = intent.getLongExtra("send_item_id", 0);
 	    item_position = intent.getIntExtra("send_item_position", 0);
@@ -204,7 +204,7 @@ public class script_setting_activity extends Activity {
         spinner_repeat_from_Adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, android.R.id.text1);
         spinner_repeat_from_Adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner_repeat_from.setAdapter(spinner_repeat_from_Adapter);
-	    if ((item_data.get_instruct_value() == experiment_script_data.INSTRUCT_REPEAT_COUNT) || (item_data.get_instruct_value() == experiment_script_data.INSTRUCT_REPEAT_TIME)) {
+	    if ((item_data.get_instruct_value() == ExperimentScriptData.INSTRUCT_REPEAT_COUNT) || (item_data.get_instruct_value() == ExperimentScriptData.INSTRUCT_REPEAT_TIME)) {
 	        for (int i = 0; i < item_position; i++) {
 	    	    String str;
 	    	    str = String.format("%d", i+1);
@@ -244,14 +244,14 @@ public class script_setting_activity extends Activity {
 	    spinner_instruct_Adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 	    spinner_instruct.setAdapter(spinner_instruct_Adapter);
 	    
-	    int size = experiment_script_data.SCRIPT_INSTRUCT.size();
+	    int size = ExperimentScriptData.SCRIPT_INSTRUCT.size();
 	    for (int i = 0; i < size; i++) {
 	    	if (item_position == 0) {
-	    		if ((i == experiment_script_data.INSTRUCT_REPEAT_COUNT) || (i == experiment_script_data.INSTRUCT_REPEAT_TIME)) { 
+	    		if ((i == ExperimentScriptData.INSTRUCT_REPEAT_COUNT) || (i == ExperimentScriptData.INSTRUCT_REPEAT_TIME)) { 
 	    			continue;
 	    		}
 	    	}
-	    	spinner_instruct_Adapter.add(experiment_script_data.SCRIPT_INSTRUCT.get(i));
+	    	spinner_instruct_Adapter.add(ExperimentScriptData.SCRIPT_INSTRUCT.get(i));
 	    }
 	    spinner_instruct_Adapter.notifyDataSetChanged();
 	    spinner_instruct.setSelection(item_data.get_instruct_value());
@@ -274,17 +274,17 @@ public class script_setting_activity extends Activity {
 	public void refresh_UI_object_enable(String instruct_str) {
 		int position = 0;
 		
-		for (int i = 0; i < experiment_script_data.SCRIPT_INSTRUCT.size(); i++) {
-    		String s = experiment_script_data.SCRIPT_INSTRUCT.get(i);
+		for (int i = 0; i < ExperimentScriptData.SCRIPT_INSTRUCT.size(); i++) {
+    		String s = ExperimentScriptData.SCRIPT_INSTRUCT.get(i);
     		if (s.equals(instruct_str)) {
     			position = i;
     			break;
     		}
     	}
 		
-    	spinner_repeat_from.setEnabled(experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(0));
+    	spinner_repeat_from.setEnabled(ExperimentScriptData.SCRIPT_SETTING_ENABLE_LIST.get(position).get(0));
     	spinner_repeat_from_Adapter.clear();
-    	if ((position == experiment_script_data.INSTRUCT_REPEAT_COUNT) || (position == experiment_script_data.INSTRUCT_REPEAT_TIME)) { 
+    	if ((position == ExperimentScriptData.INSTRUCT_REPEAT_COUNT) || (position == ExperimentScriptData.INSTRUCT_REPEAT_TIME)) { 
     	    for (int i = 0; i < item_position; i++) {
     	        String str;
     	        str = String.format("%d", i+1);
@@ -294,39 +294,39 @@ public class script_setting_activity extends Activity {
     	    spinner_repeat_from.setSelection(item_data.get_repeat_from_value()-1);
     	} 
     	
-    	if (experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(1) == false)
+    	if (ExperimentScriptData.SCRIPT_SETTING_ENABLE_LIST.get(position).get(1) == false)
     		editText_repeat_count.setText("");
     	else
     		editText_repeat_count.setText(item_data.get_repeat_count_string()); 	
-    	editText_repeat_count.setEnabled(experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(1));
+    	editText_repeat_count.setEnabled(ExperimentScriptData.SCRIPT_SETTING_ENABLE_LIST.get(position).get(1));
     	
-    	if (experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(2) == false)
+    	if (ExperimentScriptData.SCRIPT_SETTING_ENABLE_LIST.get(position).get(2) == false)
     		editText_repeat_time.setText("");
     	else
     		editText_repeat_time.setText(item_data.get_repeat_time_string());      	
-    	editText_repeat_time.setEnabled(experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(2));
+    	editText_repeat_time.setEnabled(ExperimentScriptData.SCRIPT_SETTING_ENABLE_LIST.get(position).get(2));
     	
-    	if (experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(3) == false)
+    	if (ExperimentScriptData.SCRIPT_SETTING_ENABLE_LIST.get(position).get(3) == false)
     		editText_shaker_temperature.setText("");
     	else
     		editText_shaker_temperature.setText(item_data.get_shaker_temperature_string());
-    	editText_shaker_temperature.setEnabled(experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(3));
+    	editText_shaker_temperature.setEnabled(ExperimentScriptData.SCRIPT_SETTING_ENABLE_LIST.get(position).get(3));
     	
-    	if (experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(4) == false)
+    	if (ExperimentScriptData.SCRIPT_SETTING_ENABLE_LIST.get(position).get(4) == false)
     		editText_shaker_speed.setText("");
     	else
     		editText_shaker_speed.setText(item_data.get_shaker_speed_string());
-    	editText_shaker_speed.setEnabled(experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(4));
+    	editText_shaker_speed.setEnabled(ExperimentScriptData.SCRIPT_SETTING_ENABLE_LIST.get(position).get(4));
     	
-    	if (experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(5) == false)
+    	if (ExperimentScriptData.SCRIPT_SETTING_ENABLE_LIST.get(position).get(5) == false)
     		editText_delay.setText("");
     	else
     		editText_delay.setText(item_data.get_delay_string());
-    	editText_delay.setEnabled(experiment_script_data.SCRIPT_SETTING_ENABLE_LIST.get(position).get(5));
+    	editText_delay.setEnabled(ExperimentScriptData.SCRIPT_SETTING_ENABLE_LIST.get(position).get(5));
 	}
 	
 	public void save_experiment_script() throws NumberFormatException{	
-		if (spinner_instruct.getSelectedItemPosition() == experiment_script_data.INSTRUCT_SHAKER_SET_SPEED) {
+		if (spinner_instruct.getSelectedItemPosition() == ExperimentScriptData.INSTRUCT_SHAKER_SET_SPEED) {
 			try {
 			    int shaker_speed = Integer.parseInt(editText_shaker_speed.getText().toString());
 			    if (shaker_speed < 20) {

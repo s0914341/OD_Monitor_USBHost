@@ -14,20 +14,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import od_monitor.app.data.android_accessory_packet;
-import od_monitor.app.data.chart_display_data;
-import od_monitor.app.data.experiment_script_data;
-import od_monitor.app.data.machine_information;
-import od_monitor.app.data.sensor_data_composition;
-import od_monitor.app.data.sync_data;
+import od_monitor.app.data.AndroidAccessoryPacket;
+import od_monitor.app.data.ChartDisplayData;
+import od_monitor.app.data.ExperimentScriptData;
+import od_monitor.app.data.MachineInformation;
+import od_monitor.app.data.SensorDataComposition;
+import od_monitor.app.data.SyncData;
 import od_monitor.app.file.ExportDatabaseCSVTask;
-import od_monitor.app.file.file_operate_byte_array;
-import od_monitor.app.file.file_operation;
+import od_monitor.app.file.FileOperateByteArray;
+import od_monitor.app.file.FileOperation;
 import od_monitor.experiment.ExperimentalOperationInstruct;
-import od_monitor.experiment.ODMonitor_Sensor.CMD_T;
+import od_monitor.experiment.ODMonitorSensor.CMD_T;
+import od_monitor.mail.EmailSettingActivity;
 import od_monitor.mail.SendMailSmtp;
-import od_monitor.script.script_activity_list;
-import od_monitor.script.step_script_activity_list;
+import od_monitor.script.ScriptActivityList;
+import od_monitor.script.StepScriptActivityList;
 
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
@@ -123,8 +124,8 @@ public class ODMonitorActivity extends Activity {
 	public static final long WAIT_TIMEOUT_GET_EXPERIMENT = 10000;
 	public byte  ledPrevMap = 0x00;
 	//public byte[] usbdataIN;
-	public android_accessory_packet acc_pkg_transfer = new android_accessory_packet(android_accessory_packet.INIT_PREFIX_VALUE);
-	public android_accessory_packet acc_pkg_receive = new android_accessory_packet(android_accessory_packet.NO_INIT_PREFIX_VALUE);
+	public AndroidAccessoryPacket acc_pkg_transfer = new AndroidAccessoryPacket(AndroidAccessoryPacket.INIT_PREFIX_VALUE);
+	public AndroidAccessoryPacket acc_pkg_receive = new AndroidAccessoryPacket(AndroidAccessoryPacket.NO_INIT_PREFIX_VALUE);
 	
 	public SeekBar volumecontrol;
     public ProgressBar slider;
@@ -149,18 +150,19 @@ public class ODMonitorActivity extends Activity {
     final Context context = this;
     
     /*thread to listen USB data*/
-    public sync_data sync_object;
-    public sync_data sync_send_script;
-    public sync_data sync_start_experiment;
+    public SyncData sync_object;
+    public SyncData sync_send_script;
+    public SyncData sync_start_experiment;
     
     public ProgressDialog mypDialog;
-    public sync_data sync_get_experiment;
-    public sync_data sync_chart_notify;
+    public SyncData sync_get_experiment;
+    public SyncData sync_chart_notify;
     private boolean experiment_thread_run = false;
     private boolean experiment_stop = false;
     private SwipeRefreshLayout laySwipe;
     public Thread experiment_time_thread = null;
     public boolean experiment_time_run = false;
+    public EditText editText_init_od;
     
     /**
      * FTDI D2xx USB to UART
@@ -238,10 +240,10 @@ public class ODMonitorActivity extends Activity {
 		//mypDialog.setButton("Google",this);
 		mypDialog.setIndeterminate(true);
 		mypDialog.setCancelable(false);
-		sync_object = new sync_data();
-		sync_chart_notify = new sync_data();
-		sync_send_script = new sync_data();
-		sync_start_experiment = new sync_data();
+		sync_object = new SyncData();
+		sync_chart_notify = new SyncData();
+		sync_send_script = new SyncData();
+		sync_start_experiment = new SyncData();
 		ODMonitor_Application app_data = ((ODMonitor_Application)this.getApplication());
 		app_data.set_sync_chart_notify(sync_chart_notify);
 		
@@ -254,6 +256,26 @@ public class ODMonitorActivity extends Activity {
         SetupD2xxLibrary();
 		//experiment = new ExperimentalOperationInstruct(context, ftD2xx, shaker_return);
         experiment = new ExperimentalOperationInstruct(context, ftD2xx, null);
+        
+        editText_init_od = (EditText) findViewById(R.id.editTextInitOD);
+		editText_init_od.setText(experiment.get_init_od_string()); 
+		editText_init_od.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+		        public void onFocusChange(View v, boolean hasFocus) {
+		            // TODO Auto-generated method stub
+		            if (!hasFocus) {
+		            	if (editText_init_od.getText().toString().trim().equals("")) {
+		            		editText_init_od.setText(experiment.get_init_od_string()); 
+		            	} else {
+		            	    double val = Double.parseDouble(editText_init_od.getText().toString().trim());
+		                    if ((val > 0.05) || (val < 0)) {
+		                    	editText_init_od.setError("0~0.05");
+		                    } else {
+		                    	editText_init_od.setError(null);
+		                    }
+		            	}
+		            }
+		        }
+		    });
                
 		start_button = (ImageButton) findViewById(R.id.ButtonStart);
 		start_button.setOnClickListener(new View.OnClickListener() {
@@ -265,19 +287,33 @@ public class ODMonitorActivity extends Activity {
 		    		Toast.makeText(ODMonitorActivity.this, "devices is not ready!",Toast.LENGTH_SHORT).show();
 		    	} else {
 		    	    if (false == experiment_thread_run) {
-		    	        if (0 == experiment.initial_experiment_devices()) {
-		    	        	if (null != db) {
-		    	        	    if (true == db.isOpen())
-		    	        		    db.close();
-		    	        	}
-		    	        	
-		    	        	table.gvRemoveAll();
-		    	            experiment_stop = false;
-		    	            experiment_thread_run = true;
-		    	            new Thread(new experiment_thread(handler)).start(); 
-		    	        } else {
-		    	    	    Toast.makeText(ODMonitorActivity.this, "initial experiment devices fail!",Toast.LENGTH_SHORT).show();
-		    	        }
+		    	    	try {
+		    	    	    double val = Double.parseDouble(editText_init_od.getText().toString().trim());
+		    	    	    if ((val > 0.05) || (val < 0)) {
+			                    editText_init_od.setError("0~0.05");
+			                } else {
+			                	editText_init_od.setError(null);
+			                	editText_init_od.setEnabled(false);
+			                	experiment.set_init_od(val);
+			                	if (0 == experiment.initial_experiment_devices()) {
+					    	        if (null != db) {
+					    	            if (true == db.isOpen())
+					    	                db.close();
+					    	        }
+					    	        	
+					    	        table.gvRemoveAll();
+					    	        experiment_stop = false;
+					    	        experiment_thread_run = true;
+					    	        new Thread(new experiment_thread(handler)).start(); 
+					    	    } else {
+					    	    	Toast.makeText(ODMonitorActivity.this, "initial experiment devices fail!",Toast.LENGTH_SHORT).show();
+					    	    }
+			                }
+		    	        } catch (NumberFormatException ex) {
+		    	        	editText_init_od.setError("0~0.05");
+		    	        	Toast.makeText(ODMonitorActivity.this, "Please enter correct initial OD value!",Toast.LENGTH_SHORT).show();
+	                	    Log.i(Tag, "button_ok NumberFormatException");
+	                    }
 		    	    }
 		    	}
 		    }
@@ -315,8 +351,7 @@ public class ODMonitorActivity extends Activity {
         mail_button = (ImageButton) findViewById(R.id.ButtonMail);
         mail_button.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				//set_tablet_on_off_line((byte)0, false);
-				//SensorDataReceive();
+				show_email_activity();
 			}
 		});
         
@@ -383,7 +418,7 @@ public class ODMonitorActivity extends Activity {
         double od_value = 0;
         long size = 0;
         
-        file_operate_byte_array read_file = new file_operate_byte_array(sensor_data_composition.sensor_raw_folder_name, sensor_data_composition.sensor_raw_file_name, true);
+        FileOperateByteArray read_file = new FileOperateByteArray(SensorDataComposition.sensor_raw_folder_name, SensorDataComposition.sensor_raw_file_name, true);
         try {
         	size = read_file.open_read_file(read_file.generate_filename_no_date());
         } catch (IOException e) {
@@ -393,18 +428,18 @@ public class ODMonitorActivity extends Activity {
 	        return;
         }
         
-        if (size >= sensor_data_composition.total_size) {
+        if (size >= SensorDataComposition.total_size) {
 			int offset = 0;
 		    byte[] data = new byte[(int) size];
 		    read_file.read_file(data);
-		    sensor_data_composition one_sensor_data = new sensor_data_composition();
+		    SensorDataComposition one_sensor_data = new SensorDataComposition();
 		    CreateODDataDB();
 			
-			while ((size-offset) >= sensor_data_composition.total_size) {
-				one_sensor_data.set_buffer(data, offset, sensor_data_composition.total_size);
+			while ((size-offset) >= SensorDataComposition.total_size) {
+				one_sensor_data.set_buffer(data, offset, SensorDataComposition.total_size);
 				date = new Date(one_sensor_data.get_sensor_measurement_time());
 				od_value = one_sensor_data.get_sensor_od_value();    
-				offset += sensor_data_composition.total_size;
+				offset += SensorDataComposition.total_size;
 				InsertODDateToDB(one_sensor_data);
 			}
 			
@@ -416,7 +451,7 @@ public class ODMonitorActivity extends Activity {
 		}
 	}
 
-	void InsertODDateToDB(sensor_data_composition sensor_data) {
+	void InsertODDateToDB(SensorDataComposition sensor_data) {
 		String sql = "insert into " + TABLE_NAME + " (" + 
 			INDEX + ", " + DATE + ", " + OD1 + ", " + OD2 + ", " + OD3 + ", " + OD4
 					+ ") values('" + sensor_data.get_sensor_get_index_string()
@@ -515,8 +550,14 @@ public class ODMonitorActivity extends Activity {
     
     public void show_script_activity() {
         	Intent intent = null;
-        	intent = new Intent(this, step_script_activity_list.class);
+        	intent = new Intent(this, StepScriptActivityList.class);
         	startActivity(intent);
+    }
+    
+    public void show_email_activity() {
+    	Intent intent = null;
+    	intent = new Intent(this, EmailSettingActivity.class);
+    	startActivity(intent);
     }
     
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -589,41 +630,10 @@ public class ODMonitorActivity extends Activity {
 		super.onDestroy();
 	}
 	
-	final Handler UIhandler = new Handler() {
-		public void handleMessage(Message msg) {	
-			switch (msg.arg1) {
-			    case UI_GET_MACHINE_INFO_REFRESH: {
-			    	final String str_status = msg.getData().getString("get_machine_info_status", "no status");
-			    	
-			    	this.postDelayed(new Runnable() {
-	                    public void run() {
-	                        laySwipe.setRefreshing(false);
-	                        Toast.makeText(getApplicationContext(), str_status, Toast.LENGTH_SHORT).show();
-	                    }
-	                }, 1000);
-			    
-			    } break;
-			    
-			    case UI_SEND_SCRIPT: {
-			    	final String str_status = msg.getData().getString("send_script_status", "no status");
-			    	Toast.makeText(getApplicationContext(), str_status, Toast.LENGTH_SHORT).show();
-			    } break;
-			    
-			    case UI_SHOW_INITIAL_DIALOG:
-			    	mypDialog.show();
-			    break;
-			    
-			    case UI_CANCLE_INITIAL_DIALOG:
-			    	mypDialog.cancel();
-			    break;
-			}
-		}
-	};
-	
 	public void notify_chart_receive_data() {
 		if (sync_chart_notify != null) {
 	        synchronized (sync_chart_notify) {
-	        	sync_chart_notify.set_status(sync_data.STATUS_DATA_AVAILABLE);
+	        	sync_chart_notify.set_status(SyncData.STATUS_DATA_AVAILABLE);
 	    	    sync_chart_notify.notify();
 	        }
 	    }
@@ -648,7 +658,7 @@ public class ODMonitorActivity extends Activity {
 		    		int current_instruct_value = b.getInt("current instruct value");
 		    		long current_experiment_time = b.getLong("current experiment time");
 		    		
-		    		String experiment_process = "index: " + current_instruct_index + ",  " + "time: " + current_experiment_time + ",  " + "instruct: " + experiment_script_data.SCRIPT_INSTRUCT.get(current_instruct_value) + "\n";
+		    		String experiment_process = "index: " + current_instruct_index + ",  " + "time: " + current_experiment_time + ",  " + "instruct: " + ExperimentScriptData.SCRIPT_INSTRUCT.get(current_instruct_value) + "\n";
 		    		//String experiment_process = String.format("index:%d,   time:%d,   instruct:%s \n", current_instruct_index, current_experiment_time, experiment_script_data.SCRIPT_INSTRUCT.get(current_instruct_value));
 		    		//debug_view.setText(experiment_process);
 		        break;
@@ -657,11 +667,13 @@ public class ODMonitorActivity extends Activity {
 		        	experiment_time_run = false;
 		        	//experiment_timer.stop();
 		        	experiment.close_shaker_port();
+		        	new ExportDatabaseCSVTask(context, db, TABLE_NAME).execute("");
+		        	editText_init_od.setEnabled(true);
 		        break;
 		        
 		        case EXPERIMENT_NOTIFY_CHART:
 		        	notify_chart_receive_data();
-		        	sensor_data_composition sensor_data = (sensor_data_composition)b.getSerializable("sensor_data_composition");
+		        	SensorDataComposition sensor_data = (SensorDataComposition)b.getSerializable("sensor_data_composition");
 		        	if (null != sensor_data) {
 		        		InsertODDateToDB(sensor_data);
 		        		table.gvUpdatePageBar("select count(*) from " + TABLE_NAME,db);
@@ -689,13 +701,13 @@ public class ODMonitorActivity extends Activity {
 			List<HashMap<String,Object>> list = new ArrayList<HashMap<String,Object>>();
 			HashMap<Object, Object> experiment_item = new HashMap<Object, Object>();
 			int next_instruct_index = 0;
-			experiment_script_data current_instruct_data;
+			ExperimentScriptData current_instruct_data;
 			int ret = 0;
 			Bundle b = new Bundle(1);
 			Message msg;
 			
 			Thread.currentThread().setName("Thread_Experiment");
-			if (0 != script_activity_list.load_script(list, experiment_item)) {
+			if (0 != ScriptActivityList.load_script(list, experiment_item)) {
 				b = new Bundle(1);
 				b.putInt("experiment status", EXPERIMENT_OPEN_SCRIPT_ERROR);
 				msg = mHandler.obtainMessage();
@@ -703,7 +715,7 @@ public class ODMonitorActivity extends Activity {
 			    mHandler.sendMessage(msg);
 			    return;
 			}
-			current_instruct_data = (experiment_script_data)experiment_item.get(list.get(next_instruct_index));
+			current_instruct_data = (ExperimentScriptData)experiment_item.get(list.get(next_instruct_index));
 			
 			b = new Bundle(1);
 			b.putInt("experiment status", EXPERIMENT_START);
@@ -729,7 +741,7 @@ public class ODMonitorActivity extends Activity {
 					break;
 				}
 						
-			    current_instruct_data = (experiment_script_data)experiment_item.get(list.get(next_instruct_index));
+			    current_instruct_data = (ExperimentScriptData)experiment_item.get(list.get(next_instruct_index));
 				current_instruct_data.current_instruct_index = next_instruct_index;
 				current_instruct_data.next_instruct_index = next_instruct_index;
 				
@@ -743,10 +755,10 @@ public class ODMonitorActivity extends Activity {
 			    mHandler.sendMessage(msg);
 				
 				switch(current_instruct_data.get_instruct_value()) {
-				    case experiment_script_data.INSTRUCT_READ_SENSOR:
+				    case ExperimentScriptData.INSTRUCT_READ_SENSOR:
 				        ret = experiment.read_sensor_instruct(current_instruct_data);
 				        if (0 == ret) {
-				        	sensor_data_composition sensor_data = experiment.get_current_one_sensor_data();
+				        	SensorDataComposition sensor_data = experiment.get_current_one_sensor_data();
 				        	String sensor_string = sensor_data.get_sensor_data_string();
 				        	b = new Bundle(1);
 				        	b.putInt("experiment status", EXPERIMENT_NOTIFY_CHART);
@@ -758,32 +770,32 @@ public class ODMonitorActivity extends Activity {
 				        }
 				    break;
 						
-					case experiment_script_data.INSTRUCT_SHAKER_ON:
+					case ExperimentScriptData.INSTRUCT_SHAKER_ON:
 						ret = experiment.shaker_on_instruct(current_instruct_data);
 					break;
 						
-					case experiment_script_data.INSTRUCT_SHAKER_OFF:
+					case ExperimentScriptData.INSTRUCT_SHAKER_OFF:
 						ret = experiment.shaker_off_instruct(current_instruct_data);
 					break;
 						
-					case experiment_script_data.INSTRUCT_SHAKER_SET_TEMPERATURE:
+					case ExperimentScriptData.INSTRUCT_SHAKER_SET_TEMPERATURE:
 						ret = experiment.shaker_set_temperature_instruct(current_instruct_data);
 					break;
 						
-					case experiment_script_data.INSTRUCT_SHAKER_SET_SPEED:
+					case ExperimentScriptData.INSTRUCT_SHAKER_SET_SPEED:
 						ret = experiment.shaker_set_speed_instruct(current_instruct_data);
 					break;
 						
-					case experiment_script_data.INSTRUCT_REPEAT_COUNT:
+					case ExperimentScriptData.INSTRUCT_REPEAT_COUNT:
 						ret = experiment.repeat_count_instruct(current_instruct_data);
 					break;
 						
-					case experiment_script_data.INSTRUCT_REPEAT_TIME:
+					case ExperimentScriptData.INSTRUCT_REPEAT_TIME:
 						//ret = experiment.repeat_time_instruct(current_instruct_data);
 						ret = experiment.step_experiment_duration_instruct(current_instruct_data);
 					break;
 
-					case experiment_script_data.INSTRUCT_DELAY:
+					case ExperimentScriptData.INSTRUCT_DELAY:
 						ret = experiment.experiment_delay_instruct(current_instruct_data);
 					break;
 						
@@ -791,6 +803,8 @@ public class ODMonitorActivity extends Activity {
 					break;
 				}
 			}
+			
+			Log.d(Tag, "exit experiment thread run!");
 		}
 	}
     

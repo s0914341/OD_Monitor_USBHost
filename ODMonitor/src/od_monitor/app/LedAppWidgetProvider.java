@@ -9,9 +9,9 @@ import android.content.Intent;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-public class led_appwidget_provider extends AppWidgetProvider {
+public class LedAppWidgetProvider extends AppWidgetProvider {
 
-	String Tag = "App Widge text";
+	String Tag = "LedAppWidgetProvider";
 	static int semaphore = 0;
 	RemoteViews views;
 	

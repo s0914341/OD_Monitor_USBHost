@@ -25,16 +25,16 @@ import java.util.Date;
 
 import od_monitor.app.ODMonitorActivity;
 import od_monitor.app.ODMonitor_Application;
-import od_monitor.app.data.android_accessory_packet;
-import od_monitor.app.data.chart_display_data;
-import od_monitor.app.data.experiment_script_data;
-import od_monitor.app.data.machine_information;
-import od_monitor.app.data.sensor_data_composition;
-import od_monitor.app.data.sync_data;
-import od_monitor.app.file.file_operate_bmp;
-import od_monitor.app.file.file_operate_byte_array;
-import od_monitor.app.file.file_operation;
-import od_monitor.experiment.OD_calculate;
+import od_monitor.app.data.AndroidAccessoryPacket;
+import od_monitor.app.data.ChartDisplayData;
+import od_monitor.app.data.ExperimentScriptData;
+import od_monitor.app.data.MachineInformation;
+import od_monitor.app.data.SensorDataComposition;
+import od_monitor.app.data.SyncData;
+import od_monitor.app.file.FileOperateBmp;
+import od_monitor.app.file.FileOperateByteArray;
+import od_monitor.app.file.FileOperation;
+import od_monitor.experiment.ODCalculate;
 
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
@@ -65,7 +65,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class ODChartBuilder extends Activity {
-  public String Tag = "XYChartBuilder";
+  public String Tag = "ODChartBuilder";
   /** The main dataset that includes all the series that go into a chart. */
   private XYMultipleSeriesDataset mDataset = new XYMultipleSeriesDataset();
   /** The main renderer that includes all the renderers customizing a chart. */
@@ -86,7 +86,7 @@ public class ODChartBuilder extends Activity {
   private static final long DAY = 24*HOUR;
   private static final int HOURS = 24;
   
-  public sync_data sync_chart_notify;
+  public SyncData sync_chart_notify;
   private boolean chart_thread_run = false;
   public TextView debug_view;
   private ImageButton zoom_in_button;
@@ -187,7 +187,7 @@ public class ODChartBuilder extends Activity {
       save_chart_button = (ImageButton) findViewById(R.id.saveChart);
       save_chart_button.setOnClickListener(new View.OnClickListener() {
           public void onClick(View v) {
-              file_operate_bmp write_file = new file_operate_bmp("od_chart", "chart", "png");
+              FileOperateBmp write_file = new FileOperateBmp("od_chart", "chart", "png");
       		  try {
       			  write_file.create_file(write_file.generate_filename());
       		  } catch (IOException e) {
@@ -278,16 +278,16 @@ public class ODChartBuilder extends Activity {
 		public void run() {
 			Bundle b = new Bundle(1);
 			long size = 0;
-			file_operate_byte_array read_file;
+			FileOperateByteArray read_file;
 			byte[] file_data;
-			sensor_data_composition one_sensor_data = new sensor_data_composition();
+			SensorDataComposition one_sensor_data = new SensorDataComposition();
 			
 			while (chart_thread_run) {
 				Log.d(Tag, "data_read_thread  id:"+Thread.currentThread().getId() + "process:" + android.os.Process.myTid());
 				synchronized (sync_chart_notify) {
 				    try {
 				    	sync_chart_notify.wait();
-				    	if (sync_data.STATUS_END == sync_chart_notify.get_status())
+				    	if (SyncData.STATUS_END == sync_chart_notify.get_status())
 				    		break;
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
@@ -296,17 +296,17 @@ public class ODChartBuilder extends Activity {
 				}
 				
 				int file_data_offset = 0;
-				read_file = new file_operate_byte_array(sensor_data_composition.sensor_raw_folder_name, sensor_data_composition.sensor_raw_file_name, true);
+				read_file = new FileOperateByteArray(SensorDataComposition.sensor_raw_folder_name, SensorDataComposition.sensor_raw_file_name, true);
 		        try {
 		        	size = read_file.open_read_file(read_file.generate_filename_no_date());
-		        	long position = (current_raw_index+1)*sensor_data_composition.total_size;
-		        	if (((size-position)/sensor_data_composition.total_size) > 0 && 
-		        		((size-position)%sensor_data_composition.total_size) == 0) {
+		        	long position = (current_raw_index+1)*SensorDataComposition.total_size;
+		        	if (((size-position)/SensorDataComposition.total_size) > 0 && 
+		        		((size-position)%SensorDataComposition.total_size) == 0) {
 		        	    read_file.seek_read_file(position);
 		        	    file_data = new byte[(int)(size-position)];
 	    	            read_file.read_file(file_data);
-	    	            one_sensor_data.set_buffer(file_data, file_data_offset, sensor_data_composition.total_size);
-	    	            file_data_offset += sensor_data_composition.total_size;
+	    	            one_sensor_data.set_buffer(file_data, file_data_offset, SensorDataComposition.total_size);
+	    	            file_data_offset += SensorDataComposition.total_size;
 		        	} else {
 		        		Log.d(Tag, "file data is not complete!");
 		        		continue;
@@ -319,7 +319,7 @@ public class ODChartBuilder extends Activity {
 		        }
 		        
                 if (one_sensor_data.get_sensor_get_index() == (current_raw_index+1) || (-1 == current_raw_index)) {
-                	int chart_count = file_data.length/sensor_data_composition.total_size;
+                	int chart_count = file_data.length/SensorDataComposition.total_size;
                 	int[] index = new int[chart_count];
                 	long[] date = new long[chart_count];
                 	double[] od = new double[chart_count];
@@ -335,9 +335,9 @@ public class ODChartBuilder extends Activity {
    		         
  	                    Log.d(Tag, "thread index:"+current_raw_index + " date:" + one_sensor_data.get_sensor_measurement_time() + " od:" + od_value);
  	                    
- 	                    if  ((file_data.length-file_data_offset) >= sensor_data_composition.total_size) {
- 	                        one_sensor_data.set_buffer(file_data, file_data_offset, sensor_data_composition.total_size);
- 	                        file_data_offset += sensor_data_composition.total_size;
+ 	                    if  ((file_data.length-file_data_offset) >= SensorDataComposition.total_size) {
+ 	                        one_sensor_data.set_buffer(file_data, file_data_offset, SensorDataComposition.total_size);
+ 	                        file_data_offset += SensorDataComposition.total_size;
  	                    }
                 	}
                 	
@@ -362,7 +362,7 @@ public class ODChartBuilder extends Activity {
         long size = 0;
         
    
-        file_operate_byte_array read_file = new file_operate_byte_array(sensor_data_composition.sensor_raw_folder_name, sensor_data_composition.sensor_raw_file_name, true);
+        FileOperateByteArray read_file = new FileOperateByteArray(SensorDataComposition.sensor_raw_folder_name, SensorDataComposition.sensor_raw_file_name, true);
         try {
         	size = read_file.open_read_file(read_file.generate_filename_no_date());
         } catch (IOException e) {
@@ -370,16 +370,16 @@ public class ODChartBuilder extends Activity {
 	        e.printStackTrace();
         }
         
-        if (size >= sensor_data_composition.total_size) {
+        if (size >= SensorDataComposition.total_size) {
 			int offset = 0;
 		    byte[] data = new byte[(int) size];
 		    read_file.read_file(data);
-		    sensor_data_composition one_sensor_data = new sensor_data_composition();
+		    SensorDataComposition one_sensor_data = new SensorDataComposition();
 			
-			while ((size-offset) >= sensor_data_composition.total_size) {
-				 one_sensor_data.set_buffer(data, offset, sensor_data_composition.total_size);
+			while ((size-offset) >= SensorDataComposition.total_size) {
+				 one_sensor_data.set_buffer(data, offset, SensorDataComposition.total_size);
 				 date = new Date(one_sensor_data.get_sensor_measurement_time());	 
-				 offset += sensor_data_composition.total_size;
+				 offset += SensorDataComposition.total_size;
 				 
 				 od_value = one_sensor_data.get_sensor_od_value();    
 		        // od_value = OD_calculate.calculate_od(one_sensor_data.get_channel_data());      
@@ -478,7 +478,7 @@ public class ODChartBuilder extends Activity {
     public void notify_chart_thread_end() {
 		if (sync_chart_notify != null) {
 	        synchronized (sync_chart_notify) {
-	        	sync_chart_notify.set_status(sync_data.STATUS_END);
+	        	sync_chart_notify.set_status(SyncData.STATUS_END);
 	    	    sync_chart_notify.notify();
 	        }
 	    }

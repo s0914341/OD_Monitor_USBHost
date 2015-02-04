@@ -3,11 +3,11 @@ package od_monitor.experiment;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import od_monitor.app.data.sensor_data_composition;
+import od_monitor.app.data.SensorDataComposition;
 
 import android.util.Log;
 
-public class OD_calculate {
+public class ODCalculate {
 	/** 
 	 * Beer-Lambert equation
 	 * c=(A x e) / b
@@ -16,26 +16,18 @@ public class OD_calculate {
 	 * e is the wavelength-dependent extinction coefficient in ng-cm/£gl,
 	 * b is the pathlength 
 	 */
-	public static String Tag = "OD_calculate";
+	public static String Tag = "ODCalculate";
 	public static final double e_double_DNA = 50; //ng-cm/£gl, Double-stranded DNA
 	public static final double e_single_DNA = 33; //ng-cm/£gl, Single-stranded DNA
 	public static final double e_RNA = 40; //ng-cm/£gl, RNA
 	
 	public static final double[] Upscale_factors = new double[] {13000/10, 13000/30.9, 13000/78.7, 13000/260, 13000/549, 13000/1500, 13000/5100, 1};
 	public static final double[] Adjecency_Channel_Ratio = new double[] {30.9/10, 78.7/30.9, 260/78.7, 549/260, 1500/549, 5100/1500, 13000/5100};
-	public static final int Ref_OD_Count = 25;
+	public static final int Ref_OD_Count = 3;
 	public static int Ref_OD_times = 0;
 	public static double Ref_OD = 0.0;
-	public static double initial_OD600 = 0.0;
+	public double initial_OD600 = 0.0;
 	
-	
-	
-	public static double sample_OD_value(double I1, double I2) {
-        double ODvalue = 0;
-        
-		ODvalue = (-1)*Math.log10(I2/I1);
-		return ODvalue;
-	}
 	
 	public static byte[] parse_date(String s) {
 		Pattern p = Pattern.compile("\\d+");
@@ -60,9 +52,9 @@ public class OD_calculate {
 		//Pattern p = Pattern.compile("(\\d+)/(\\d+)/(\\d+) (\\d+):(\\d+):(\\d+)  index: (\\d+), (\\d+), (\\d+), (\\d+), (\\d+), (\\d+), (\\d+), (\\d+), (\\d+)");
 		Pattern p = Pattern.compile("\\d+");
 		Matcher m = p.matcher(s);
-		int[] data = new int[sensor_data_composition.raw_total_sensor_data_size];
+		int[] data = new int[SensorDataComposition.raw_total_sensor_data_size];
 		
-		for (int i = 0; i < sensor_data_composition.raw_total_sensor_data_size; i++) {
+		for (int i = 0; i < SensorDataComposition.raw_total_sensor_data_size; i++) {
 			if (m.find()) {
 				data[i] = Integer.parseInt(m.group());
 			} else {
@@ -74,7 +66,7 @@ public class OD_calculate {
 		return data;
 	}
 	
-	public static double calculate_od(int[] data) {
+	public double calculate_od(int[] data) {
 		int ret = -1;
 		double channel_ratio = 0;
 		boolean ratio_check_ok = false;
@@ -85,15 +77,15 @@ public class OD_calculate {
 		int channel_count = 0;
 		double primitive_od = 0;
 		double final_od = 0, mapped_od = 0;
-		double[] upscale_raw_data = new double[sensor_data_composition.raww_total_sensor_channel];
-		double[] channels_od = new double[sensor_data_composition.raww_total_sensor_channel];
+		double[] upscale_raw_data = new double[SensorDataComposition.raww_total_sensor_channel];
+		double[] channels_od = new double[SensorDataComposition.raww_total_sensor_channel];
 		
 		
-        if (data.length == sensor_data_composition.raww_total_sensor_channel) {
+        if (data.length == SensorDataComposition.raww_total_sensor_channel) {
         	channel_index = 0;
-        	while (channel_index < sensor_data_composition.raww_total_sensor_channel) {
+        	while (channel_index < SensorDataComposition.raww_total_sensor_channel) {
         		raw_data = data[channel_index];
-        	    if ((channel_index > 0) && channel_index < sensor_data_composition.raww_total_sensor_channel) {
+        	    if ((channel_index > 0) && channel_index < SensorDataComposition.raww_total_sensor_channel) {
         		    if (data[channel_index-1] > 0) {
         	            channel_ratio = ((double)data[channel_index]/(double)data[channel_index-1])/Adjecency_Channel_Ratio[channel_index-1];
         	            if (channel_ratio > 0.9 && channel_ratio < 1.11) {
@@ -155,16 +147,19 @@ public class OD_calculate {
         }
         
 //0.6143 * Final_OD - 0.5181 * Final_OD ^ 2 + 0.1981 * Final_OD ^ 3
-        if ( final_od >= 0) 
-          mapped_od = 0.6143 * final_od - 0.5181 * Math.pow( final_od, 2 )  + 0.1981 * Math.pow( final_od , 3 );
-        else
-           mapped_od = initial_OD600 + Math.pow( -1, 2 * Math.random() + 1 ) * ( Math.floor( ( 3 * Math.random() ) + 1 ) ) * 0.01;
-        return final_od;
+        if ( final_od >= 0) {
+            mapped_od = 0.6143 * final_od - 0.5181 * Math.pow( final_od, 2 )  + 0.1981 * Math.pow( final_od , 3 );
+        } else {
+        	mapped_od = initial_OD600;
+          //  mapped_od = initial_OD600 + Math.pow( -1, 2 * Math.random() + 1 ) * ( Math.floor( ( 3 * Math.random() ) + 1 ) ) * 0.01;
+        }
+        
+        return mapped_od;
 	}
 	
-	public static void initialize () {
+	public void initialize (double init_od) {
 		Ref_OD_times = 0;
 		Ref_OD = 0;
-		initial_OD600 = 0;
+		initial_OD600 = init_od;
 	}
 }

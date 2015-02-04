@@ -41,39 +41,43 @@
 package mycom.sun.mail.handlers;
 
 import java.io.*;
+import java.util.Properties;
 import myjava.awt.datatransfer.DataFlavor;
 import javax.activation.*;
-import javax.mail.MessagingException;
+import javax.mail.*;
 import javax.mail.internet.*;
 
 
-public class multipart_mixed implements DataContentHandler {
-    private ActivationDataFlavor myDF = new ActivationDataFlavor(
-	    javax.mail.internet.MimeMultipart.class,
-	    "multipart/mixed", 
-	    "Multipart");
+/**
+ * @author	Christopher Cotton
+ */
+
+
+public class MessageRfc822 implements DataContentHandler {
+
+    ActivationDataFlavor ourDataFlavor = new ActivationDataFlavor(
+	javax.mail.Message.class,
+	"message/rfc822", 
+	"Message");
 
     /**
-     * Return the DataFlavors for this <code>DataContentHandler</code>.
-     *
-     * @return The DataFlavors
+     * return the DataFlavors for this <code>DataContentHandler</code>
+     * @return The DataFlavors.
      */
-    public DataFlavor[] getTransferDataFlavors() { // throws Exception;
-	return new DataFlavor[] { myDF };
+    public DataFlavor[] getTransferDataFlavors() {
+	return new DataFlavor[] { ourDataFlavor };
     }
 
     /**
-     * Return the Transfer Data of type DataFlavor from InputStream.
-     *
-     * @param df The DataFlavor
+     * return the Transfer Data of type DataFlavor from InputStream
+     * @param df The DataFlavor.
      * @param ds The DataSource corresponding to the data
-     * @return String object
+     * @return a Message object
      */
     public Object getTransferData(DataFlavor df, DataSource ds)
 				throws IOException {
-	// use myDF.equals to be sure to get ActivationDataFlavor.equals,
-	// which properly ignores Content-Type parameters in comparison
-	if (myDF.equals(df))
+	// make sure we can handle this DataFlavor
+	if (ourDataFlavor.equals(df))
 	    return getContent(ds);
 	else
 	    return null;
@@ -83,27 +87,44 @@ public class multipart_mixed implements DataContentHandler {
      * Return the content.
      */
     public Object getContent(DataSource ds) throws IOException {
+	// create a new MimeMessage
 	try {
-	    return new MimeMultipart(ds); 
-	} catch (MessagingException e) {
-	    IOException ioex =
-		new IOException("Exception while constructing MimeMultipart");
-	    ioex.initCause(e);
-	    throw ioex;
+	    Session session;
+	    if (ds instanceof MessageAware) {
+		MessageContext mc = ((MessageAware)ds).getMessageContext();
+		session = mc.getSession();
+	    } else {
+		// Hopefully a rare case.  Also hopefully the application
+		// has created a default Session that can just be returned
+		// here.  If not, the one we create here is better than
+		// nothing, but overall not a really good answer.
+		session = Session.getDefaultInstance(new Properties(), null);
+	    }
+	    return new MimeMessage(session, ds.getInputStream());
+	} catch (MessagingException me) {
+	    throw new IOException("Exception creating MimeMessage in " +
+		    "message/rfc822 DataContentHandler: " + me.toString());
 	}
     }
     
     /**
-     * Write the object to the output stream, using the specific MIME type.
+     * construct an object from a byte stream
+     * (similar semantically to previous method, we are deciding
+     *  which one to support)
      */
     public void writeTo(Object obj, String mimeType, OutputStream os) 
 			throws IOException {
-	if (obj instanceof MimeMultipart) {
+	// if the object is a message, we know how to write that out
+	if (obj instanceof Message) {
+	    Message m = (Message)obj;
 	    try {
-		((MimeMultipart)obj).writeTo(os);
-	    } catch (MessagingException e) {
-		throw new IOException(e.toString());
+		m.writeTo(os);
+	    } catch (MessagingException me) {
+		throw new IOException(me.toString());
 	    }
+	    
+	} else {
+	    throw new IOException("unsupported object");
 	}
     }
 }

@@ -39,22 +39,27 @@
         <activity android:name="org.achartengine.GraphicalActivity" android:launchMode="singleTask" android:screenOrientation="reversePortrait"/>
         
         
-        <activity android:name="od_monitor.script.script_activity_list"
+        <activity android:name="od_monitor.script.ScriptActivityList"
                   android:theme="@android:style/Theme.NoTitleBar"
                   android:launchMode="standard" android:screenOrientation="reversePortrait"/>
         
-        <activity android:name="od_monitor.script.script_setting_activity"
+        <activity android:name="od_monitor.script.ScriptSettingActivity"
                   android:label="Script Setting"
                   android:theme="@style/ScriptSettingTheme"
                   android:launchMode="standard" android:screenOrientation="reversePortrait"/>
         
-        <activity android:name="od_monitor.script.step_script_activity_list"
+        <activity android:name="od_monitor.script.StepScriptActivityList"
                   android:theme="@android:style/Theme.NoTitleBar"
                   android:launchMode="standard" android:screenOrientation="reversePortrait"/>
         
-        <activity android:name="od_monitor.script.step_script_setting_activity"
+        <activity android:name="od_monitor.script.StepScriptSettingActivity"
                   android:label="Script Setting"
                   android:theme="@style/ScriptSettingTheme"
+                  android:launchMode="standard" android:screenOrientation="reversePortrait"/>
+        
+        <activity android:name="od_monitor.mail.EmailSettingActivity"
+                  android:label="Email Alert Setting"
+                  android:theme="@style/EmailSettingTheme"
                   android:launchMode="standard" android:screenOrientation="reversePortrait"/>
         <!-- <activity
 	         android:name="org.achartengine.chartdemo.demo.chart.XYChartBuilder"
@@ -67,7 +72,7 @@
             </intent-filter>
         </receiver> -->
         
-        <receiver android:name="od_monitor.app.led_appwidget_provider" 
+        <receiver android:name="od_monitor.app.LedAppWidgetProvider" 
                   android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

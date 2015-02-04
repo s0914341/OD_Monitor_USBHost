@@ -3,8 +3,8 @@ package od_monitor.script;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import od_monitor.app.data.experiment_script_data;
-import od_monitor.app.data.step_experiment_script_data;
+import od_monitor.app.data.ExperimentScriptData;
+import od_monitor.app.data.StepExperimentScriptData;
 
 import od_monitor.app.R;
 import od_monitor.app.R.id;
@@ -27,8 +27,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 
-public class step_script_setting_activity extends Activity {
-	public String Tag = "step_script_setting_activity";
+public class StepScriptSettingActivity extends Activity {
+	public String Tag = "StepScriptSettingActivity";
 	public Button button_ok;
 	public EditText editText_high_speed_rpm;
 	public EditText editText_high_speed_operation_duration;
@@ -38,7 +38,7 @@ public class step_script_setting_activity extends Activity {
 	public EditText editText_experiment_operation_duration_hour;
 	public EditText editText_experiment_operation_duration_min;
 	
-	public step_experiment_script_data item_data;
+	public StepExperimentScriptData item_data;
 	public int total_item = 0;
 	public long item_id = 0;
 	public int item_position = 0;
@@ -51,7 +51,7 @@ public class step_script_setting_activity extends Activity {
 	    setContentView(R.layout.step_script_setting);
 	    
 	    Intent intent = getIntent(); 
-	    item_data = (step_experiment_script_data)intent.getSerializableExtra("send_step_experiment_script_data");
+	    item_data = (StepExperimentScriptData)intent.getSerializableExtra("send_step_experiment_script_data");
 	    total_item = intent.getIntExtra("send_total_item", 0);
 	    item_id = intent.getLongExtra("send_item_id", 0);
 	    item_position = intent.getIntExtra("send_item_position", 0);
@@ -254,42 +254,65 @@ public class step_script_setting_activity extends Activity {
 		}*/
 		boolean fail = false; 
 		int val = Integer.parseInt(editText_high_speed_rpm.getText().toString().trim());
-        if ((val > 300) || (val < 50))
+        if ((val > 300) || (val < 50)) {
+        	editText_high_speed_rpm.setError("50~300");
         	fail = true;
-        else
+        } else {
+        	editText_high_speed_rpm.setError(null);
         	item_data.set_high_speed_rpm(val);
+        }
         
         val = Integer.parseInt(editText_high_speed_operation_duration.getText().toString().trim());
-        if ((val > 99999) || (val < 10)) 
+        if ((val > 99999) || (val < 10)) {
+        	editText_high_speed_operation_duration.setError("10~99999");
         	fail = true;
-        else
+        } else {
+        	editText_high_speed_operation_duration.setError(null);
         	item_data.set_high_speed_operation_duration(val);
+        }
       
         val = Integer.parseInt(editText_temperature.getText().toString().trim());
-        if ((val > 70) || (val < 0))
+        if ((val > 70) || (val < 0)) {
+        	editText_temperature.setError("0~70");
         	fail = true;
-        else
+        } else {
+        	editText_temperature.setError(null);
         	item_data.set_temperature(val);
+        }
      
         val = Integer.parseInt(editText_low_speed_rpm.getText().toString().trim());
-        if ((val > 300) || (val < 50))
+        if ((val > 300) || (val < 50)) {
+        	editText_low_speed_rpm.setError("50~300");
         	fail = true;
-        else
+        } else {
+        	editText_low_speed_rpm.setError(null);
         	item_data.set_low_speed_rpm(val);
+        }
         
         val = Integer.parseInt(editText_low_speed_operation_duration.getText().toString().trim());
-        if ((val > 99999) || (val < 10)) 
+        if ((val > 99999) || (val < 10)) {
+        	editText_low_speed_operation_duration.setError("10~99999");
         	fail = true;
-        else
+        } else {
+        	editText_low_speed_operation_duration.setError(null);
         	item_data.set_low_speed_operation_duration(val);
+        }
         
         int duration_hour = Integer.parseInt(editText_experiment_operation_duration_hour.getText().toString().trim());
-        if ((duration_hour > 90) || (duration_hour < 0))
+        if ((duration_hour > 90) || (duration_hour < 0)) {
+        	editText_experiment_operation_duration_hour.setError("0~90");
         	fail = true;
+        } else {
+        	editText_experiment_operation_duration_hour.setError(null);
+        }
         
         int duration_min = Integer.parseInt(editText_experiment_operation_duration_min.getText().toString().trim());
-        if ((duration_min > 59) || (duration_min < 0))
+        if ((duration_min > 59) || (duration_min < 0)) {
+        	editText_experiment_operation_duration_min.setError("0~59");
         	fail = true;
+        } else {
+        	editText_experiment_operation_duration_min.setError(null);
+        }
         
         if (false == fail) {
         	if ((0 == duration_hour) && (0 == duration_min)) {

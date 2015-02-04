@@ -9,10 +9,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import od_monitor.app.data.experiment_script_data;
-import od_monitor.app.data.sensor_data_composition;
-import od_monitor.app.file.file_operate_byte_array;
-import od_monitor.experiment.ODMonitor_Sensor.CMD_T;
+import od_monitor.app.data.ExperimentScriptData;
+import od_monitor.app.data.SensorDataComposition;
+import od_monitor.app.file.FileOperateByteArray;
+import od_monitor.experiment.ODMonitorSensor.CMD_T;
 
 import android.content.Context;
 import android.util.Log;
@@ -35,7 +35,9 @@ public class ExperimentalOperationInstruct {
 	
     /*graphical objects*/
     public TextView readText;
-    public sensor_data_composition current_one_sensor_data;
+    public SensorDataComposition current_one_sensor_data;
+    public double init_od = 0;
+    public ODCalculate od_cal = new ODCalculate();
     
     public DeviceUART shaker;
     public DeviceUART sensor;
@@ -54,7 +56,7 @@ public class ExperimentalOperationInstruct {
 
     /*20150121 added by michael
      * sensor instance */
-    public ODMonitor_Sensor mODMonitorSensor;
+    public ODMonitorSensor mODMonitorSensor;
     private byte[] sensor_raw_buffer;
 	public class repeat_informat {
 		public int repeat_instruct_index;
@@ -83,8 +85,21 @@ public class ExperimentalOperationInstruct {
 	    sensor.flowControl = 0;
 	    
         /*20150121 added by michael*/
-        mODMonitorSensor = new ODMonitor_Sensor ( parentContext );
+        mODMonitorSensor = new ODMonitorSensor ( parentContext );
         sensor_raw_buffer = new byte[160];
+	}
+	
+	public double get_init_od() {
+		return init_od;
+	}
+	
+	public String get_init_od_string() {
+		String init_od_string = "" + init_od;
+		return init_od_string;
+	}
+	
+	public void set_init_od (double od) {
+		init_od = od;
 	}
 	
 	public int initial_experiment_devices() {
@@ -92,9 +107,10 @@ public class ExperimentalOperationInstruct {
 		
 		sensor_data_index = 0;
 		step_experiment_start_system_time = new Date().getTime();
+		od_cal.initialize(init_od);
 		mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_HELLO, 0, 0, null, 1 );
 		if (0 == open_shaker_port()) {
-			file_operate_byte_array write_file = new file_operate_byte_array(sensor_data_composition.sensor_raw_folder_name, sensor_data_composition.sensor_raw_file_name, true);
+			FileOperateByteArray write_file = new FileOperateByteArray(SensorDataComposition.sensor_raw_folder_name, SensorDataComposition.sensor_raw_file_name, true);
 	    	try {
 	    		write_file.delete_file(write_file.generate_filename_no_date());
 			} catch (IOException e) {
@@ -209,7 +225,7 @@ public class ExperimentalOperationInstruct {
 		return current_one_sensor_data.get_sensor_data_string();
 	}
 	
-	public sensor_data_composition get_current_one_sensor_data() {
+	public SensorDataComposition get_current_one_sensor_data() {
 		return current_one_sensor_data;
 	}
 	
@@ -252,18 +268,18 @@ public class ExperimentalOperationInstruct {
 		int ret = 0;
 		double od_value = 0;
 		
-        file_operate_byte_array write_file = new file_operate_byte_array(sensor_data_composition.sensor_raw_folder_name, file_name, true);
+        FileOperateByteArray write_file = new FileOperateByteArray(SensorDataComposition.sensor_raw_folder_name, file_name, true);
     	try {
             write_file.create_file(write_file.generate_filename_no_date());
             
             if (raw_data != null) {
-                if (raw_data.length == sensor_data_composition.raw_total_sensor_data_size) {
-    		    	current_one_sensor_data = new sensor_data_composition();
+                if (raw_data.length == SensorDataComposition.raw_total_sensor_data_size) {
+    		    	current_one_sensor_data = new SensorDataComposition();
     		    	current_one_sensor_data.set_sensor_get_index(index);
     		    	// write this sensor data time to file
     		    	current_one_sensor_data.set_sensor_measurement_time(time);
     		    	current_one_sensor_data.set_raw_sensor_data(raw_data);
-    		    	od_value = OD_calculate.calculate_od(current_one_sensor_data.get_channel_data()); 
+    		    	od_value = od_cal.calculate_od(current_one_sensor_data.get_channel_data()); 
     		    	current_one_sensor_data.set_sensor_od_value(od_value);
     		    	write_file.write_file(current_one_sensor_data.buffer);
     		    } else {
@@ -284,7 +300,7 @@ public class ExperimentalOperationInstruct {
     	return ret;
 	}
 	
-	public int read_sensor_instruct(experiment_script_data current_instruct_data) {
+	public int read_sensor_instruct(ExperimentScriptData current_instruct_data) {
 		int ret = -1;
 		char[] readDataChar = new char[128];
 		int receive_length = 0;
@@ -302,16 +318,16 @@ public class ExperimentalOperationInstruct {
 	        int[] raw_data = new int[raw_IntBuffer.remaining()];
 	        raw_IntBuffer.get(raw_data);
 	        Log.d(Tag, raw_data[0]+","+ raw_data[1]+","+ raw_data[2]+","+raw_data[3]+","+raw_data[4]+","+raw_data[5]+","+raw_data[6]+","+raw_data[7]+","+raw_data[8]+","+raw_data[9]);
-	        int[] raw_data_save = new int[sensor_data_composition.raw_total_sensor_data_size];
+	        int[] raw_data_save = new int[SensorDataComposition.raw_total_sensor_data_size];
 	        
 	        for (int j = 0; j < 4; j++) {
 	        	if (1 == raw_data[j*10]) {
-	                for (int i = 0; i < sensor_data_composition.raw_total_sensor_data_size; i++) {
+	                for (int i = 0; i < SensorDataComposition.raw_total_sensor_data_size; i++) {
 	        	        raw_data_save[i] = raw_data[1+i+j*10];
 	                }
 	        
-	                String file_name = sensor_data_composition.sensor_raw_file_name + (j+1);
-	                if (0 == save_sensor_data_to_file(sensor_data_index, new Date().getTime(), raw_data_save, sensor_data_composition.sensor_raw_file_name)) {
+	                String file_name = SensorDataComposition.sensor_raw_file_name + (j+1);
+	                if (0 == save_sensor_data_to_file(sensor_data_index, new Date().getTime(), raw_data_save, SensorDataComposition.sensor_raw_file_name)) {
 			            ret = 0;
 			        }
 	        	}
@@ -350,7 +366,7 @@ public class ExperimentalOperationInstruct {
 		return ret;
 	}
 	
-	public int shaker_on_instruct(experiment_script_data current_instruct_data) {
+	public int shaker_on_instruct(ExperimentScriptData current_instruct_data) {
 		int ret = -1;
 		int try_count = shaker_command_retry_count;
 	
@@ -367,7 +383,7 @@ public class ExperimentalOperationInstruct {
 		return ret;
 	}
 	
-	public int shaker_off_instruct(experiment_script_data current_instruct_data) {
+	public int shaker_off_instruct(ExperimentScriptData current_instruct_data) {
 		int ret = -1;
 		int try_count = shaker_command_retry_count;
 		
@@ -384,7 +400,7 @@ public class ExperimentalOperationInstruct {
 		return ret;
 	}
 	
-	public int shaker_set_temperature_instruct(experiment_script_data current_instruct_data) {
+	public int shaker_set_temperature_instruct(ExperimentScriptData current_instruct_data) {
 		int ret = 0;
 		int try_count = shaker_command_retry_count;
 		
@@ -408,7 +424,7 @@ public class ExperimentalOperationInstruct {
 		return ret;
 	}
 	
-	public int shaker_set_speed_instruct(experiment_script_data current_instruct_data) {
+	public int shaker_set_speed_instruct(ExperimentScriptData current_instruct_data) {
 		int ret = -1;
         int try_count = shaker_command_retry_count;
 		
@@ -448,7 +464,7 @@ public class ExperimentalOperationInstruct {
 		return ret;
 	}
 	
-	public int repeat_count_instruct(experiment_script_data current_instruct_data) {
+	public int repeat_count_instruct(ExperimentScriptData current_instruct_data) {
 		int ret = 0;
 		int size = list_repeat_count.size();
 		boolean has_repeat_in_list = false;
@@ -514,7 +530,7 @@ public class ExperimentalOperationInstruct {
 		return ret;
 	}*/
 	
-	public int step_experiment_duration_instruct(experiment_script_data current_instruct_data) {
+	public int step_experiment_duration_instruct(ExperimentScriptData current_instruct_data) {
 		int ret = 0;
 		int size = list_repeat_time.size();
 		boolean has_repeat_in_list = false;
@@ -546,7 +562,7 @@ public class ExperimentalOperationInstruct {
 		return ret;
 	}
 	
-	public int experiment_delay_instruct(experiment_script_data current_instruct_data) {
+	public int experiment_delay_instruct(ExperimentScriptData current_instruct_data) {
 		int ret = -1;
 		
 		try {

@@ -3,7 +3,7 @@ package od_monitor.app.data;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class android_accessory_packet {
+public class AndroidAccessoryPacket {
 	public static final byte DATA_TYPE_GET_MACHINE_STATUS = 0;
 	public static final byte DATA_TYPE_SEND_SHAKER_COMMAND = 1;
 	public static final byte DATA_TYPE_GET_SHAKER_RETURN = 2;
@@ -43,7 +43,7 @@ public class android_accessory_packet {
 
 	public byte[] buffer = new byte[TOTAL_SIZE]; /* data content */
 	
-	public android_accessory_packet(int init) {
+	public AndroidAccessoryPacket(int init) {
 		if (INIT_PREFIX_VALUE == init)
 		    buffer[PREFIX] = PREFIX_VALUE;
 	}

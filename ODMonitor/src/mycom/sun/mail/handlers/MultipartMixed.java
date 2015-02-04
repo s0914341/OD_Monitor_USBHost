@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 1997-2010 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997-2011 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,19 +40,70 @@
 
 package mycom.sun.mail.handlers;
 
-import javax.activation.ActivationDataFlavor;
+import java.io.*;
+import myjava.awt.datatransfer.DataFlavor;
+import javax.activation.*;
+import javax.mail.MessagingException;
+import javax.mail.internet.*;
 
-/**
- * DataContentHandler for text/html.
- *
- */
-public class text_html extends text_plain {
-    private static ActivationDataFlavor myDF = new ActivationDataFlavor(
-	java.lang.String.class,
-	"text/html",
-	"HTML String");
 
-    protected ActivationDataFlavor getDF() {
-	return myDF;
+public class MultipartMixed implements DataContentHandler {
+    private ActivationDataFlavor myDF = new ActivationDataFlavor(
+	    javax.mail.internet.MimeMultipart.class,
+	    "multipart/mixed", 
+	    "Multipart");
+
+    /**
+     * Return the DataFlavors for this <code>DataContentHandler</code>.
+     *
+     * @return The DataFlavors
+     */
+    public DataFlavor[] getTransferDataFlavors() { // throws Exception;
+	return new DataFlavor[] { myDF };
+    }
+
+    /**
+     * Return the Transfer Data of type DataFlavor from InputStream.
+     *
+     * @param df The DataFlavor
+     * @param ds The DataSource corresponding to the data
+     * @return String object
+     */
+    public Object getTransferData(DataFlavor df, DataSource ds)
+				throws IOException {
+	// use myDF.equals to be sure to get ActivationDataFlavor.equals,
+	// which properly ignores Content-Type parameters in comparison
+	if (myDF.equals(df))
+	    return getContent(ds);
+	else
+	    return null;
+    }
+    
+    /**
+     * Return the content.
+     */
+    public Object getContent(DataSource ds) throws IOException {
+	try {
+	    return new MimeMultipart(ds); 
+	} catch (MessagingException e) {
+	    IOException ioex =
+		new IOException("Exception while constructing MimeMultipart");
+	    ioex.initCause(e);
+	    throw ioex;
+	}
+    }
+    
+    /**
+     * Write the object to the output stream, using the specific MIME type.
+     */
+    public void writeTo(Object obj, String mimeType, OutputStream os) 
+			throws IOException {
+	if (obj instanceof MimeMultipart) {
+	    try {
+		((MimeMultipart)obj).writeTo(os);
+	    } catch (MessagingException e) {
+		throw new IOException(e.toString());
+	    }
+	}
     }
 }

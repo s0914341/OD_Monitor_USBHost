@@ -38,16 +38,31 @@ import android.view.View;
 import android.webkit.MimeTypeMap;
 
 public class SendMailSmtp implements Html.ImageGetter {
-    public static final String Tag = "com.example.access_mail";
+    public static final String Tag = "SendMailSmtp";
     File sdcard = Environment.getExternalStorageDirectory();
     public final String iTracker_Data_Dir = sdcard.getPath() + "/iTracker"; 
     File Attachment_folder = new File(iTracker_Data_Dir);
     File Attachment = new File(iTracker_Data_Dir + "/log_20131230-144958.txt");
     File Email_Html_Body = new File(Environment.getExternalStorageDirectory() + "/Downloads/email_body.html");
+    public static final String userid = "simex2001";
+	public static final String password = "zfteshvkmcorttlw";
+	public static final String from = "simex2001@gmail.com";
+	public static final String subject = "OD experiment data";
+	public static final String body = "1.OD chart file, 2.OD data csv file.";
+	public String to;
+	/*20140117 added by michael
+	 * add multipart for attachment*/
+	public MimeMultipart _multipart;
+	public MimeBodyPart messageBodyPart;
+	public DataSource attachment_source;
+    
 
+	public SendMailSmtp(String to) {
+		this.to = to;
+	}
 	/*20140108 added by michael
 	 * return a  encapsulated URI for attachment¡Aonly local file:/// scheme can be attached to mail */
-	public Uri encapsulate_attachment_uri(String uri_string) {
+	/*public Uri encapsulate_attachment_uri(String uri_string) {
 		return Uri.parse(uri_string);
 	}
 	
@@ -66,7 +81,7 @@ public class SendMailSmtp implements Html.ImageGetter {
 		  }
 		}
 		return uris;
-	}
+	}*/
 	
 	public String read_text_file(File file) {
 		StringBuilder text;
@@ -94,20 +109,7 @@ public class SendMailSmtp implements Html.ImageGetter {
 	      return text.toString();
 	} 
 	
-	/*20140116 added by michael*/
-	public static final String userid = "simex2001";
-	public static final String password = "zfteshvkmcorttlw";
-	public static final String from = "simex2001@gmail.com";
-	public static final String to = "software@maestrogen.com";
-	public static final String subject = "this is a test";
-	public static final String body = "knight rider, hello android!";
-	/*20140117 added by michael
-	 * add multipart for attachment*/
-	public MimeMultipart _multipart;
-	public MimeBodyPart messageBodyPart;
-	public DataSource attachment_source;
-	
-	public void SendMailSMTPMethod1() {
+	public void SendMailUseSMTP() {
 		/*20140117 added by michael
 		 * from android API level 3.1 or later¡Ait will be forbidden to run the network operation in UI thread*/
 		Thread send_mail_thread;
