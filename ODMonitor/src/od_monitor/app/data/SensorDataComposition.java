@@ -86,8 +86,7 @@ public class SensorDataComposition implements Serializable {
 	}
 	
 	public String get_sensor_od_value_string() {
-		double od = get_sensor_od_value();
-		String str = ""+ od;
+		String str = Double.toString(get_sensor_od_value());
 		return str;
 	}
 	
@@ -99,8 +98,7 @@ public class SensorDataComposition implements Serializable {
 	}
 	
 	public String get_sensor_get_index_string() {
-		int index = get_sensor_get_index();
-		String str = "" + index;
+		String str = Integer.toString(get_sensor_get_index());
 		return str;
 	}
 	

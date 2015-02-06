@@ -29,7 +29,11 @@ public class ExperimentalOperationInstruct {
 	public D2xxManager ftdid2xx;
 	
 	private long delay_start_system_time = 0;
+	private long total_experiment_start_system_time = 0;
 	private long step_experiment_start_system_time = 0;
+	private long mail_alert_interval = 0;
+    private long mail_alert_start_time = 0;
+    private boolean is_mail_alert = false;
 	private static final int shaker_command_retry_count = 5;
 	private static final int sensor_command_retry_count = 5;
 	
@@ -38,7 +42,7 @@ public class ExperimentalOperationInstruct {
     public SensorDataComposition current_one_sensor_data;
     public double init_od = 0;
     public ODCalculate od_cal = new ODCalculate();
-    
+  
     public DeviceUART shaker;
     public DeviceUART sensor;
     public int shaker_port_num = -1;
@@ -102,11 +106,35 @@ public class ExperimentalOperationInstruct {
 		init_od = od;
 	}
 	
+	public void set_mail_alert_interval(int interval) {
+		mail_alert_interval = (long)(interval*60000);
+		//mail_alert_interval = (long)(1*60000);
+	}
+	
+	public boolean get_is_mail_alert() {
+		if (0 >= mail_alert_interval) {
+			is_mail_alert = false;
+		} else {
+		    if ((System.currentTimeMillis() - mail_alert_start_time) >= mail_alert_interval) {
+        	    is_mail_alert = true;
+        	    mail_alert_start_time = System.currentTimeMillis();
+            } else {
+        	    is_mail_alert = false;
+            }
+		}
+		
+		return is_mail_alert;
+	}
+	
 	public int initial_experiment_devices() {
 		int ret = 0;
 		
 		sensor_data_index = 0;
-		step_experiment_start_system_time = new Date().getTime();
+		mail_alert_interval = 0;
+		is_mail_alert = false;
+		total_experiment_start_system_time = System.currentTimeMillis();
+		step_experiment_start_system_time = total_experiment_start_system_time;
+		mail_alert_start_time = total_experiment_start_system_time;
 		od_cal.initialize(init_od);
 		mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_HELLO, 0, 0, null, 1 );
 		if (0 == open_shaker_port()) {
@@ -332,7 +360,7 @@ public class ExperimentalOperationInstruct {
 			        }
 	        	}
 	        }
-	        
+	        	
 	        sensor_data_index++;
 			current_instruct_data.next_instruct_index++;
 	    }

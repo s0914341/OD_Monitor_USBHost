@@ -4,7 +4,7 @@ import od_monitor.app.data.SyncData;
 import android.app.Application;
 import android.content.Context;
 
-public class ODMonitor_Application extends Application {
+public class ODMonitorApplication extends Application {
 	private SyncData sync_chart_notify = null;
 	
 	public void set_sync_chart_notify(SyncData data) {

@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       android:versionCode="1"
       android:versionName="1.0" package="od_monitor.app">
-    <uses-sdk android:minSdkVersion="14" android:targetSdkVersion="17" />
+    <uses-sdk android:minSdkVersion="16" android:targetSdkVersion="17" />
     
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_CONTACTS"/>
@@ -12,12 +12,12 @@
    
     <application android:icon="@drawable/incu_shaker_icon" 
                  android:label="@string/app_name"
-                 android:name="od_monitor.app.ODMonitor_Application"
+                 android:name="od_monitor.app.ODMonitorApplication"
                  debuggable="true">
         <activity android:name="od_monitor.app.ODMonitorActivity"
                   android:label="@string/app_name"
-                  android:theme="@android:style/Theme.Black.NoTitleBar"
                   android:launchMode="singleTask" android:screenOrientation="reversePortrait">
+                  <!-- android:theme="@android:style/Theme.Black.NoTitleBar" -->
  
             <intent-filter>
                <action android:name="android.intent.action.MAIN" />

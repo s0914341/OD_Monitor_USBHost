@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import od_monitor.app.ODMonitorActivity;
-import od_monitor.app.ODMonitor_Application;
+import od_monitor.app.ODMonitorApplication;
 import od_monitor.app.data.AndroidAccessoryPacket;
 import od_monitor.app.data.ChartDisplayData;
 import od_monitor.app.data.ExperimentScriptData;
@@ -65,7 +65,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class ODChartBuilder extends Activity {
-  public String Tag = "ODChartBuilder";
+  public final static String Tag = ODChartBuilder.class.getName();
   /** The main dataset that includes all the series that go into a chart. */
   private XYMultipleSeriesDataset mDataset = new XYMultipleSeriesDataset();
   /** The main renderer that includes all the renderers customizing a chart. */
@@ -79,7 +79,7 @@ public class ODChartBuilder extends Activity {
   public long current_index = -1;
   public int current_raw_index = -1;
   
-  private static final String SERIES_NAME = "OD series ";
+  public static final String SERIES_NAME = "OD series ";
   private static final long SECOND = 1000;
   private static final long MINUTE = 60*SECOND;
   private static final long HOUR = 60*MINUTE;
@@ -134,11 +134,11 @@ public class ODChartBuilder extends Activity {
       
       debug_view = (TextView)findViewById(R.id.DebugView);
       
-      ODMonitor_Application app_data = ((ODMonitor_Application)this.getApplication());
+      ODMonitorApplication app_data = ((ODMonitorApplication)this.getApplication());
 	  sync_chart_notify = app_data.get_sync_chart_notify();
       // set some properties on the main renderer
       mRenderer.setApplyBackgroundColor(true);
-      mRenderer.setBackgroundColor(Color.argb(100, 50, 50, 50));
+      mRenderer.setBackgroundColor(Color.argb(255, 0, 0, 0));
       mRenderer.setAxisTitleTextSize(16);
       mRenderer.setChartTitleTextSize(20);
       mRenderer.setLabelsTextSize(15);
@@ -190,13 +190,13 @@ public class ODChartBuilder extends Activity {
               FileOperateBmp write_file = new FileOperateBmp("od_chart", "chart", "png");
       		  try {
       			  write_file.create_file(write_file.generate_filename());
+      			  write_file.write_file(mChartView.toBitmap(), Bitmap.CompressFormat.PNG, 100);
+        		  write_file.flush_close_file();
+        		  Toast.makeText(ODChartBuilder.this, "Save chart success!", Toast.LENGTH_SHORT).show(); 
       		  } catch (IOException e) {
       			  // TODO Auto-generated catch block
       			  e.printStackTrace();
       		  }
-      		  write_file.write_file(mChartView.toBitmap(), Bitmap.CompressFormat.PNG, 100);
-      		  write_file.flush_close_file();
-      		  Toast.makeText(ODChartBuilder.this, "Save chart success!", Toast.LENGTH_SHORT).show(); 
       	  }
 	  });
     
@@ -446,6 +446,8 @@ public class ODChartBuilder extends Activity {
             mChartView.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
             // handle the click event on the chart
+                Log.d ( Tag, "height: " + Integer.toString( mChartView.getMinimumHeight() ) );
+                Log.d ( Tag, "width: " + Integer.toString( mChartView.getMeasuredWidth() ) );
             	refresh_view_range_wait = System.currentTimeMillis();
                 SeriesSelection seriesSelection = mChartView.getCurrentSeriesAndPoint();
                 if (seriesSelection == null) {

@@ -32,11 +32,15 @@ import android.widget.Spinner;
 public class EmailSettingActivity extends Activity {
 	public String Tag = "EmailSettingActivity";
 	public Button button_ok;
-	public EditText editTextAddressee;
+	public EditText editTextFromEmail;
+	public EditText editTextPassword;
+	public EditText editTextToEmail;
+	public EditText editTextSubject;
+	public EditText editTextBody;
 	
 	public Spinner spinnerReminderInterval;
 	public ArrayAdapter<String> spinnerReminderIntervalAdapter;
-	public EmailAlertData email_set = new EmailAlertData();
+	public EmailAlertData email_set = null;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
@@ -57,11 +61,35 @@ public class EmailSettingActivity extends Activity {
 			e1.printStackTrace();
 		}
 	    
-	    editTextAddressee = (EditText) findViewById(R.id.editTextAddressee);
+	    editTextFromEmail = (EditText) findViewById(R.id.editTextFromEmail);
+	    editTextPassword = (EditText) findViewById(R.id.editTextPassword);
+	    editTextToEmail = (EditText) findViewById(R.id.editTextToEmail);
+	    editTextSubject = (EditText) findViewById(R.id.editTextSubject);
+	    editTextBody = (EditText) findViewById(R.id.editTextBody);
 	    if (null != email_set) {
-	        String to = email_set.get_addressee();
-	        if (null != to)
-	    	    editTextAddressee.setText(to);
+	        String fromEmail = email_set.get_fromEmail();
+	        if (null != fromEmail)
+	        	editTextFromEmail.setText(fromEmail);
+	        
+	        String fromPassword = email_set.get_fromPassword();
+	        if (null != fromPassword)
+	        	editTextPassword.setText(fromPassword);
+	        
+	        String toEmails = email_set.get_toEmails();
+	        if (null != toEmails)
+	        	editTextToEmail.setText(toEmails);
+	        
+	        String emailSubject = email_set.get_emailSubject();
+	        if (null != emailSubject)
+	        	editTextSubject.setText(emailSubject);
+	        
+	        String emailBody = email_set.get_emailBody();
+	        if (null != emailBody)
+	        	editTextBody.setText(emailBody);
+	    } else {
+	    	email_set = new EmailAlertData();
+	    	editTextSubject.setText(email_set.get_emailSubject());
+	    	editTextBody.setText(email_set.get_emailBody());
 	    }
 	  
 	    spinnerReminderInterval = (Spinner)findViewById(R.id.spinner_reminder_interval);
@@ -73,7 +101,7 @@ public class EmailSettingActivity extends Activity {
 	        spinnerReminderIntervalAdapter.add(EmailAlertData.reminder_interval_string[i]);
 	        spinnerReminderIntervalAdapter.notifyDataSetChanged();
 	    }
-	    spinnerReminderInterval.setSelection(0);
+	    spinnerReminderInterval.setSelection(EmailAlertData.REMINDER_INTERVAL_INDEX.get(email_set.get_reminder_interval()));
 	    
 	    spinnerReminderInterval.setOnItemSelectedListener(new OnItemSelectedListener() { 
 	        public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
@@ -105,14 +133,18 @@ public class EmailSettingActivity extends Activity {
 	 
         try {
 			write_file.create_file(write_file.generate_filename_no_date());
-			email_set.set_addressee(editTextAddressee.getText().toString().trim());
+			email_set.set_fromEmail(editTextFromEmail.getText().toString().trim());
+			email_set.set_fromPassword(editTextPassword.getText().toString().trim());
+			email_set.set_toEmails(editTextToEmail.getText().toString().trim());
+			email_set.set_emailSubject(editTextSubject.getText().toString().trim());
+			email_set.set_emailBody(editTextBody.getText().toString().trim());
+			email_set.set_reminder_interval(spinnerReminderInterval.getSelectedItem().toString());
 			write_file.write_file(email_set);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	         
-		
+	    
 		
 		
 		/*if (spinnerReminderInterval.getSelectedItemPosition() == ExperimentScriptData.INSTRUCT_SHAKER_SET_SPEED) {

@@ -38,6 +38,10 @@ public class FileOperation {
 	    file_append = append;
 	}
 	
+	public String get_file_dir() {
+		return file_Dir;
+	}
+	
 	public void set_file_extension(String name) {
 		file_extension = name;
 	}
