@@ -20,19 +20,23 @@ import od_monitor.script.SwipeDismissListViewTouchListener.DismissCallbacks;
 import org.achartengine.chartdemo.demo.chart.IDemoChart;
 import org.achartengine.chartdemo.demo.chart.ODChartBuilder;
 
+import od_monitor.app.ODMonitorActivity;
 import od_monitor.app.R;
 import od_monitor.app.R.array;
 import od_monitor.app.R.drawable;
 import od_monitor.app.R.id;
 import od_monitor.app.R.layout;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -270,6 +274,34 @@ public class StepScriptActivityList extends Activity {
         		}
         	}
 		});
+    }
+	
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if ((keyCode == KeyEvent.KEYCODE_BACK)) {   //確定按下退出鍵
+            ConfirmExit();
+            return true;  
+        }  
+        
+        return super.onKeyDown(keyCode, event);  
+    }
+
+    public void ConfirmExit(){
+        AlertDialog.Builder ad=new AlertDialog.Builder(StepScriptActivityList.this); //創建訊息方塊
+        ad.setTitle("Exit Script Setting");
+        ad.setMessage("Are you sure want to exit?");
+        ad.setPositiveButton("Yes", new DialogInterface.OnClickListener() { //按"是",則退出應用程式
+            public void onClick(DialogInterface dialog, int i) {
+            	finish();
+            }
+        });
+        
+        ad.setNegativeButton("No",new DialogInterface.OnClickListener() { //按"否",則不執行任何操作
+            public void onClick(DialogInterface dialog, int i) {
+
+            }
+        });
+
+        ad.show();//顯示訊息視窗
     }
 	
 	public static int load_script_to_step(List<HashMap<String,Object>> load_list, HashMap<Object, Object> load_experiment_item) {

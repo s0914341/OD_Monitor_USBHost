@@ -1,8 +1,12 @@
 package od_monitor.experiment;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import od_monitor.app.data.ChartDisplayData;
+import od_monitor.app.data.SensorDataComposition;
+import od_monitor.app.file.FileOperateByteArray;
+import od_monitor.app.file.FileOperation;
 
 import android.content.Context;
 import android.hardware.usb.UsbDevice;
@@ -87,7 +91,6 @@ public class DeviceUART {
 		
 		mManager = (UsbManager) DeviceUARTContext.getSystemService(Context.USB_SERVICE);
 		Log.d(Tag,"The line number is " + new Exception().getStackTrace()[0].getLineNumber()+"\n");
-	//	show_debug(Tag+"The line number is " + new Exception().getStackTrace()[0].getLineNumber()+"\n");
 		for (UsbDevice device : mManager.getDeviceList().values()) {
 			if (device != null) {
 				if (device.getVendorId() == USB_VID && device.getProductId() == USB_PID) {
@@ -367,9 +370,8 @@ public class DeviceUART {
 		// TODO : flow ctrl: XOFF/XOM
 		// TODO : flow ctrl: XOFF/XOM
 		ftDev.setFlowControl(flowCtrlSetting, (byte) 0x0b, (byte) 0x0d);
-
 		uart_configured = true;
-		Toast.makeText(DeviceUARTContext, "Config done", Toast.LENGTH_SHORT).show();
+		//Toast.makeText(DeviceUARTContext, "Config done", Toast.LENGTH_SHORT).show();
 	}
 
     public void EnableRead (){    	
@@ -432,9 +434,20 @@ public class DeviceUART {
     	@Override
     	public void handleMessage(Message msg) {
     		int readDataAvailableLength = msg.getData().getInt("read_data_available_length");
-    		if((readDataAvailableLength > 0) && (null != readText)) {
+    		if(readDataAvailableLength > 0) {
     			char[] readDataChar = msg.getData().getCharArray("read_data_char_array");
-    			readText.setText(String.copyValueOf(readDataChar, 0, readDataAvailableLength));
+    			if (null != readText)
+    			    readText.setText(String.copyValueOf(readDataChar, 0, readDataAvailableLength));
+    			
+    			FileOperation write_file = new FileOperation("od_log", "shaker_log", true);
+    	    	try {
+    	            write_file.create_file(write_file.generate_filename());
+    	    		write_file.write_file_with_date(String.copyValueOf(readDataChar, 0, readDataAvailableLength));
+    	    		write_file.flush_close_file();
+    			} catch (IOException e) {
+    				// TODO Auto-generated catch block
+    				e.printStackTrace();
+    			}
     		}
     	}
     };

@@ -1,5 +1,6 @@
 package od_monitor.app;
 
+import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -18,6 +19,7 @@ import od_monitor.app.data.AndroidAccessoryPacket;
 import od_monitor.app.data.ChartDisplayData;
 import od_monitor.app.data.ExperimentScriptData;
 import od_monitor.app.data.MachineInformation;
+import od_monitor.app.data.ODSqlDatabase;
 import od_monitor.app.data.SensorDataComposition;
 import od_monitor.app.data.SyncData;
 import od_monitor.app.file.ExportDatabaseCSVTask;
@@ -74,6 +76,7 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.ParcelFileDescriptor;
@@ -132,6 +135,7 @@ public class ODMonitorActivity extends Activity {
 	public static final int EXPERIMENT_NOTIFY_CHART = 3;
 	public static final int EXPERIMENT_OPEN_SCRIPT_ERROR = 4;
 	public static final int EXPERIMENT_EMAIL_ALERT = 5;
+	public static final int EXPERIMENT_INTERRUPTION = 6;
 	
 	public static final long WAIT_TIMEOUT = 3000;
 	public static final long WAIT_TIMEOUT_GET_EXPERIMENT = 10000;
@@ -185,24 +189,7 @@ public class ODMonitorActivity extends Activity {
     boolean mRequest_USB_permission;
     
     GVTable table;
-	SQLiteDatabase OD_monitor_db;
-	int id;
-	public static final String OD_VALUE_TABLE_NAME = "od";
-	private static final String INDEX = "NO";
-	private static final String DATE = "date";
-	private static final String OD1 = "OD1";
-	private static final String OD2 = "OD2";
-	private static final String OD3 = "OD3";
-	private static final String OD4 = "OD4";
-	public static final String OD_CHANNEL_RAW_TABLE_NAME = "raw";
-	private static final String CH1 = "CH1";
-	private static final String CH2 = "CH2";
-	private static final String CH3 = "CH3";
-	private static final String CH4 = "CH4";
-	private static final String CH5 = "CH5";
-	private static final String CH6 = "CH6";
-	private static final String CH7 = "CH7";
-	private static final String CH8 = "CH8";
+    ODSqlDatabase od_database;
 	
 	public class mail_attach_file {
 		public String file;
@@ -265,6 +252,7 @@ public class ODMonitorActivity extends Activity {
 		shaker_status = (ImageView)findViewById(R.id.ShakerStatus);
 		shaker_status.setEnabled(false);
 		
+		od_database = new ODSqlDatabase(this);
 		table = new GVTable(this);
 		table.gvSetTableRowCount(50);
 		LinearLayout ly = (LinearLayout) findViewById(R.id.GridLayout);
@@ -352,9 +340,9 @@ public class ODMonitorActivity extends Activity {
 			                	editText_init_od.setEnabled(false);
 			                	experiment.set_init_od(val);
 			                	if (0 == experiment.initial_experiment_devices()) {
-					    	        if (null != OD_monitor_db) {
-					    	            if (true == OD_monitor_db.isOpen())
-					    	            	OD_monitor_db.close();
+					    	        if (null != od_database.get_database()) {
+					    	            if (true == od_database.get_database().isOpen())
+					    	            	od_database.get_database().close();
 					    	        }
 					    	        	
 					    	        table.gvRemoveAll();
@@ -379,9 +367,15 @@ public class ODMonitorActivity extends Activity {
 		stop_button.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				if (true == experiment_thread_run) {
-				    experiment_stop = true;
-				    Toast.makeText(ODMonitorActivity.this, "Stopping experiment!",Toast.LENGTH_SHORT).show();
+					ConfirmExperimentStop();
 				} else {
+					if (shaker_status.isEnabled()) {
+						if (0 == experiment.open_shaker_port()) {
+						    experiment.shaker_off();
+						    experiment.close_shaker_port();
+						    Toast.makeText(ODMonitorActivity.this, "send shaker off command!",Toast.LENGTH_SHORT).show();
+						}
+					}
 					Toast.makeText(ODMonitorActivity.this, "No experiment running!",Toast.LENGTH_SHORT).show();
 				}
 			}
@@ -492,30 +486,25 @@ public class ODMonitorActivity extends Activity {
         EnumerationDevice(getIntent());
     }
     
-	void CreateODDataDB() {
-		OD_monitor_db = SQLiteDatabase.create(null);
-		Log.d("DB Path", OD_monitor_db.getPath());
-		String amount = String.valueOf(databaseList().length);
-		Log.d("DB amount", amount);
+    public void ConfirmExperimentStop(){
+        AlertDialog.Builder stop=new AlertDialog.Builder(ODMonitorActivity.this);
+        stop.setTitle("STOP");
+        stop.setMessage("Are you sure want to stop experiment?");
+        stop.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int i) {
+            	experiment_stop = true;
+			    Toast.makeText(ODMonitorActivity.this, "Stopping experiment!",Toast.LENGTH_SHORT).show();
+            }
+        });
+        
+        stop.setNegativeButton("No",new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int i) {
 
-		String sql_od_value = "CREATE TABLE " + OD_VALUE_TABLE_NAME + " (" + 
-		        INDEX	+ " text not null, " + DATE + " text not null," + OD1 + " text not null," +
-		        OD2	+ " text not null, " + OD3 + " text not null," +
-		        OD4	+ " text not null "+");";
-		
-		String sql_od_channel_raw = "CREATE TABLE " + OD_CHANNEL_RAW_TABLE_NAME + " (" + 
-		        INDEX	+ " text not null, " + DATE + " text not null," + CH1 + " text not null," +
-		        CH2	+ " text not null, " + CH3 + " text not null," + CH4 + " text not null," +
-		        CH5	+ " text not null, " + CH6 + " text not null," + CH7 + " text not null," +
-		        CH8	+ " text not null "+");";
-		try {
-			OD_monitor_db.execSQL("DROP TABLE IF EXISTS " + OD_VALUE_TABLE_NAME);
-			OD_monitor_db.execSQL(sql_od_value);
-			
-			OD_monitor_db.execSQL("DROP TABLE IF EXISTS " + OD_CHANNEL_RAW_TABLE_NAME);
-			OD_monitor_db.execSQL(sql_od_channel_raw);
-		} catch (SQLException e) {}
-	}
+            }
+        });
+
+        stop.show();
+    }
 	
 	void FileToODDataDB() {
 		Date date = null;
@@ -537,53 +526,21 @@ public class ODMonitorActivity extends Activity {
 		    byte[] data = new byte[(int) size];
 		    read_file.read_file(data);
 		    SensorDataComposition one_sensor_data = new SensorDataComposition();
-		    CreateODDataDB();
+		    od_database.CreateODDataDB();
 			
 			while ((size-offset) >= SensorDataComposition.total_size) {
 				one_sensor_data.set_buffer(data, offset, SensorDataComposition.total_size);
 				date = new Date(one_sensor_data.get_sensor_measurement_time());
 				od_value = one_sensor_data.get_sensor_od_value();    
 				offset += SensorDataComposition.total_size;
-				InsertODDateToDB(one_sensor_data);
+				od_database.InsertODDateToDB(one_sensor_data);
 			}
 			
-			table.gvUpdatePageBar("select count(*) from " + OD_VALUE_TABLE_NAME, OD_monitor_db);
-		    table.gvReadyTable("select * from " + OD_VALUE_TABLE_NAME, OD_monitor_db);
+			table.gvUpdatePageBar("select count(*) from " + ODSqlDatabase.OD_VALUE_TABLE_NAME, od_database.get_database());
+		    table.gvReadyTable("select * from " + ODSqlDatabase.OD_VALUE_TABLE_NAME, od_database.get_database());
 			table.refresh_last_table();
 		} else {
 			Log.d(Tag, "file is nothing to show!");
-		}
-	}
-
-	void InsertODDateToDB(SensorDataComposition sensor_data) {
-		String sql_od_value = "insert into " + OD_VALUE_TABLE_NAME + " (" + 
-			INDEX + ", " + DATE + ", " + OD1 + ", " + OD2 + ", " + OD3 + ", " + OD4
-					+ ") values('" + sensor_data.get_sensor_get_index_string()
-					+ "', '" + sensor_data.get_sensor_measurement_time_string() + "','"
-					+ sensor_data.get_sensor_od_value_string() + "','NA','NA','NA');";
-		
-		int[] channel_data = sensor_data.get_channel_data();
-		String[] channel_data_string = {Integer.toString(channel_data[0]), Integer.toString(channel_data[1]), Integer.toString( channel_data[2]),
-				                        Integer.toString(channel_data[3]), Integer.toString(channel_data[4]), Integer.toString(channel_data[5]),
-				                        Integer.toString(channel_data[6]), Integer.toString(channel_data[7])};
-		
-		String sql_od_channel_raw = "insert into " + OD_CHANNEL_RAW_TABLE_NAME + " (" + 
-				INDEX + ", " + DATE + ", " + CH1 + ", " + CH2 + ", " + CH3 + ", " + CH4
-				        + ", " + CH5 + ", " + CH6 + ", " + CH7 + ", " + CH8
-						+ ") values('" + sensor_data.get_sensor_get_index_string()
-						+ "', '" + sensor_data.get_sensor_measurement_time_string() + "','"
-						+ channel_data_string[0] + "','"
-						+ channel_data_string[1] + "','"
-						+ channel_data_string[2] + "','"
-						+ channel_data_string[3] + "','"
-						+ channel_data_string[4] + "','"
-						+ channel_data_string[5] + "','"
-						+ channel_data_string[6] + "','"
-						+ channel_data_string[7] + "');";
-		try {
-			OD_monitor_db.execSQL(sql_od_value);
-			OD_monitor_db.execSQL(sql_od_channel_raw);
-		} catch (SQLException e) {
 		}
 	}
     
@@ -729,9 +686,9 @@ public class ODMonitorActivity extends Activity {
     	    	List<mail_attach_file> list_mail_attach = new ArrayList<mail_attach_file>();
 	        	list_mail_attach.add(export_experiment_chart());
 	        	
-	        	if (null != OD_monitor_db) {
-	        	    list_mail_attach.add(export_experiment_csv(OD_monitor_db, OD_VALUE_TABLE_NAME));
-	        	    list_mail_attach.add(export_experiment_csv(OD_monitor_db, OD_CHANNEL_RAW_TABLE_NAME));
+	        	if (null != od_database.get_database()) {
+	        	    list_mail_attach.add(export_experiment_csv(od_database.get_database(), ODSqlDatabase.OD_VALUE_TABLE_NAME));
+	        	    list_mail_attach.add(export_experiment_csv(od_database.get_database(), ODSqlDatabase.OD_CHANNEL_RAW_TABLE_NAME));
 	        	} else {
 	        		Log.d (Tag, "OD_monitor_db is not created!");
 	        	}
@@ -742,13 +699,23 @@ public class ODMonitorActivity extends Activity {
     	    break;
     	    
     	    case R.id.item_export_raw_data:
-    	    	if (null != OD_monitor_db) {
-    	    		export_experiment_csv(OD_monitor_db, OD_CHANNEL_RAW_TABLE_NAME);
+    	    	if (null != od_database.get_database()) {
+    	    		export_experiment_csv(od_database.get_database(), ODSqlDatabase.OD_CHANNEL_RAW_TABLE_NAME);
     	    	} else {
     	    		Toast.makeText(ODMonitorActivity.this, "OD_monitor_db is not created!",Toast.LENGTH_SHORT).show();
     	    		Log.d(Tag, "no data base is created!");
     	    	}
         	break;
+        	
+    	    case R.id.item_import_raw_data_csv:
+    	    	/*File sdcard = Environment.getExternalStorageDirectory();
+    	    	String file_Dir = sdcard.getPath() + FileOperation.work_directory; 
+    		    String file_dir = file_Dir + SensorDataComposition.sensor_raw_folder_name;
+    		   
+    		    String file_path = file_dir + "ODChannelRawData.csv";
+    		    else
+    		    	file_name = "ODExperimentData" + file_date.format(new Date()) + ".csv";*/
+    	    break;
         	
     	    default:
                 return super.onOptionsItemSelected(item);
@@ -832,7 +799,7 @@ public class ODMonitorActivity extends Activity {
 		        	experiment_time_thread= new Thread(myRunnableThread); 
 		        	experiment_time_run = true;
 		        	experiment_time_thread.start();
-		        	CreateODDataDB();
+		        	od_database.CreateODDataDB();
 		        break;
 		        
 		        case EXPERIMENT_RUNNING:
@@ -845,22 +812,34 @@ public class ODMonitorActivity extends Activity {
 		    		//debug_view.setText(experiment_process);
 		        break;
 		        
+		        case EXPERIMENT_INTERRUPTION:
 		        case EXPERIMENT_STOP:
 		        	experiment_time_run = false;
 		        	experiment.close_shaker_port();
-		        	if (null != OD_monitor_db) {
-		        	    new ExportDatabaseCSVTask(context, OD_monitor_db, OD_VALUE_TABLE_NAME).ExportDatabaseCSVImmediately();
-		        	}
 		        	editText_init_od.setEnabled(true);
+		        	
+		        case EXPERIMENT_EMAIL_ALERT:
+		        	List<mail_attach_file> list_mail_attach = new ArrayList<mail_attach_file>();
+		        	list_mail_attach.add(export_experiment_chart());
+		        	
+		        	if (null != od_database.get_database()) {
+		        	    list_mail_attach.add(export_experiment_csv(od_database.get_database(), ODSqlDatabase.OD_VALUE_TABLE_NAME));
+		        	    list_mail_attach.add(export_experiment_csv(od_database.get_database(), ODSqlDatabase.OD_CHANNEL_RAW_TABLE_NAME));
+		        	} else {
+		        		Log.d (Tag, "OD_monitor_db is not created!");
+		        	}
+		        	
+		        	SendMailSmtp mail = new SendMailSmtp();
+		    		mail.SendMailUseSMTP(list_mail_attach);
 		        break;
 		        
 		        case EXPERIMENT_NOTIFY_CHART:
 		        	notify_chart_receive_data();
 		        	SensorDataComposition sensor_data = (SensorDataComposition)b.getSerializable("sensor_data_composition");
 		        	if (null != sensor_data) {
-		        		InsertODDateToDB(sensor_data);
-		        		table.gvUpdatePageBar("select count(*) from " + OD_VALUE_TABLE_NAME, OD_monitor_db);
-						table.gvReadyTable("select * from " + OD_VALUE_TABLE_NAME, OD_monitor_db);
+		        		od_database.InsertODDateToDB(sensor_data);
+		        		table.gvUpdatePageBar("select count(*) from " + ODSqlDatabase.OD_VALUE_TABLE_NAME, od_database.get_database());
+						table.gvReadyTable("select * from " + ODSqlDatabase.OD_VALUE_TABLE_NAME, od_database.get_database());
 						table.refresh_last_table();
 		        	}
 		        	
@@ -869,21 +848,6 @@ public class ODMonitorActivity extends Activity {
 		        
 		        case EXPERIMENT_OPEN_SCRIPT_ERROR:
 		        	Toast.makeText(getApplicationContext(), "Script open error!", Toast.LENGTH_SHORT).show();
-		        break;
-		        
-		        case EXPERIMENT_EMAIL_ALERT:
-		        	List<mail_attach_file> list_mail_attach = new ArrayList<mail_attach_file>();
-		        	list_mail_attach.add(export_experiment_chart());
-		        	
-		        	if (null != OD_monitor_db) {
-		        	    list_mail_attach.add(export_experiment_csv(OD_monitor_db, OD_VALUE_TABLE_NAME));
-		        	    list_mail_attach.add(export_experiment_csv(OD_monitor_db, OD_CHANNEL_RAW_TABLE_NAME));
-		        	} else {
-		        		Log.d (Tag, "OD_monitor_db is not created!");
-		        	}
-		        	
-		        	SendMailSmtp mail = new SendMailSmtp();
-		    		mail.SendMailUseSMTP(list_mail_attach);
 		        break;
 		    }
     	}
@@ -959,6 +923,16 @@ public class ODMonitorActivity extends Activity {
 			        msg.setData(b);
 				    mHandler.sendMessage(msg);
 					break;
+				} else if ((false == sensor_status.isEnabled()) || (false == shaker_status.isEnabled())) {
+					ret = experiment.shaker_off_instruct(current_instruct_data);
+					experiment_stop = false;
+					experiment_thread_run = false;
+					b = new Bundle(1);
+					b.putInt("experiment status", EXPERIMENT_INTERRUPTION);
+					msg = mHandler.obtainMessage();
+			        msg.setData(b);
+				    mHandler.sendMessage(msg);
+					break;
 				}
 						
 			    current_instruct_data = (ExperimentScriptData)experiment_item.get(list.get(next_instruct_index));
@@ -1001,6 +975,7 @@ public class ODMonitorActivity extends Activity {
 				    break;
 						
 					case ExperimentScriptData.INSTRUCT_SHAKER_ON:
+						ret = experiment.shaker_max_time_instruct();
 						ret = experiment.shaker_on_instruct(current_instruct_data);
 					break;
 						

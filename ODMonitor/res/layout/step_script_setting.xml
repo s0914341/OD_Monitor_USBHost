@@ -16,13 +16,14 @@
 
         <TextView
             android:id="@+id/textViewHighSpeedRPM"
-            android:layout_width="150dp"
+            android:layout_width="300dp"
             android:layout_height="wrap_content"
+            android:textSize="8pt"
             android:text="High Speed(rpm)" />
 
         <EditText
             android:id="@+id/editTextHighSpeedRPM"
-            android:layout_width="200dp"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:maxLength="3"
@@ -42,13 +43,14 @@
 
         <TextView
             android:id="@+id/textViewLowSpeedRPM"
-            android:layout_width="150dp"
+            android:layout_width="300dp"
             android:layout_height="wrap_content"
+            android:textSize="8pt"
             android:text="Low Speed(rpm)" />
 
         <EditText
             android:id="@+id/editTextLowSpeedRPM"
-            android:layout_width="200dp"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:maxLength="3"
@@ -68,13 +70,14 @@
 
         <TextView
             android:id="@+id/textViewHighSpeedOperationDuration"
-            android:layout_width="150dp"
+            android:layout_width="300dp"
             android:layout_height="wrap_content"
+            android:textSize="8pt"
             android:text="High Speed Operation Duration(sec)" />
 
         <EditText
             android:id="@+id/editTextHighSpeedOperationDuration"
-            android:layout_width="200dp"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:maxLength="5"
@@ -94,13 +97,14 @@
 
         <TextView
             android:id="@+id/textViewLowSpeedOperationDuration"
-            android:layout_width="150dp"
+            android:layout_width="300dp"
             android:layout_height="wrap_content"
+            android:textSize="8pt"
             android:text="Low Speed Operation Duration(sec)" />
 
        <EditText
             android:id="@+id/editTextLowSpeedOperationDuration"
-            android:layout_width="200dp"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:maxLength="5"
@@ -120,13 +124,14 @@
 
         <TextView
             android:id="@+id/textViewTemperature"
-            android:layout_width="150dp"
+            android:layout_width="300dp"
             android:layout_height="wrap_content"
+            android:textSize="8pt"
             android:text="Temperature(℃)" />
 
        <EditText
             android:id="@+id/editTextTemperature"
-            android:layout_width="200dp"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:maxLength="2"
@@ -146,8 +151,9 @@
 
         <TextView
             android:id="@+id/textViewExperimentOperationDuration"
-            android:layout_width="150dp"
+            android:layout_width="300dp"
             android:layout_height="wrap_content"
+            android:textSize="8pt"
             android:text="Experiment Operation Duration" />
 
        <EditText
@@ -165,6 +171,7 @@
             android:id="@+id/textViewExperimentOperationDurationHour"
             android:layout_width="50dp"
             android:layout_height="wrap_content"
+            android:textSize="8pt"
             android:text="Hour" />
         
         <EditText
@@ -182,6 +189,7 @@
             android:id="@+id/textViewExperimentOperationDurationMin"
             android:layout_width="50dp"
             android:layout_height="wrap_content"
+            android:textSize="8pt"
             android:text="Min" />
 
     </LinearLayout>

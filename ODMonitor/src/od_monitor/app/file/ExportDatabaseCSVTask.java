@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import od_monitor.app.ODMonitorActivity;
+import od_monitor.app.data.ODSqlDatabase;
 import od_monitor.app.data.SensorDataComposition;
 
 import android.app.ProgressDialog;
@@ -61,7 +62,7 @@ public class ExportDatabaseCSVTask extends AsyncTask<String, Void, Boolean> {
 	    if (!exportDir.exists()) { exportDir.mkdirs(); }
 
 	    SimpleDateFormat file_date = new SimpleDateFormat("yyyyMMdd_HHmmss");
-	    if (Table_Name.equals(ODMonitorActivity.OD_CHANNEL_RAW_TABLE_NAME)) 
+	    if (Table_Name.equals(ODSqlDatabase.OD_CHANNEL_RAW_TABLE_NAME)) 
 	        file_name = "ODChannelRawData" + file_date.format(new Date()) + ".csv";
 	    else
 	    	file_name = "ODExperimentData" + file_date.format(new Date()) + ".csv";

@@ -36,6 +36,7 @@ public class ExperimentalOperationInstruct {
     private boolean is_mail_alert = false;
 	private static final int shaker_command_retry_count = 5;
 	private static final int sensor_command_retry_count = 5;
+	private static final long shaker_command_fail_retry_delay = 300;
 	
     /*graphical objects*/
     public TextView readText;
@@ -53,6 +54,7 @@ public class ExperimentalOperationInstruct {
     public final static char[] shaker_off = new char[] {'O', 'F', ' '};
     public final static char[] shaker_speed = new char[] {'S', 'S', '0'};
     public final static char[] shaker_temperature = new char[] {'S', 'C'};
+    public final static char[] shaker_max_time = new char[] {'S', 'T', '0', '5', '9', '4', '0', ' '};
     public final static char[] shaker_end = new char[] {'0', ' '};
     
     List<repeat_informat> list_repeat_count = new ArrayList<repeat_informat>();
@@ -131,6 +133,7 @@ public class ExperimentalOperationInstruct {
 		
 		sensor_data_index = 0;
 		mail_alert_interval = 0;
+		delay_start_system_time = 0;
 		is_mail_alert = false;
 		total_experiment_start_system_time = System.currentTimeMillis();
 		step_experiment_start_system_time = total_experiment_start_system_time;
@@ -394,6 +397,25 @@ public class ExperimentalOperationInstruct {
 		return ret;
 	}
 	
+	public int shaker_max_time_instruct() {
+		int ret = -1;
+		int try_count = shaker_command_retry_count;
+	
+		while ((try_count--) > 0) {
+		    if (0 == send_shaker_command(shaker_max_time)) {
+			    ret = 0;
+			    break;
+		    } else {
+		    	try {
+			        Thread.sleep(shaker_command_fail_retry_delay);
+				} catch (InterruptedException e) {
+				}
+		    }
+		}
+		
+		return ret;
+	}
+	
 	public int shaker_on_instruct(ExperimentScriptData current_instruct_data) {
 		int ret = -1;
 		int try_count = shaker_command_retry_count;
@@ -402,11 +424,35 @@ public class ExperimentalOperationInstruct {
 		    if (0 == send_shaker_command(shaker_on)) {
 			    ret = 0;
 			    break;
+		    } else {
+		    	try {
+			        Thread.sleep(shaker_command_fail_retry_delay);
+				} catch (InterruptedException e) {
+				}
 		    }
 		}
 		
 		if (0 == ret)
 			current_instruct_data.next_instruct_index++;
+		
+		return ret;
+	}
+	
+	public int shaker_off() {
+		int ret = -1;
+		int try_count = shaker_command_retry_count;
+		
+		while ((try_count--) > 0) {
+		    if (0 == send_shaker_command(shaker_off)) {
+			    ret = 0;
+			    break;
+		    } else {
+		    	try {
+			        Thread.sleep(shaker_command_fail_retry_delay);
+				} catch (InterruptedException e) {
+				}
+		    }
+		}
 		
 		return ret;
 	}
@@ -419,6 +465,11 @@ public class ExperimentalOperationInstruct {
 		    if (0 == send_shaker_command(shaker_off)) {
 			    ret = 0;
 			    break;
+		    } else {
+		    	try {
+			        Thread.sleep(shaker_command_fail_retry_delay);
+				} catch (InterruptedException e) {
+				}
 		    }
 		}
 		
@@ -442,8 +493,14 @@ public class ExperimentalOperationInstruct {
 			if (0 != send_shaker_command(shaker_end)) 
 				ret = -1;
 				
-			if (0 == ret)
+			if (0 == ret) {
 				break;
+			} else {
+				try {
+			        Thread.sleep(shaker_command_fail_retry_delay);
+				} catch (InterruptedException e) {
+				}
+			}
 		}
 		
 		if (0 == ret)
@@ -482,11 +539,17 @@ public class ExperimentalOperationInstruct {
 			if (0 != send_shaker_command(shaker_end))
 				ret = -1;
 			
-			if (0 == ret)
+			if (0 == ret) {
 				break;
+			} else {
+				try {
+			        Thread.sleep(shaker_command_fail_retry_delay);
+				} catch (InterruptedException e) {
+				}
+			}
 		}
 		
-		if (0 == ret)
+		if (0 == ret) 
 			current_instruct_data.next_instruct_index++;
 		
 		return ret;

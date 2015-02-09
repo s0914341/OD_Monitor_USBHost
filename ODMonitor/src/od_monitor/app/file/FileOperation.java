@@ -26,7 +26,8 @@ public class FileOperation {
 	private BufferedReader file_buf_read;
 	//SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd-HHmmss");
 	protected SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
-	protected SimpleDateFormat df1 = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+	protected SimpleDateFormat df_Hms = new SimpleDateFormat("yyyyMMdd_HHmmss");
+	protected SimpleDateFormat yMd_Hms = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	protected static String Flush_File = ""; 
 	protected boolean file_append = false;
 	protected String file_extension = ".txt";
@@ -82,7 +83,7 @@ public class FileOperation {
 	
 	public void write_file_with_date(String line) {
 		if (file_buf != null) {
-			String line_text = df1.format(new Date()) + "  " + line;
+			String line_text = yMd_Hms.format(new Date()) + "  " + line;
 			try {
 				file_buf.write(line_text, 0, line_text.length());
 				file_buf.newLine();
@@ -93,11 +94,12 @@ public class FileOperation {
 		}
 	}
 	
-	public void write_file(String line) {
+	public void write_file(String line, boolean new_line) {
 		if (file_buf != null) {
 			try {
 				file_buf.write(line, 0, line.length());
-				file_buf.newLine();
+				if (new_line)
+				    file_buf.newLine();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

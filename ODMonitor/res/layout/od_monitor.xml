@@ -280,17 +280,18 @@
             <LinearLayout 
                 android:id="@+id/ExperimentDataLayout" 
                 android:orientation="vertical"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:layout_marginLeft="25dp"
+                android:layout_marginTop="15dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="16dp"
                 android:gravity="center">
            	 <TextView
                 android:id="@+id/TextViewExperiment"
-                android:layout_width="fill_parent"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:textSize="10pt"
+                android:layout_width="match_parent"
+                android:textAppearance="?android:attr/textAppearanceLarge"
                 android:text="Experiment Information:"
+                android:background="#FF5577AA"
                 android:layout_height="wrap_content">
              </TextView>
              <TextView

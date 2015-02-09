@@ -21,8 +21,8 @@ public class ODCalculate {
 	public static final double e_single_DNA = 33; //ng-cm/£gl, Single-stranded DNA
 	public static final double e_RNA = 40; //ng-cm/£gl, RNA
 	
-	public static final double[] Upscale_factors = new double[] {13000/10, 13000/30.9, 13000/78.7, 13000/260, 13000/549, 13000/1500, 13000/5100, 1};
-	public static final double[] Adjecency_Channel_Ratio = new double[] {30.9/10, 78.7/30.9, 260/78.7, 549/260, 1500/549, 5100/1500, 13000/5100};
+	public static final double[] Upscale_factors = new double[] {13000.0/10.0, 13000.0/30.9, 13000.0/78.7, 13000.0/260.0, 13000.0/549.0, 13000.0/1500.0, 13000.0/5100.0, 1.0};
+	public static final double[] Adjecency_Channel_Ratio = new double[] {30.9/10, 78.7/30.9, 260/78.7, 549.0/260.0, 1500.0/549.0, 5100.0/1500.0, 13000.0/5100.0};
 	public static final int Ref_OD_Count = 25;
 	public static int Ref_OD_times = 0;
 	public static double Ref_OD = 0.0;
