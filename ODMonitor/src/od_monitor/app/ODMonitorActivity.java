@@ -97,6 +97,8 @@ import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.Chronometer.OnChronometerTickListener;
@@ -155,6 +157,7 @@ public class ODMonitorActivity extends Activity {
     
     public ImageView sensor_status;
     public ImageView shaker_status;
+    public ImageView iv;
     
     //public EditText etInput; //shaker command input
    // public TextView shaker_return;
@@ -180,6 +183,7 @@ public class ODMonitorActivity extends Activity {
     public Thread experiment_time_thread = null;
     public boolean experiment_time_run = false;
     public EditText editText_init_od;
+    public AlphaAnimation alphaAnimation1 = new AlphaAnimation(0.1f, 1.0f);
     
     /**
      * FTDI D2xx USB to UART
@@ -348,6 +352,8 @@ public class ODMonitorActivity extends Activity {
 					    	        table.gvRemoveAll();
 					    	        experiment_stop = false;
 					    	        experiment_thread_run = true;
+					    	        ODMonitorApplication app_data = ((ODMonitorApplication)ODMonitorActivity.this.getApplication());
+					    	        app_data.set_mail_alert_load(true);
 					    	        new Thread(new experiment_thread(handler)).start(); 
 					    	    } else {
 					    	    	Toast.makeText(ODMonitorActivity.this, "initial experiment devices fail!",Toast.LENGTH_SHORT).show();
@@ -392,48 +398,9 @@ public class ODMonitorActivity extends Activity {
         script_button.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
         		show_script_activity();
-			//	new ExportDatabaseCSVTask(context, db, TABLE_NAME).execute("");
-			//	SendMailSmtp mail = new SendMailSmtp();
-			//	mail.SendMailUseSMTP();
-		    	//View v = ODMonitorActivity.this.getWindow().getDecorView();
-		    	/*LayoutInflater inflater = getLayoutInflater(); //½Õ¥ÎActivityªºgetLayoutInflater()
-		    	
-		    	
-		    	
-		    	View v1 = inflater.inflate(R.layout.od_monitor, null, false);
-		    	if ( v1 instanceof LinearLayout ) {
-
-		    		LinearLayout lin_layout = ( LinearLayout ) v1;
-		    		lin_layout.setDrawingCacheEnabled(true);
-		    		lin_layout.buildDrawingCache();
-		    		//Bitmap bm = lin_layout.getDrawingCache();
-		    		for ( int i = 0; i < lin_layout.getChildCount(); i++ ) {
-		    			
-		    		}
-		    		
-		    		if (v1.getMeasuredHeight() <= 0) {
-		    			v1.measure(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-		    		}
-		    		
-		    		ImageView img_v = (ImageView) lin_layout.findViewById( R.id.ShakerStatus );
-		    		//Bitmap bm = viewToBitmap ( v1, v1.getMeasuredWidth(), v1.getMeasuredHeight() );
-		    		Bitmap bm = viewToBitmap ( img_v, (int) (img_v.getMeasuredWidth()*0.5), (int)(img_v.getMeasuredHeight()*0.5));
-		    		
-		    		FileOperateBmp write_file = new FileOperateBmp("od_chart", "chart", "png");
-					try {
-						write_file.create_file(write_file.generate_filename());
-						write_file.write_file(bm, Bitmap.CompressFormat.PNG, 100);
-						write_file.flush_close_file();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-		    	}*/
-				
-				/*ODChartToBitmap chart = new ODChartToBitmap(ODMonitorActivity.this, 0, 0, 1024, 768);
-	        	String chart_path = chart.get_file_dir() + chart.get_file_name();
-	        	Log.d (Tag, chart_path);*/
-
+		        alphaAnimation1.cancel();
+		        iv.setAnimation(null);
+		        iv.setVisibility(View.GONE);
 			}
 		});  
         
@@ -441,8 +408,20 @@ public class ODMonitorActivity extends Activity {
         mail_button.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				show_email_activity();
+				iv.setAnimation(alphaAnimation1);
+				iv.setVisibility(View.VISIBLE);
+		        alphaAnimation1.start();
 			}
 		});
+        
+      
+        alphaAnimation1.setDuration(2000);
+        alphaAnimation1.setRepeatCount(Animation.INFINITE);
+        alphaAnimation1.setRepeatMode(Animation.REVERSE);
+        iv = (ImageView) findViewById(R.id.imageView1);
+        alphaAnimation1.setFillAfter(true);
+        alphaAnimation1.cancel();
+        iv.setVisibility(View.GONE);
         
        /* etInput = (EditText)findViewById(R.id.etInput); 
         etInput.setOnKeyListener(new OnKeyListener() {
@@ -869,6 +848,7 @@ public class ODMonitorActivity extends Activity {
 			Bundle b = new Bundle(1);
 			Message msg;
 			EmailAlertData email_set;
+			ODMonitorApplication app_data = ((ODMonitorApplication)ODMonitorActivity.this.getApplication());
 			
 			Thread.currentThread().setName("Thread_Experiment");
 			/* load script file fail, send message to handler show Toast */
@@ -882,24 +862,6 @@ public class ODMonitorActivity extends Activity {
 			}
 			current_instruct_data = (ExperimentScriptData)experiment_item.get(list.get(next_instruct_index));
 			
-			/* read email alert setting file */
-			FileOperateObject read_file = new FileOperateObject(EmailAlertData.email_alert_folder_name, EmailAlertData.email_alert_file_name);
-		    try {
-				read_file.open_read_file(read_file.generate_filename_no_date());
-				email_set = (EmailAlertData)read_file.read_file_object();
-				if (null != email_set) {
-					experiment.set_mail_alert_interval(EmailAlertData.REMINDER_INTERVAL.get(email_set.get_reminder_interval()));
-				}
-			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				return;
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-				return;
-			}
-			
 			/* send message to handler, start experiment timer and create OD SQLite data base */
 			b = new Bundle(1);
 			b.putInt("experiment status", EXPERIMENT_START);
@@ -908,6 +870,39 @@ public class ODMonitorActivity extends Activity {
 		    mHandler.sendMessage(msg);
 		    
 			while (experiment_thread_run) {
+				if (app_data.is_mail_alert_load()) {
+					app_data.set_mail_alert_load(false);
+					/* read email alert setting file */
+					FileOperateObject read_file = new FileOperateObject(EmailAlertData.email_alert_folder_name, EmailAlertData.email_alert_file_name);
+				    try {
+						read_file.open_read_file(read_file.generate_filename_no_date());
+						email_set = (EmailAlertData)read_file.read_file_object();
+						if (null != email_set) {
+							if (null != email_set.get_alert_interval()) {
+								experiment.set_mail_alert_interval(EmailAlertData.REMINDER_INTERVAL.get(email_set.get_alert_interval()));
+								experiment.set_enable_mail_alert_interval(email_set.is_enable_alert_interval());
+							} else {
+								experiment.set_enable_mail_alert_interval(false);
+							}
+							experiment.set_mail_alert_od_value(email_set.get_alert_od_value());
+							experiment.set_enable_mail_alert_interval(email_set.is_enable_alert_interval());
+							experiment.set_enable_mail_alert_od_value(email_set.is_enable_alert_od_value());
+							experiment.enable_once_mail_alert_od_value();
+						} else {
+							experiment.set_enable_mail_alert_interval(false);
+							experiment.set_enable_mail_alert_od_value(false);
+						}
+					} catch (ClassNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						return;
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+						return;
+					}		
+				}
+						
 				// instruct index from 0 to ...
 				next_instruct_index = current_instruct_data.next_instruct_index;
 				/* if next_instruct_index over list size or user push stop button, experiment will end run */
@@ -940,7 +935,7 @@ public class ODMonitorActivity extends Activity {
 				current_instruct_data.next_instruct_index = next_instruct_index;
 				
 				/* compare mail alert interval with current system time, if arrival, send message to handler to send Email*/
-				if (experiment.get_is_mail_alert()) {
+				if (experiment.is_mail_alert_interval() && experiment.get_enable_mail_alert_interval()) {
 					b = new Bundle(1);
 					b.putInt("experiment status", EXPERIMENT_EMAIL_ALERT);
 				    msg = mHandler.obtainMessage();
@@ -956,6 +951,15 @@ public class ODMonitorActivity extends Activity {
 				    mHandler.sendMessage(msg);*/
 				}
 				
+				/* compare mail alert od value with current od value, if arrival, send message to handler to send Email*/
+				if (experiment.is_mail_alert_od_value() && experiment.get_enable_mail_alert_od_value()) {
+					b = new Bundle(1);
+					b.putInt("experiment status", EXPERIMENT_EMAIL_ALERT);
+				    msg = mHandler.obtainMessage();
+			        msg.setData(b);
+				    mHandler.sendMessage(msg);
+				}
+				
 				switch(current_instruct_data.get_instruct_value()) {
 				    case ExperimentScriptData.INSTRUCT_READ_SENSOR:
 				        ret = experiment.read_sensor_instruct(current_instruct_data);
@@ -964,7 +968,6 @@ public class ODMonitorActivity extends Activity {
 				        	SensorDataComposition sensor_data = experiment.get_current_one_sensor_data();
 				        	String sensor_string = sensor_data.get_sensor_data_string();
 				        	b = new Bundle(1);
-				        	b.putBoolean("mail alert", experiment.get_is_mail_alert());
 				        	b.putInt("experiment status", EXPERIMENT_NOTIFY_CHART);
 							b.putString("experiment sensor data", sensor_string);
 							b.putSerializable("sensor_data_composition", sensor_data);
@@ -1013,7 +1016,7 @@ public class ODMonitorActivity extends Activity {
 		}
 	}
     
-    public void doWork(final long elapsed) {
+    public void doWork(final long elapsed, final long mail_alert_countdown) {
         runOnUiThread(new Runnable() {
             public void run() {
                 try{
@@ -1021,8 +1024,15 @@ public class ODMonitorActivity extends Activity {
                     int hours = (int)(elapsed/3600);
                     int minutes = (int)((elapsed%3600)/60);
                     int seconds = (int)((elapsed%3600)%60);
-                    String curTime = "Experiment elapsed time: "+ hours + ":" + minutes + ":" + seconds;
-                    txtCurrentTime.setText(curTime);
+                    String time = "Experiment elapsed time: "+ hours + ":" + minutes + ":" + seconds;
+                    txtCurrentTime.setText(time);
+                    
+                    TextView txtEmailAlert= (TextView)findViewById(R.id.EmailAlertTimer);
+                    hours = (int)(mail_alert_countdown/3600);
+                    minutes = (int)((mail_alert_countdown%3600)/60);
+                    seconds = (int)((mail_alert_countdown%3600)%60);
+                    time = "Email time: "+ hours + ":" + minutes + ":" + seconds;
+                    txtEmailAlert.setText(time);
                 }catch (Exception e) {}
             }
         });
@@ -1035,7 +1045,7 @@ public class ODMonitorActivity extends Activity {
         public void run() {
                 while(!Thread.currentThread().isInterrupted() && experiment_time_run){
                     try {
-                        doWork(elapsed);
+                        doWork(elapsed, experiment.get_mail_alert_interval_countdown());
                         Thread.sleep(1000); // Pause of 1 Second
                         elapsed++;
                     } catch (InterruptedException e) {

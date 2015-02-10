@@ -8,6 +8,7 @@ import od_monitor.app.data.SensorDataComposition;
 import od_monitor.app.file.FileOperateByteArray;
 import od_monitor.app.file.FileOperateObject;
 
+import od_monitor.app.ODMonitorApplication;
 import od_monitor.app.R;
 import od_monitor.app.R.id;
 import od_monitor.app.R.layout;
@@ -26,6 +27,8 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Spinner;
 
@@ -37,6 +40,9 @@ public class EmailSettingActivity extends Activity {
 	public EditText editTextToEmail;
 	public EditText editTextSubject;
 	public EditText editTextBody;
+	public CheckBox checkBoxAlertInterval;
+	public CheckBox checkBoxAlertODValue;
+	public EditText editTextAlertODValue;
 	
 	public Spinner spinnerReminderInterval;
 	public ArrayAdapter<String> spinnerReminderIntervalAdapter;
@@ -66,33 +72,31 @@ public class EmailSettingActivity extends Activity {
 	    editTextToEmail = (EditText) findViewById(R.id.editTextToEmail);
 	    editTextSubject = (EditText) findViewById(R.id.editTextSubject);
 	    editTextBody = (EditText) findViewById(R.id.editTextBody);
-	    if (null != email_set) {
-	        String fromEmail = email_set.get_fromEmail();
-	        if (null != fromEmail)
-	        	editTextFromEmail.setText(fromEmail);
-	        
-	        String fromPassword = email_set.get_fromPassword();
-	        if (null != fromPassword)
-	        	editTextPassword.setText(fromPassword);
-	        
-	        String toEmails = email_set.get_toEmails();
-	        if (null != toEmails)
-	        	editTextToEmail.setText(toEmails);
-	        
-	        String emailSubject = email_set.get_emailSubject();
-	        if (null != emailSubject)
-	        	editTextSubject.setText(emailSubject);
-	        
-	        String emailBody = email_set.get_emailBody();
-	        if (null != emailBody)
-	        	editTextBody.setText(emailBody);
-	    } else {
+	    
+	    if (null == email_set)
 	    	email_set = new EmailAlertData();
-	    	editTextSubject.setText(email_set.get_emailSubject());
-	    	editTextBody.setText(email_set.get_emailBody());
-	    }
 	  
-	    spinnerReminderInterval = (Spinner)findViewById(R.id.spinner_reminder_interval);
+	    String fromEmail = email_set.get_fromEmail();
+	    if (null != fromEmail)
+	        editTextFromEmail.setText(fromEmail);
+	        
+	    String fromPassword = email_set.get_fromPassword();
+	    if (null != fromPassword)
+	        editTextPassword.setText(fromPassword);
+	        
+	    String toEmails = email_set.get_toEmails();
+	    if (null != toEmails)
+	        editTextToEmail.setText(toEmails);
+	        
+	    String emailSubject = email_set.get_emailSubject();
+	    if (null != emailSubject)
+	        editTextSubject.setText(emailSubject);
+	        
+	    String emailBody = email_set.get_emailBody();
+	    if (null != emailBody)
+	        editTextBody.setText(emailBody);
+	  
+	    spinnerReminderInterval = (Spinner)findViewById(R.id.spinner_alert_interval);
 	    spinnerReminderIntervalAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, android.R.id.text1);
 	    spinnerReminderIntervalAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 	    spinnerReminderInterval.setAdapter(spinnerReminderIntervalAdapter);
@@ -101,7 +105,11 @@ public class EmailSettingActivity extends Activity {
 	        spinnerReminderIntervalAdapter.add(EmailAlertData.reminder_interval_string[i]);
 	        spinnerReminderIntervalAdapter.notifyDataSetChanged();
 	    }
-	    spinnerReminderInterval.setSelection(EmailAlertData.REMINDER_INTERVAL_INDEX.get(email_set.get_reminder_interval()));
+	    
+	    if (null != email_set.get_alert_interval())
+	        spinnerReminderInterval.setSelection(EmailAlertData.REMINDER_INTERVAL_INDEX.get(email_set.get_alert_interval()));
+	    else
+	    	spinnerReminderInterval.setSelection(0);
 	    
 	    spinnerReminderInterval.setOnItemSelectedListener(new OnItemSelectedListener() { 
 	        public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
@@ -113,12 +121,50 @@ public class EmailSettingActivity extends Activity {
 	        }
 	    });
 	    
+	    editTextAlertODValue = (EditText) findViewById(R.id.editTextAlertODValue);
+	    editTextAlertODValue.setText(email_set.get_alert_od_value_string());
+	    
+	    checkBoxAlertInterval = (CheckBox)findViewById(R.id.checkBoxAlertInterval);
+	    checkBoxAlertInterval.setChecked(email_set.is_enable_alert_interval());
+	    spinnerReminderInterval.setEnabled(email_set.is_enable_alert_interval());
+	    checkBoxAlertInterval.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+	            public void onCheckedChanged(CompoundButton buttonView,boolean isChecked) {
+	            	email_set.enable_alert_interval(isChecked);
+	            	spinnerReminderInterval.setEnabled(email_set.is_enable_alert_interval());
+	            }
+	        }
+	    );     
+	    
+	    checkBoxAlertODValue = (CheckBox)findViewById(R.id.checkBoxAlertODValue);
+	    checkBoxAlertODValue.setChecked(email_set.is_enable_alert_od_value());
+	    editTextAlertODValue.setEnabled(email_set.is_enable_alert_od_value());
+	    editTextAlertODValue.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+	        public void onFocusChange(View v, boolean hasFocus) {
+	            // TODO Auto-generated method stub
+	            if (!hasFocus) {
+	            	if (editTextAlertODValue.getText().toString().trim().equals("")) {
+	            		editTextAlertODValue.setText(email_set.get_alert_od_value_string()); 
+	            	} else {
+	            		editTextAlertODValue.setError(null);
+	            	}
+	            }
+	        }
+	    });
+	    
+	    checkBoxAlertODValue.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView,boolean isChecked) {
+            	email_set.enable_alert_od_value(isChecked);
+            	editTextAlertODValue.setEnabled(email_set.is_enable_alert_od_value());
+            }
+        }
+    );     
+	    
 	    button_ok = (Button) findViewById(R.id.button_ok);
 	    button_ok.setOnClickListener(new View.OnClickListener() {
         	public void onClick(View v) {
         		try {
-        			save_mail_setting();
-        			finish();
+        			if (0 == save_mail_setting())
+        			    finish();
                 } catch (NullPointerException e) {
                     Log.i(Tag, "email setting ok button exception");
                 } catch (NumberFormatException ex) {
@@ -128,55 +174,33 @@ public class EmailSettingActivity extends Activity {
 		});
 	}
 	
-	public void save_mail_setting() {	
-	    FileOperateObject write_file = new FileOperateObject(EmailAlertData.email_alert_folder_name, EmailAlertData.email_alert_file_name);
+	public int save_mail_setting() {	
+		int ret = 0;
+		if (editTextAlertODValue.getText().toString().trim().equals("")) {
+			editTextAlertODValue.setError("Please enter value");
+			ret = -1;
+		} else {
+	        FileOperateObject write_file = new FileOperateObject(EmailAlertData.email_alert_folder_name, EmailAlertData.email_alert_file_name);
 	 
-        try {
-			write_file.create_file(write_file.generate_filename_no_date());
-			email_set.set_fromEmail(editTextFromEmail.getText().toString().trim());
-			email_set.set_fromPassword(editTextPassword.getText().toString().trim());
-			email_set.set_toEmails(editTextToEmail.getText().toString().trim());
-			email_set.set_emailSubject(editTextSubject.getText().toString().trim());
-			email_set.set_emailBody(editTextBody.getText().toString().trim());
-			email_set.set_reminder_interval(spinnerReminderInterval.getSelectedItem().toString());
-			write_file.write_file(email_set);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	    
-		
-		
-		/*if (spinnerReminderInterval.getSelectedItemPosition() == ExperimentScriptData.INSTRUCT_SHAKER_SET_SPEED) {
-			try {
-			    int shaker_speed = Integer.parseInt(editText_shaker_speed.getText().toString());
-			    if (shaker_speed < 20) {
-			    	shaker_speed = 20;
-			    } else if (shaker_speed > 255) {
-			    	shaker_speed = 255;
-			    }
-			    
-			    item_data.set_shaker_speed_value(shaker_speed);
-			} catch (NumberFormatException ex) {
-	    	      // Do something
-				Builder WarrningDialog = new AlertDialog.Builder(this);
-				WarrningDialog.setTitle("Warrning");
-				WarrningDialog.setMessage("please enter correct number");
-				WarrningDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-		            public void onClick(DialogInterface dialog, int i) {
-		            }
-		        });
-				WarrningDialog.show();
-				Log.d(Tag, "NumberFormatException");
-				throw new NumberFormatException("shaker_speed format exception");
-	    	}
+            try {
+			    write_file.create_file(write_file.generate_filename_no_date());
+			    email_set.set_fromEmail(editTextFromEmail.getText().toString().trim());
+			    email_set.set_fromPassword(editTextPassword.getText().toString().trim());
+			    email_set.set_toEmails(editTextToEmail.getText().toString().trim());
+			    email_set.set_emailSubject(editTextSubject.getText().toString().trim());
+			    email_set.set_emailBody(editTextBody.getText().toString().trim());
+			    email_set.set_alert_interval(spinnerReminderInterval.getSelectedItem().toString());
+			    double val = Double.parseDouble(editTextAlertODValue.getText().toString().trim());
+			    email_set.set_alert_od_value(val);
+			    write_file.write_file(email_set);
+			    ODMonitorApplication app_data = ((ODMonitorApplication)this.getApplication());
+			    app_data.set_mail_alert_load(true);
+		    } catch (IOException e) {
+			    // TODO Auto-generated catch block
+			    e.printStackTrace();
+		    }
 		}
 		
-		Intent intent = new Intent();
-		intent.putExtra("return_experiment_script_data", item_data); //value should be your string from the edittext
-		intent.putExtra("return_item_id", item_id);
-		intent.putExtra("return_item_position", item_position);
-		setResult(RESULT_OK, intent); //The data you want to send back
-		Log.d(Tag, "save_experiment_script = " + item_id);*/
+		return ret;
 	}
 }

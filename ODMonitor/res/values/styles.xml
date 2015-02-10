@@ -7,6 +7,7 @@
     <style name="dialog_title_style" parent="android:Widget.TextView">
         <item name="android:background">@color/titlebackgroundcolor</item>
         <item name="android:textSize">28sp</item>
+        <item name="android:textColor">@color/titletextcolor</item>
         <item name="android:padding">10dp</item>
     </style>
 </resources>

@@ -37,15 +37,46 @@ public class EmailAlertData implements Serializable {
         REMINDER_INTERVAL_INDEX = Collections.unmodifiableMap(aMapString);
     }
 	
+	private boolean isAlertInterval = true;
+	private boolean isAlertODValue = true;
 	private String fromEmail;
 	private String fromPassword;
 	private String toEmails;
 	private String emailSubject = "OD Monitor Experiment Alert";
 	private String emailBody = "Experimental data on the attached file!";
-	private String reminder_interval = reminder_interval_string[0];
+	private String alert_interval = reminder_interval_string[0];
+	private double alert_od_value = 1.0; 
 	
 	public EmailAlertData() {
 		
+	}
+	
+	public void set_alert_od_value(double od) {
+		alert_od_value = od;
+	}
+	
+	public String get_alert_od_value_string() {
+		return Double.toString(alert_od_value);
+	}
+	
+	public double get_alert_od_value() {
+		return alert_od_value;
+	}
+	
+	public void enable_alert_interval(boolean en) {
+		isAlertInterval = en;
+	}
+	
+	public void enable_alert_od_value(boolean en) {
+		isAlertODValue = en;
+	}
+	
+	public boolean is_enable_alert_interval() {
+		return isAlertInterval;
+	}
+	
+	public boolean is_enable_alert_od_value() {
+		return isAlertODValue;
 	}
 	
 	public void set_fromEmail(String from) {
@@ -68,8 +99,8 @@ public class EmailAlertData implements Serializable {
 		emailBody = body;
 	}
 	
-	public void set_reminder_interval(String interval) {
-		reminder_interval = interval;
+	public void set_alert_interval(String interval) {
+		alert_interval = interval;
 	}
 	
 	public String get_fromEmail() {
@@ -92,7 +123,7 @@ public class EmailAlertData implements Serializable {
 		return emailBody;
 	}
 	
-	public String get_reminder_interval() {
-		return reminder_interval;
+	public String get_alert_interval() {
+		return alert_interval;
 	}
 }

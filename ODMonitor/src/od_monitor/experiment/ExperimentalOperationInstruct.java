@@ -31,9 +31,6 @@ public class ExperimentalOperationInstruct {
 	private long delay_start_system_time = 0;
 	private long total_experiment_start_system_time = 0;
 	private long step_experiment_start_system_time = 0;
-	private long mail_alert_interval = 0;
-    private long mail_alert_start_time = 0;
-    private boolean is_mail_alert = false;
 	private static final int shaker_command_retry_count = 5;
 	private static final int sensor_command_retry_count = 5;
 	private static final long shaker_command_fail_retry_delay = 300;
@@ -64,6 +61,22 @@ public class ExperimentalOperationInstruct {
      * sensor instance */
     public ODMonitorSensor mODMonitorSensor;
     private byte[] sensor_raw_buffer;
+    public class experiment_mail_alert {
+    	public final static int ALERT_OD_VALUE_COUNT_THRESHOLD = 3;
+    	
+    	public boolean enable_mail_alert_interval = false;
+    	public boolean enable_mail_alert_od_value = false;
+    	public long mail_alert_interval = 0;
+    	public long mail_alert_start_time = 0;
+    	public double mail_alert_od_value = 0;
+    	public int mail_alert_od_value_count = 0;
+    	public boolean once_alert_od_value = true;
+    	public boolean is_mail_alert_interval = false;
+    	public boolean is_mail_alert_od_value = false;
+    }
+    
+    experiment_mail_alert mail_alert = null;
+    
 	public class repeat_informat {
 		public int repeat_instruct_index;
 		public int repeat_instruct_from;
@@ -100,44 +113,109 @@ public class ExperimentalOperationInstruct {
 	}
 	
 	public String get_init_od_string() {
-		String init_od_string = "" + init_od;
-		return init_od_string;
+		return Double.toString(init_od);
 	}
 	
 	public void set_init_od (double od) {
 		init_od = od;
 	}
 	
+	public void set_enable_mail_alert_interval(boolean en) {
+		mail_alert.enable_mail_alert_interval = en;
+	}
+	
+	public void set_enable_mail_alert_od_value(boolean en) {
+		mail_alert.enable_mail_alert_od_value = en;
+	}
+	
+	public boolean get_enable_mail_alert_interval() {
+		return mail_alert.enable_mail_alert_interval;
+	}
+	
+	public boolean get_enable_mail_alert_od_value() {
+		return mail_alert.enable_mail_alert_od_value;
+	}
+	
 	public void set_mail_alert_interval(int interval) {
-		mail_alert_interval = (long)(interval*60000);
+		mail_alert.mail_alert_interval = (long)(interval*60000);
 		//mail_alert_interval = (long)(1*60000);
 	}
 	
-	public boolean get_is_mail_alert() {
-		if (0 >= mail_alert_interval) {
-			is_mail_alert = false;
+	public boolean is_mail_alert_interval() {
+		if (false == mail_alert.enable_mail_alert_interval) {
+			mail_alert.is_mail_alert_interval = false;
+			return mail_alert.is_mail_alert_interval;
+		}
+		
+		if (0 >= mail_alert.mail_alert_interval) {
+			mail_alert.is_mail_alert_interval = false;
 		} else {
-		    if ((System.currentTimeMillis() - mail_alert_start_time) >= mail_alert_interval) {
-        	    is_mail_alert = true;
-        	    mail_alert_start_time = System.currentTimeMillis();
+		    if ((System.currentTimeMillis() - mail_alert.mail_alert_start_time) >= mail_alert.mail_alert_interval) {
+		    	mail_alert.is_mail_alert_interval = true;
+		    	mail_alert.mail_alert_start_time = System.currentTimeMillis();
             } else {
-        	    is_mail_alert = false;
+            	mail_alert.is_mail_alert_interval = false;
             }
 		}
 		
-		return is_mail_alert;
+		return mail_alert.is_mail_alert_interval;
+	}
+	
+	public long get_mail_alert_interval_countdown() {
+		long countdown_time = 0;
+		if (mail_alert.mail_alert_interval >= (System.currentTimeMillis() - mail_alert.mail_alert_start_time)) {
+			countdown_time = mail_alert.mail_alert_interval - (System.currentTimeMillis() - mail_alert.mail_alert_start_time);
+		}
+		
+		return countdown_time;
+	}
+	
+	public void set_mail_alert_od_value(double od) {
+		mail_alert.mail_alert_od_value = od;
+	}
+	
+	public void enable_once_mail_alert_od_value() {
+        mail_alert.once_alert_od_value = true;
+        mail_alert.is_mail_alert_od_value = false;
+        mail_alert.mail_alert_od_value_count = 0;
+	}
+	
+	public boolean is_mail_alert_od_value() {
+	    return mail_alert.is_mail_alert_od_value;
+	}
+	
+	private void compare_alert_od_value() {
+		if (false == mail_alert.enable_mail_alert_od_value) {
+			mail_alert.is_mail_alert_od_value = false;
+			return;
+		}
+		
+		if (mail_alert.once_alert_od_value) {
+		    if (mail_alert.mail_alert_od_value < current_one_sensor_data.get_sensor_od_value()) {
+			    mail_alert.mail_alert_od_value_count++;
+			    if (experiment_mail_alert.ALERT_OD_VALUE_COUNT_THRESHOLD <= mail_alert.mail_alert_od_value_count) {
+				    mail_alert.is_mail_alert_od_value = true;
+				    mail_alert.once_alert_od_value = false;
+			    }	
+		    } else {
+			    mail_alert.is_mail_alert_od_value = false;
+		    }
+	    } else {
+	    	mail_alert.is_mail_alert_od_value = false;
+	    }
 	}
 	
 	public int initial_experiment_devices() {
 		int ret = 0;
 		
+		mail_alert = new experiment_mail_alert();
 		sensor_data_index = 0;
-		mail_alert_interval = 0;
+		mail_alert.mail_alert_interval = 0;
 		delay_start_system_time = 0;
-		is_mail_alert = false;
+		mail_alert.is_mail_alert_interval = false;
 		total_experiment_start_system_time = System.currentTimeMillis();
 		step_experiment_start_system_time = total_experiment_start_system_time;
-		mail_alert_start_time = total_experiment_start_system_time;
+		mail_alert.mail_alert_start_time = total_experiment_start_system_time;
 		od_cal.initialize(init_od);
 		mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_HELLO, 0, 0, null, 1 );
 		if (0 == open_shaker_port()) {
@@ -152,7 +230,6 @@ public class ExperimentalOperationInstruct {
 			ret = -1;
 		}
 		   
-		
 		return ret;
 	}
 	
@@ -248,7 +325,6 @@ public class ExperimentalOperationInstruct {
 		int ret = 0;
 		
 		shaker.disconnectFunction();
-		
 		return ret;
 	}
 	
@@ -359,6 +435,7 @@ public class ExperimentalOperationInstruct {
 	        
 	                String file_name = SensorDataComposition.sensor_raw_file_name + (j+1);
 	                if (0 == save_sensor_data_to_file(sensor_data_index, new Date().getTime(), raw_data_save, SensorDataComposition.sensor_raw_file_name)) {
+	                	compare_alert_od_value();
 			            ret = 0;
 			        }
 	        	}

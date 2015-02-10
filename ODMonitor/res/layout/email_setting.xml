@@ -1,19 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:orientation="vertical"
     android:focusable="true"
     android:focusableInTouchMode="true"
     android:paddingLeft="20dp"
     android:paddingRight="20dp" >
 
+    <LinearLayout
+       android:id="@+id/FromEmailLayout"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="20dp"
+       android:orientation="horizontal" >
     <TextView
         android:id="@+id/textViewFromEmail"
-        android:layout_width="400dp"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:paddingTop="10dp"
-        android:textSize="10pt"
+        android:textSize="8pt"
         android:text="From Email" />
 
     <EditText
@@ -32,14 +38,21 @@
 
         <requestFocus />
     </EditText>
+    </LinearLayout>
 
+    <LinearLayout
+       android:id="@+id/PasswordLayout"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="20dp"
+       android:orientation="horizontal" >
     <TextView
         android:id="@+id/textViewPassword"
-        android:layout_width="wrap_content"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:paddingTop="10dp"
-        android:textSize="10pt"
-        android:text="Password (For from email)" />
+        android:textSize="8pt"
+        android:text="Password(From Email)" />
 
     <EditText
         android:id="@+id/editTextPassword"
@@ -50,13 +63,20 @@
         android:inputType="textPassword"
         android:padding="5dp"
         android:textColor="#000000" />
+    </LinearLayout>
 
+    <LinearLayout
+       android:id="@+id/ToEmailLayout"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="20dp"
+       android:orientation="horizontal" >
     <TextView
         android:id="@+id/textViewToEmail"
-        android:layout_width="wrap_content"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:paddingTop="10dp"
-        android:textSize="10pt"
+        android:textSize="8pt"
         android:text="To Email" />
 
     <EditText
@@ -69,13 +89,20 @@
         android:hint="to@email"
         android:padding="5dp"
         android:textColor="#000000" />
+    </LinearLayout>
 
+    <LinearLayout
+       android:id="@+id/SubjectLayout"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="20dp"
+       android:orientation="horizontal" >
     <TextView
         android:id="@+id/textViewSubject"
-        android:layout_width="wrap_content"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:paddingTop="10dp"
-        android:textSize="10pt"
+        android:textSize="8pt"
         android:text="Subject" />
 
     <EditText
@@ -86,13 +113,21 @@
         android:ems="10"
         android:padding="5dp"
         android:textColor="#000000" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/BodyLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="vertical" >
 
     <TextView
         android:id="@+id/textViewBody"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingTop="10dp"
-        android:textSize="10pt"
+        android:textSize="8pt"
         android:text="Body" />
 
     <EditText
@@ -104,26 +139,73 @@
         android:inputType="textMultiLine"
         android:padding="35dp"
         android:textColor="#000000" />
+   </LinearLayout>
 
-   <TextView
-        android:id="@+id/textViewReminderInterval"
-        android:layout_width="wrap_content"
+   <LinearLayout
+       android:id="@+id/AlertIntervalLayout"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="20dp"
+       android:orientation="horizontal" >
+    
+       <TextView
+        android:id="@+id/textViewAlertInterval"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:paddingTop="10dp"
-        android:textSize="10pt"
-        android:text="Reminder Interval" />
-
-   <Spinner
-        android:id="@+id/spinner_reminder_interval"
+        android:textSize="8pt"
+        android:text="Alert Interval" />
+       
+       <CheckBox
+           android:id="@+id/checkBoxAlertInterval"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"/> 
+       
+       <Spinner
+           android:id="@+id/spinner_alert_interval"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content" />
+       
+   </LinearLayout>
+   
+  
+   <LinearLayout
+        android:id="@+id/AlertODValuelLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal" >
+       <TextView
+        android:id="@+id/textViewAlertODValue"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:textSize="8pt"
+        android:text="Alert OD Value" />
+       
+       <CheckBox
+           android:id="@+id/checkBoxAlertODValue"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"/> 
+       
+       <EditText
+           android:id="@+id/editTextAlertODValue"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:inputType="number"
+           android:digits="0123456789."
+           android:maxLength="10"
+           android:text="0" >
+       </EditText>
+       
+   </LinearLayout>
    
    <Button
         android:id="@+id/button_ok"
         android:layout_width="match_parent"
         android:layout_height="80dp"
         android:layout_marginTop="20dp"
-        android:textSize="20sp"
+        android:textSize="10pt"
         android:text="OK" />
 
 </LinearLayout>

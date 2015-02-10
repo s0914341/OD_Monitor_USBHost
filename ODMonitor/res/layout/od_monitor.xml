@@ -284,8 +284,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="15dp"
                 android:layout_marginLeft="20dp"
-                android:layout_marginRight="16dp"
-                android:gravity="center">
+                android:layout_marginRight="16dp">
+           	
            	 <TextView
                 android:id="@+id/TextViewExperiment"
                 android:layout_width="match_parent"
@@ -294,6 +294,7 @@
                 android:background="#FF5577AA"
                 android:layout_height="wrap_content">
              </TextView>
+             
              <TextView
                 android:id="@+id/ExperimentTimer"
                 android:layout_width="fill_parent"
@@ -301,11 +302,38 @@
                 android:layout_height="wrap_content">
              </TextView>
              </LinearLayout> 
+             
+            <LinearLayout
+                android:id="@+id/EmailAlertLayout"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/ExperimentDataLayout"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="16dp"
+                android:gravity="center"
+                android:orientation="horizontal" >
+             
+                 <ImageView
+                     android:id="@+id/imageView1"
+                     android:layout_width="50dp"
+                     android:layout_height="50dp"
+                     android:src="@drawable/email">
+                 </ImageView>
+                 
+                 <TextView
+                     android:id="@+id/EmailAlertTimer"
+                     android:layout_width="fill_parent"
+                     android:textSize="8pt"
+                     android:text="alert time"
+                     android:layout_height="wrap_content">
+                 </TextView>
+                
+           	</LinearLayout>
             
              <LinearLayout 
                  android:id="@+id/GridLayout" 
                  android:orientation="vertical"
-                 android:layout_below="@+id/ExperimentDataLayout"
+                 android:layout_below="@+id/EmailAlertLayout"
                  android:layout_width="fill_parent"
                  android:layout_height="600dp"
                  android:layout_marginLeft="20dp"
