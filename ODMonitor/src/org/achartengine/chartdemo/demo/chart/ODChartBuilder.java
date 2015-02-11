@@ -361,7 +361,6 @@ public class ODChartBuilder extends Activity {
         double od_value = 0;
         long size = 0;
         
-   
         FileOperateByteArray read_file = new FileOperateByteArray(SensorDataComposition.sensor_raw_folder_name, SensorDataComposition.sensor_raw_file_name, true);
         try {
         	size = read_file.open_read_file(read_file.generate_filename_no_date());

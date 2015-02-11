@@ -31,6 +31,8 @@ import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.util.Log;
@@ -77,6 +79,8 @@ public class StepScriptActivityList extends Activity {
 	
 	private final static int SCRIPT_HEADER_SIZE = 5;
 	private final static byte SCRIPT_HEADER = (byte) 0xFF;
+	private final static int TEXT_DEFAULT_COLOR = Color.BLACK;
+	private final static int TEXT_REMINDER_SAVE_COLOR = Color.RED;
 	List<HashMap<String,Object>> list = new ArrayList<HashMap<String,Object>>();
 	public HashMap<Object, Object> experiment_item = new HashMap<Object, Object>();
 	public SimpleAdapter adapter;
@@ -173,6 +177,7 @@ public class StepScriptActivityList extends Activity {
         			list.clear();
         			experiment_item.clear();
         		    adapter.notifyDataSetChanged();
+        		    button_save_script.setTextColor(TEXT_REMINDER_SAVE_COLOR);
                 } catch (NullPointerException e) {
                     Log.i(Tag, "Tried to clear all exception");
                 }
@@ -182,84 +187,7 @@ public class StepScriptActivityList extends Activity {
 	    button_save_script = (Button) findViewById(R.id.button_save);
 	    button_save_script.setOnClickListener(new View.OnClickListener() {
         	public void onClick(View v) {
-        		/* check repeat instruction of script if is over 3 recursive level */
-        	/*	if (3 <= check_script_recursive()) {
-        			 Toast.makeText(step_script_activity_list.this, "repeat recursive over 3 level", Toast.LENGTH_SHORT).show(); 
-        			 return;
-        		}*/
-        		
-        		FileOperateByteArray write_file = new FileOperateByteArray("ExperimentScript", "ExperimentScript", true);
-        		try {
-        			write_file.delete_file(write_file.generate_filename_no_date());
-        			write_file.create_file(write_file.generate_filename_no_date());
-        			byte[] header = new byte[5];
-        			int total_step_count = list.size();
-        			int total_instruct_count = total_step_count*StepExperimentScriptData.TOTAL_INSTRUCT_COUNT + 2; //need add power on & power off instruct
-        			{
-        			    ByteBuffer byteBuffer = ByteBuffer.allocate(4);
-        	    	    byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-        	    	
-        			    byte[] total_step_count_bytes = byteBuffer.putInt(total_instruct_count).array();
-    	        	    System.arraycopy(total_step_count_bytes, 0, header, 1, 4);
-        			    header[0] = SCRIPT_HEADER;
-        			    write_file.write_file(header);
-        			}
-        	
-        			int current_instruct_index = 1;
-        			{
-        				ExperimentScriptData shaker_on = new ExperimentScriptData();
-        				shaker_on.set_instruct_value(ExperimentScriptData.INSTRUCT_SHAKER_ON);
-        				ByteBuffer byteBuffer = ByteBuffer.allocate(4);
-        	    	    byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-        	    	
-       			        byte[] buffer = shaker_on.get_buffer();
-       			        byte[] index_bytes = byteBuffer.putInt(current_instruct_index).array();
-       			        current_instruct_index++;
-       	        	    System.arraycopy(index_bytes, 0, buffer, ExperimentScriptData.INDEX_START, ExperimentScriptData.INDEX_SIZE);
-       			        write_file.write_file(buffer);
-        			}
-        			
-        			byte[] file_buffer = new byte[StepExperimentScriptData.TOTAL_INSTRUCT_COUNT * ExperimentScriptData.BUFFER_SIZE];
-        			for (int i = 0; i < total_step_count; i++) {
-        		        StepExperimentScriptData temp;
-        				ByteBuffer byteBuffer = ByteBuffer.allocate(4);
-         	    	    byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-         	    	
-        			    temp = (StepExperimentScriptData)experiment_item.get(list.get(i));
-        			    current_instruct_index = temp.get_step_instruct_to_file_buffer(current_instruct_index, file_buffer);
-        			    write_file.write_file(file_buffer);
-        			}
-        			
-        			{
-        				ExperimentScriptData shaker_off = new ExperimentScriptData();
-        				shaker_off.set_instruct_value(ExperimentScriptData.INSTRUCT_SHAKER_OFF);
-        				ByteBuffer byteBuffer = ByteBuffer.allocate(4);
-        	    	    byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-        	    	
-       			        byte[] buffer = shaker_off.get_buffer();
-       			        byte[] index_bytes = byteBuffer.putInt(current_instruct_index).array();
-       			        current_instruct_index++;
-       	        	    System.arraycopy(index_bytes, 0, buffer, ExperimentScriptData.INDEX_START, ExperimentScriptData.INDEX_SIZE);
-       			        write_file.write_file(buffer);
-        			}
-        			
-        			{
-        				ExperimentScriptData final_instruct = new ExperimentScriptData();
-            			final_instruct.set_instruct_value(ExperimentScriptData.INSTRUCT_FINISH);
-        				ByteBuffer byteBuffer = ByteBuffer.allocate(4);
-        	    	    byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-        			    byte[] buffer = final_instruct.get_buffer();
-   			            byte[] index_bytes = byteBuffer.putInt(current_instruct_index).array();
-   	        	        System.arraycopy(index_bytes, 0, buffer, ExperimentScriptData.INDEX_START, ExperimentScriptData.INDEX_SIZE);
-   	        	        write_file.write_file(buffer);
-        			}
-        	
-		            write_file.flush_close_file();
-		            Toast.makeText(StepScriptActivityList.this, "Save Script Success", Toast.LENGTH_SHORT).show(); 
-        		} catch (IOException e) {
-        			// TODO Auto-generated catch block
-        			e.printStackTrace();
-        		}	
+        		save_script_setting_to_file();
         	}
 		});
 	    
@@ -268,6 +196,7 @@ public class StepScriptActivityList extends Activity {
         	public void onClick(View v) {	
         		if (0 == load_script_to_step(list, experiment_item)) {
         		    adapter.notifyDataSetChanged();
+        		    button_save_script.setTextColor(TEXT_DEFAULT_COLOR);
                     Toast.makeText(StepScriptActivityList.this, "Load script success!", Toast.LENGTH_SHORT).show(); 
         		} else {
         			Toast.makeText(StepScriptActivityList.this, "No script file existed!", Toast.LENGTH_SHORT).show(); 
@@ -278,7 +207,12 @@ public class StepScriptActivityList extends Activity {
 	
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {   //確定按下退出鍵
-            ConfirmExit();
+        	ColorStateList mList = button_save_script.getTextColors();
+        	int color = mList.getDefaultColor();
+        	if (Color.RED == color)
+                ConfirmExit();
+        	else 
+        		finish();
             return true;  
         }  
         
@@ -286,22 +220,111 @@ public class StepScriptActivityList extends Activity {
     }
 
     public void ConfirmExit(){
-        AlertDialog.Builder ad=new AlertDialog.Builder(StepScriptActivityList.this); //創建訊息方塊
-        ad.setTitle("Exit Script Setting");
-        ad.setMessage("Are you sure want to exit?");
-        ad.setPositiveButton("Yes", new DialogInterface.OnClickListener() { //按"是",則退出應用程式
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(StepScriptActivityList.this).setIcon(R.drawable.alert);
+        alertDialog.setTitle("Exit Script Setting");
+        alertDialog.setMessage("Do you want to save and exit?\n\nYes: save and exit\nNo: exit");
+        
+        alertDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int i) {
+            	save_script_setting_to_file();
+            	finish();
+            }
+        });
+        
+        alertDialog.setNeutralButton("No", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int i) {
             	finish();
             }
         });
         
-        ad.setNegativeButton("No",new DialogInterface.OnClickListener() { //按"否",則不執行任何操作
+        alertDialog.setNegativeButton("Cancel",new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int i) {
 
             }
         });
 
-        ad.show();//顯示訊息視窗
+        alertDialog.show();
+    }
+    
+    public void save_script_setting_to_file() {
+    	/* check repeat instruction of script if is over 3 recursive level */
+    	/*	if (3 <= check_script_recursive()) {
+    			 Toast.makeText(step_script_activity_list.this, "repeat recursive over 3 level", Toast.LENGTH_SHORT).show(); 
+    			 return;
+    		}*/
+    	button_save_script.setTextColor(TEXT_DEFAULT_COLOR);
+    	FileOperateByteArray write_file = new FileOperateByteArray("ExperimentScript", "ExperimentScript", true);
+    	try {
+    		write_file.delete_file(write_file.generate_filename_no_date());
+    		write_file.create_file(write_file.generate_filename_no_date());
+    		byte[] header = new byte[5];
+    		int total_step_count = list.size();
+    		int total_instruct_count = total_step_count*StepExperimentScriptData.TOTAL_INSTRUCT_COUNT + 2; //need add power on & power off instruct
+    		{
+    			ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+    			byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+
+    			byte[] total_step_count_bytes = byteBuffer.putInt(total_instruct_count).array();
+    			System.arraycopy(total_step_count_bytes, 0, header, 1, 4);
+    			header[0] = SCRIPT_HEADER;
+    			write_file.write_file(header);
+    		}
+
+    		int current_instruct_index = 1;
+    		{
+    			ExperimentScriptData shaker_on = new ExperimentScriptData();
+    			shaker_on.set_instruct_value(ExperimentScriptData.INSTRUCT_SHAKER_ON);
+    			ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+    			byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+
+    			byte[] buffer = shaker_on.get_buffer();
+    			byte[] index_bytes = byteBuffer.putInt(current_instruct_index).array();
+    			current_instruct_index++;
+    			System.arraycopy(index_bytes, 0, buffer, ExperimentScriptData.INDEX_START, ExperimentScriptData.INDEX_SIZE);
+    			write_file.write_file(buffer);
+    		}
+
+    		byte[] file_buffer = new byte[StepExperimentScriptData.TOTAL_INSTRUCT_COUNT * ExperimentScriptData.BUFFER_SIZE];
+    		for (int i = 0; i < total_step_count; i++) {
+    			StepExperimentScriptData temp;
+    			ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+    			byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+
+    			temp = (StepExperimentScriptData)experiment_item.get(list.get(i));
+    			current_instruct_index = temp.get_step_instruct_to_file_buffer(current_instruct_index, file_buffer);
+    			write_file.write_file(file_buffer);
+    		}
+
+    		{
+    			ExperimentScriptData shaker_off = new ExperimentScriptData();
+    			shaker_off.set_instruct_value(ExperimentScriptData.INSTRUCT_SHAKER_OFF);
+    			ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+    			byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+
+    			byte[] buffer = shaker_off.get_buffer();
+    			byte[] index_bytes = byteBuffer.putInt(current_instruct_index).array();
+    			current_instruct_index++;
+    			System.arraycopy(index_bytes, 0, buffer, ExperimentScriptData.INDEX_START, ExperimentScriptData.INDEX_SIZE);
+    			write_file.write_file(buffer);
+    		}
+
+    		{
+    			ExperimentScriptData final_instruct = new ExperimentScriptData();
+    			final_instruct.set_instruct_value(ExperimentScriptData.INSTRUCT_FINISH);
+    			ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+    			byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+    			byte[] buffer = final_instruct.get_buffer();
+    			byte[] index_bytes = byteBuffer.putInt(current_instruct_index).array();
+    			System.arraycopy(index_bytes, 0, buffer, ExperimentScriptData.INDEX_START, ExperimentScriptData.INDEX_SIZE);
+    			write_file.write_file(buffer);
+    		}
+
+    		write_file.flush_close_file();
+    		Toast.makeText(StepScriptActivityList.this, "Save Script Success", Toast.LENGTH_SHORT).show(); 
+    	} catch (IOException e) {
+    		// TODO Auto-generated catch block
+    		e.printStackTrace();
+    	}	
     }
 	
 	public static int load_script_to_step(List<HashMap<String,Object>> load_list, HashMap<Object, Object> load_experiment_item) {
@@ -414,12 +437,14 @@ public class StepScriptActivityList extends Activity {
         refresh_step_script_list_view(position, new_item_data, item_string_view);
         list.add(position, item_string_view);
         experiment_item.put(item_string_view, new_item_data);
+        button_save_script.setTextColor(TEXT_REMINDER_SAVE_COLOR);
 	}
 	
 	protected void delete_instruct(int position, HashMap<Object, Object> item_data, List<HashMap<String,Object>> local_list) {
 		item_data.remove(local_list.get(position));
 		local_list.remove(position);
     	refresh_experiment_script_index(position, item_data, local_list);
+    	button_save_script.setTextColor(TEXT_REMINDER_SAVE_COLOR);
 	}
 	
 	protected void add_new_instruct(int position, HashMap<Object, Object> item_data, List<HashMap<String,Object>> local_list) {
@@ -427,6 +452,7 @@ public class StepScriptActivityList extends Activity {
         StepExperimentScriptData new_item_data = new StepExperimentScriptData();
         refresh_step_script_list_view(position, new_item_data, item_string_view);
         local_list.add(position, item_string_view);
+        button_save_script.setTextColor(TEXT_REMINDER_SAVE_COLOR);
         if (null == item_data.put(item_string_view, new_item_data))
         	Log.d(Tag, "add_new_instruct position = " + position);
 	}
@@ -520,6 +546,10 @@ public class StepScriptActivityList extends Activity {
 	        if (resultCode == RESULT_OK) {
 	        	long id = data.getLongExtra("return_item_id", -1);
 	        	int position = data.getIntExtra("return_item_position", -1);
+	        	if (data.getBooleanExtra("data_change_flag", false)) {
+	        		button_save_script.setTextColor(TEXT_REMINDER_SAVE_COLOR);
+	        	}
+	        	
 	     	    if (id >= 0 && position >= 0) {
 	     	        StepExperimentScriptData item_data = (StepExperimentScriptData)data.getSerializableExtra("return_step_experiment_script_data");  
 	     	        experiment_item.remove(list.get(position));

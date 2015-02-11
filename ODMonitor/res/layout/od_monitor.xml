@@ -20,7 +20,7 @@
             	android:layout_width="wrap_content" 
             	android:layout_height="wrap_content" 
             	android:layout_alignParentLeft="true" 
-            	android:text="Devices status information/App version:0.10"
+            	android:text="Devices status information/App version:0.11"
             	android:layout_marginLeft="25dp"
             	android:layout_marginTop="10dp"
             	android:textStyle="bold">
@@ -310,24 +310,22 @@
                 android:layout_below="@+id/ExperimentDataLayout"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="16dp"
-                android:gravity="center"
                 android:orientation="horizontal" >
              
+                 <TextView
+                     android:id="@+id/EmailAlertTimer"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:paddingTop="10dp"
+                     android:textSize="8pt">
+                 </TextView>
+                 
                  <ImageView
-                     android:id="@+id/imageView1"
+                     android:id="@+id/imageViewEmailAlert"
                      android:layout_width="50dp"
                      android:layout_height="50dp"
                      android:src="@drawable/email">
-                 </ImageView>
-                 
-                 <TextView
-                     android:id="@+id/EmailAlertTimer"
-                     android:layout_width="fill_parent"
-                     android:textSize="8pt"
-                     android:text="alert time"
-                     android:layout_height="wrap_content">
-                 </TextView>
-                
+                 </ImageView>     
            	</LinearLayout>
             
              <LinearLayout 

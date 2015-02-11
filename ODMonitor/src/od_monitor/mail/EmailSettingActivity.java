@@ -18,6 +18,7 @@ import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -47,6 +48,7 @@ public class EmailSettingActivity extends Activity {
 	public Spinner spinnerReminderInterval;
 	public ArrayAdapter<String> spinnerReminderIntervalAdapter;
 	public EmailAlertData email_set = null;
+	private boolean spinner_initial = false;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
@@ -66,6 +68,20 @@ public class EmailSettingActivity extends Activity {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
+	    
+	    button_ok = (Button) findViewById(R.id.button_ok);
+	    button_ok.setOnClickListener(new View.OnClickListener() {
+        	public void onClick(View v) {
+        		try {
+        			if (0 == save_mail_setting())
+        			    finish();
+                } catch (NullPointerException e) {
+                    Log.i(Tag, "email setting ok button exception");
+                } catch (NumberFormatException ex) {
+                	Log.i(Tag, "button_ok NumberFormatException");
+                }
+        	}
+		});
 	    
 	    editTextFromEmail = (EditText) findViewById(R.id.editTextFromEmail);
 	    editTextPassword = (EditText) findViewById(R.id.editTextPassword);
@@ -95,6 +111,46 @@ public class EmailSettingActivity extends Activity {
 	    String emailBody = email_set.get_emailBody();
 	    if (null != emailBody)
 	        editTextBody.setText(emailBody);
+	    
+	    editTextFromEmail.addTextChangedListener(new TextWatcher() {
+	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+	        public void afterTextChanged(Editable s) {
+	        	button_ok.setTextColor(Color.RED);
+		    }
+			public void onTextChanged(CharSequence s, int start, int before, int count) {}
+	    });
+	    
+	    editTextPassword.addTextChangedListener(new TextWatcher() {
+	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+	        public void afterTextChanged(Editable s) {
+	        	button_ok.setTextColor(Color.RED);
+		    }
+			public void onTextChanged(CharSequence s, int start, int before, int count) {}
+	    });
+	    
+	    editTextToEmail.addTextChangedListener(new TextWatcher() {
+	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+	        public void afterTextChanged(Editable s) {
+	        	button_ok.setTextColor(Color.RED);
+		    }
+			public void onTextChanged(CharSequence s, int start, int before, int count) {}
+	    });
+	    
+	    editTextSubject.addTextChangedListener(new TextWatcher() {
+	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+	        public void afterTextChanged(Editable s) {
+	        	button_ok.setTextColor(Color.RED);
+		    }
+			public void onTextChanged(CharSequence s, int start, int before, int count) {}
+	    });
+	    
+	    editTextBody.addTextChangedListener(new TextWatcher() {
+	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+	        public void afterTextChanged(Editable s) {
+	        	button_ok.setTextColor(Color.RED);
+		    }
+			public void onTextChanged(CharSequence s, int start, int before, int count) {}
+	    });
 	  
 	    spinnerReminderInterval = (Spinner)findViewById(R.id.spinner_alert_interval);
 	    spinnerReminderIntervalAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, android.R.id.text1);
@@ -111,9 +167,12 @@ public class EmailSettingActivity extends Activity {
 	    else
 	    	spinnerReminderInterval.setSelection(0);
 	    
+	    spinner_initial = true;
 	    spinnerReminderInterval.setOnItemSelectedListener(new OnItemSelectedListener() { 
 	        public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-	 
+	        	if (false == spinner_initial)
+	        	    button_ok.setTextColor(Color.RED);
+	        	spinner_initial = false;
 	        }
 	        
 	        public void onNothingSelected(AdapterView<?> parentView) {
@@ -123,6 +182,13 @@ public class EmailSettingActivity extends Activity {
 	    
 	    editTextAlertODValue = (EditText) findViewById(R.id.editTextAlertODValue);
 	    editTextAlertODValue.setText(email_set.get_alert_od_value_string());
+	    editTextAlertODValue.addTextChangedListener(new TextWatcher() {
+	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+	        public void afterTextChanged(Editable s) {
+	        	button_ok.setTextColor(Color.RED);
+		    }
+			public void onTextChanged(CharSequence s, int start, int before, int count) {}
+	    });
 	    
 	    checkBoxAlertInterval = (CheckBox)findViewById(R.id.checkBoxAlertInterval);
 	    checkBoxAlertInterval.setChecked(email_set.is_enable_alert_interval());
@@ -131,6 +197,7 @@ public class EmailSettingActivity extends Activity {
 	            public void onCheckedChanged(CompoundButton buttonView,boolean isChecked) {
 	            	email_set.enable_alert_interval(isChecked);
 	            	spinnerReminderInterval.setEnabled(email_set.is_enable_alert_interval());
+	            	button_ok.setTextColor(Color.RED);
 	            }
 	        }
 	    );     
@@ -155,23 +222,9 @@ public class EmailSettingActivity extends Activity {
             public void onCheckedChanged(CompoundButton buttonView,boolean isChecked) {
             	email_set.enable_alert_od_value(isChecked);
             	editTextAlertODValue.setEnabled(email_set.is_enable_alert_od_value());
+            	button_ok.setTextColor(Color.RED);
             }
-        }
-    );     
-	    
-	    button_ok = (Button) findViewById(R.id.button_ok);
-	    button_ok.setOnClickListener(new View.OnClickListener() {
-        	public void onClick(View v) {
-        		try {
-        			if (0 == save_mail_setting())
-        			    finish();
-                } catch (NullPointerException e) {
-                    Log.i(Tag, "email setting ok button exception");
-                } catch (NumberFormatException ex) {
-                	Log.i(Tag, "button_ok NumberFormatException");
-                }
-        	}
-		});
+        }); 
 	}
 	
 	public int save_mail_setting() {	

@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import od_monitor.app.ODMonitorApplication;
 import od_monitor.app.data.ExperimentScriptData;
 import od_monitor.app.data.SensorDataComposition;
 import od_monitor.app.file.FileOperateByteArray;
@@ -22,18 +23,20 @@ import android.widget.Toast;
 import com.ftdi.j2xx.D2xxManager;
 import com.ftdi.j2xx.FT_Device;
 
-
 public class ExperimentalOperationInstruct {
 	public static String Tag = "ExperimentalOperationInstruct";
 	public static Context ExperimentalOperationInstructContext;
 	public D2xxManager ftdid2xx;
 	
+	public static final int EXPERIMENT_MAX_SENSOR_COUNT = 4;
 	private long delay_start_system_time = 0;
 	private long total_experiment_start_system_time = 0;
 	private long step_experiment_start_system_time = 0;
 	private static final int shaker_command_retry_count = 5;
 	private static final int sensor_command_retry_count = 5;
 	private static final long shaker_command_fail_retry_delay = 300;
+	private static final long MAIL_ALERT_UNIT = 60000;
+	//private static final long MAIL_ALERT_UNIT = 200;
 	
     /*graphical objects*/
     public TextView readText;
@@ -136,9 +139,16 @@ public class ExperimentalOperationInstruct {
 		return mail_alert.enable_mail_alert_od_value;
 	}
 	
+	public int get_mail_alert_interval() {
+		return (int)(mail_alert.mail_alert_interval/MAIL_ALERT_UNIT);
+	}
+	
 	public void set_mail_alert_interval(int interval) {
-		mail_alert.mail_alert_interval = (long)(interval*60000);
-		//mail_alert_interval = (long)(1*60000);
+		mail_alert.mail_alert_interval = (long)(interval*MAIL_ALERT_UNIT);
+	}
+	
+	public void set_mail_alert_start_time(long start_time) {
+		mail_alert.mail_alert_start_time = start_time;
 	}
 	
 	public boolean is_mail_alert_interval() {
@@ -172,6 +182,10 @@ public class ExperimentalOperationInstruct {
 	
 	public void set_mail_alert_od_value(double od) {
 		mail_alert.mail_alert_od_value = od;
+	}
+	
+	public double get_mail_alert_od_value() {
+		return mail_alert.mail_alert_od_value;
 	}
 	
 	public void enable_once_mail_alert_od_value() {
@@ -215,9 +229,10 @@ public class ExperimentalOperationInstruct {
 		mail_alert.is_mail_alert_interval = false;
 		total_experiment_start_system_time = System.currentTimeMillis();
 		step_experiment_start_system_time = total_experiment_start_system_time;
-		mail_alert.mail_alert_start_time = total_experiment_start_system_time;
+		set_mail_alert_start_time(total_experiment_start_system_time);
 		od_cal.initialize(init_od);
-		mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_HELLO, 0, 0, null, 1 );
+		if (!ODMonitorApplication.no_devices)
+		    mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_HELLO, 0, 0, null, 1 );
 		if (0 == open_shaker_port()) {
 			FileOperateByteArray write_file = new FileOperateByteArray(SensorDataComposition.sensor_raw_folder_name, SensorDataComposition.sensor_raw_file_name, true);
 	    	try {
@@ -309,6 +324,9 @@ public class ExperimentalOperationInstruct {
 	
 	public int open_shaker_port() {
 		int ret = 0;
+		
+		if (ODMonitorApplication.no_devices)
+			return ret;
 		
 		//shaker.Enumeration();
         if (0 == shaker.connectFunction(shaker.getDevice())) {
@@ -413,7 +431,28 @@ public class ExperimentalOperationInstruct {
 		int receive_length = 0;
 		int try_count = sensor_command_retry_count;
 		
-		if (mODMonitorSensor.isDeviceOnline() ) {
+		if (ODMonitorApplication.no_devices) {
+			int[] raw_data_save = {597, 704, 702, 698, 698, 694, 694, 692, 693};
+			
+			/*for (int j = 0; j < EXPERIMENT_MAX_SENSOR_COUNT; j++) {
+			    String file_name = SensorDataComposition.sensor_raw_file_name + (j+1);
+			    if (0 == save_sensor_data_to_file(sensor_data_index, new Date().getTime(), raw_data_save, file_name)) {
+            	    compare_alert_od_value();
+	                ret = 0;
+	            }
+			}*/
+			
+			if (0 == save_sensor_data_to_file(sensor_data_index, new Date().getTime(), raw_data_save, SensorDataComposition.sensor_raw_file_name)) {
+        	    compare_alert_od_value();
+                ret = 0;
+            }
+			
+			sensor_data_index++;
+			current_instruct_data.next_instruct_index++;	
+			return ret;
+		}
+		
+		if (mODMonitorSensor.isDeviceOnline()) {
 	        mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_REQUEST_RAW_DATA, 0, 0, null, 1 );
 	        try {
 				Thread.sleep(2000);
@@ -459,6 +498,9 @@ public class ExperimentalOperationInstruct {
 		int ret = 0;
 		char[] readDataChar = new char[cmd.length+10];
 		int receive_length = 0;
+		
+		if (ODMonitorApplication.no_devices)
+			return ret;
 		
         for (int i = 0; i < cmd.length; i++) {
             String send_cmd = String.copyValueOf(cmd, i, 1);

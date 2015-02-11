@@ -5,6 +5,11 @@ import android.app.Application;
 import android.content.Context;
 
 public class ODMonitorApplication extends Application {
+	/**
+	 * no_devices = true is not to need sensor and shaker for app test
+	 * run normal experiment, please set no_devices is false.
+	 */
+	public static final boolean no_devices = true;
 	private SyncData sync_chart_notify = null;
 	private boolean mail_alert_load = false;
 	private SyncData sync_mail_alert = new SyncData();

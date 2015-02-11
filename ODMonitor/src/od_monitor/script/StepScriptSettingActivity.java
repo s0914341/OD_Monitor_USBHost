@@ -44,6 +44,7 @@ public class StepScriptSettingActivity extends Activity {
 	public int item_position = 0;
 	public ArrayAdapter<String> spinner_repeat_from_Adapter;
 	public ArrayAdapter<String> spinner_instruct_Adapter;
+	private boolean data_change_flag = false;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -101,6 +102,14 @@ public class StepScriptSettingActivity extends Activity {
 	        }
 	    });
 	    
+	    editText_high_speed_rpm.addTextChangedListener(new TextWatcher() {
+	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+	        public void afterTextChanged(Editable s) {
+	        	data_change_flag = true;
+		    }
+			public void onTextChanged(CharSequence s, int start, int before, int count) {}
+	    });
+	    
 	    editText_high_speed_operation_duration.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 	        public void onFocusChange(View v, boolean hasFocus) {
 	            // TODO Auto-generated method stub
@@ -117,6 +126,14 @@ public class StepScriptSettingActivity extends Activity {
 	            	}
 	            }
 	        }
+	    });
+	    
+	    editText_high_speed_operation_duration.addTextChangedListener(new TextWatcher() {
+	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+	        public void afterTextChanged(Editable s) {
+	        	data_change_flag = true;
+		    }
+			public void onTextChanged(CharSequence s, int start, int before, int count) {}
 	    });
 	    
 	    editText_temperature.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -138,6 +155,14 @@ public class StepScriptSettingActivity extends Activity {
 	        }
 	    });
 	    
+	    editText_temperature.addTextChangedListener(new TextWatcher() {
+	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+	        public void afterTextChanged(Editable s) {
+	        	data_change_flag = true;
+		    }
+			public void onTextChanged(CharSequence s, int start, int before, int count) {}
+	    });
+	    
 	    editText_low_speed_rpm.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 	        public void onFocusChange(View v, boolean hasFocus) {
 	            // TODO Auto-generated method stub
@@ -156,6 +181,14 @@ public class StepScriptSettingActivity extends Activity {
 	        }
 	    });
 	    
+	    editText_low_speed_rpm.addTextChangedListener(new TextWatcher() {
+	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+	        public void afterTextChanged(Editable s) {
+	        	data_change_flag = true;
+		    }
+			public void onTextChanged(CharSequence s, int start, int before, int count) {}
+	    });
+	    
 	    editText_low_speed_operation_duration.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 	        public void onFocusChange(View v, boolean hasFocus) {
 	            // TODO Auto-generated method stub
@@ -172,6 +205,14 @@ public class StepScriptSettingActivity extends Activity {
 	            	}
 	            }
 	        }
+	    });
+	    
+	    editText_low_speed_operation_duration.addTextChangedListener(new TextWatcher() {
+	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+	        public void afterTextChanged(Editable s) {
+	        	data_change_flag = true;
+		    }
+			public void onTextChanged(CharSequence s, int start, int before, int count) {}
 	    });
 	    
 	    editText_experiment_operation_duration_hour.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -193,6 +234,14 @@ public class StepScriptSettingActivity extends Activity {
 	        }
 	    });
 	    
+	    editText_experiment_operation_duration_hour.addTextChangedListener(new TextWatcher() {
+	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+	        public void afterTextChanged(Editable s) {
+	        	data_change_flag = true;
+		    }
+			public void onTextChanged(CharSequence s, int start, int before, int count) {}
+	    });
+	    
 	    editText_experiment_operation_duration_min.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 	        public void onFocusChange(View v, boolean hasFocus) {
 	            // TODO Auto-generated method stub
@@ -210,6 +259,14 @@ public class StepScriptSettingActivity extends Activity {
 	            	}
 	            }
 	        }
+	    });
+	    
+	    editText_experiment_operation_duration_min.addTextChangedListener(new TextWatcher() {
+	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+	        public void afterTextChanged(Editable s) {
+	        	data_change_flag = true;
+		    }
+			public void onTextChanged(CharSequence s, int start, int before, int count) {}
 	    });
 	    
 	    button_ok = (Button) findViewById(R.id.button_ok);
@@ -324,6 +381,7 @@ public class StepScriptSettingActivity extends Activity {
         
         if (false == fail) {
 		    Intent intent = new Intent();
+		    intent.putExtra("data_change_flag", data_change_flag);
 		    intent.putExtra("return_step_experiment_script_data", item_data); //value should be your string from the edittext
 		    intent.putExtra("return_item_id", item_id);
 		    intent.putExtra("return_item_position", item_position);
