@@ -483,7 +483,7 @@ public class ODMonitorActivity extends Activity {
          } 
          });*/
         
-        FileToODDataDB();
+      //  FileToODDataDB();
         Log.d ( Tag, "intent get action: " +this.getIntent().getAction());
         Log.d(Tag, "on Create");
         mRequest_USB_permission = false;
@@ -512,7 +512,7 @@ public class ODMonitorActivity extends Activity {
         stop.show();
     }
 	
-	void FileToODDataDB() {
+	/*void FileToODDataDB() {
 		Date date = null;
         double od_value = 0;
         long size = 0;
@@ -548,7 +548,7 @@ public class ODMonitorActivity extends Activity {
 		} else {
 			Log.d(Tag, "file is nothing to show!");
 		}
-	}
+	}*/
     
     public void EnumerationDeviceShaker() {
     	if (experiment.shaker.Enumeration()) {
@@ -907,7 +907,7 @@ public class ODMonitorActivity extends Activity {
 		        
 		        case EXPERIMENT_NOTIFY_CHART:
 		        	notify_chart_receive_data();
-		        	SensorDataComposition sensor_data = (SensorDataComposition)b.getSerializable("sensor_data_composition");
+		        	SensorDataComposition[] sensor_data = (SensorDataComposition[])b.getSerializable("sensor_data_composition_array");
 		        	if (null != sensor_data) {
 		        		od_database.InsertODDateToDB(sensor_data);
 		        		table.gvUpdatePageBar("select count(*) from " + ODSqlDatabase.OD_VALUE_TABLE_NAME, od_database.get_database());
@@ -1043,12 +1043,12 @@ public class ODMonitorActivity extends Activity {
 				        ret = experiment.read_sensor_instruct(current_instruct_data);
 				        /* send message to handler, to notify OD chart refresh view data */
 				        if (0 == ret) {
-				        	SensorDataComposition sensor_data = experiment.get_current_one_sensor_data();
-				        	String sensor_string = sensor_data.get_sensor_data_string();
+				        	SensorDataComposition[] sensor_data = experiment.get_current_one_sensor_data();
+				        	//String sensor_string = sensor_data.get_sensor_data_string();
 				        	b = new Bundle(1);
 				        	b.putInt("experiment status", EXPERIMENT_NOTIFY_CHART);
-							b.putString("experiment sensor data", sensor_string);
-							b.putSerializable("sensor_data_composition", sensor_data);
+							//b.putString("experiment sensor data", sensor_string);
+							b.putSerializable("sensor_data_composition_array", sensor_data);
 							msg = mHandler.obtainMessage();
 					        msg.setData(b);
 						    mHandler.sendMessage(msg);

@@ -34,6 +34,7 @@ import od_monitor.app.data.SyncData;
 import od_monitor.app.file.FileOperateBmp;
 import od_monitor.app.file.FileOperateByteArray;
 import od_monitor.app.file.FileOperation;
+import od_monitor.experiment.ExperimentalOperationInstruct;
 import od_monitor.experiment.ODCalculate;
 
 import org.achartengine.ChartFactory;
@@ -71,7 +72,7 @@ public class ODChartBuilder extends Activity {
   /** The main renderer that includes all the renderers customizing a chart. */
   private XYMultipleSeriesRenderer mRenderer = new XYMultipleSeriesRenderer();
   /** The most recently added series. */
-  private TimeSeries mCurrentSeries = null;
+  private TimeSeries[] mCurrentSeries = {null, null, null, null};
   /** The most recently created renderer, customizing the current series. */
   private XYSeriesRenderer mCurrentRenderer;
   /** The chart view that displays the data. */
@@ -119,7 +120,7 @@ public class ODChartBuilder extends Activity {
       // orientation
       mDataset = (XYMultipleSeriesDataset) savedState.getSerializable("dataset");
       mRenderer = (XYMultipleSeriesRenderer) savedState.getSerializable("renderer");
-      mCurrentSeries = (TimeSeries) savedState.getSerializable("current_series");
+      mCurrentSeries = (TimeSeries[]) savedState.getSerializable("current_series");
       mCurrentRenderer = (XYSeriesRenderer) savedState.getSerializable("current_renderer");
       Log.d(Tag, "onRestoreInstanceState");
   }
@@ -172,13 +173,13 @@ public class ODChartBuilder extends Activity {
       zoom_fit_button = (ImageButton) findViewById(R.id.zoomFit);
       zoom_fit_button.setOnClickListener(new View.OnClickListener() {
           public void onClick(View v) {
-        	  if (mCurrentSeries.getItemCount() > 1) {
+        	  if (mCurrentSeries[0].getItemCount() > 1) {
         	      double margin = 0;
-        	      Log.d(Tag, mCurrentSeries.getMaxX()+","+ mCurrentSeries.getMinX()+","+mCurrentSeries.getItemCount());
-        	      margin = (mCurrentSeries.getMaxY() - mCurrentSeries.getMinY())/10;
+        	      Log.d(Tag, mCurrentSeries[0].getMaxX()+","+ mCurrentSeries[0].getMinX()+","+mCurrentSeries[0].getItemCount());
+        	      margin = (mCurrentSeries[0].getMaxY() - mCurrentSeries[0].getMinY())/10;
         	      if (0 == margin)
         		      margin = 1;
-        	      mRenderer.setRange(new double[] {mCurrentSeries.getMinX(), mCurrentSeries.getMaxX(), mCurrentSeries.getMinY() - margin , mCurrentSeries.getMaxY() + margin});
+        	      mRenderer.setRange(new double[] {mCurrentSeries[0].getMinX(), mCurrentSeries[0].getMaxX(), mCurrentSeries[0].getMinY() - margin , mCurrentSeries[0].getMaxY() + margin});
         	      mChartView.repaint();
         	  }
       	  }
@@ -200,7 +201,8 @@ public class ODChartBuilder extends Activity {
       	  }
 	  });
     
-      init_time_series();
+      for (int i = 0; i < ExperimentalOperationInstruct.EXPERIMENT_MAX_SENSOR_COUNT; i++)
+          init_time_series(i);
       chart_thread_run = true;
       new Thread(new chart_thread(chart_handler)).start(); 
   }
@@ -224,7 +226,7 @@ public class ODChartBuilder extends Activity {
           // add a new data point to the current series
 	      refresh_current_view_range(x, y);
 	  }
-      mCurrentSeries.add(x, y);
+      mCurrentSeries[0].add(x, y);
       // repaint the chart such as the newly added point to be visible
       mChartView.repaint();
   }
@@ -248,8 +250,8 @@ public class ODChartBuilder extends Activity {
   			    chart_start_time = date[i];
   			    mRenderer.setRange(new double[] {chart_start_time, chart_start_time+20000, od[i]-2, od[i]+2});
   			    if(null == mCurrentSeries)
-  	                CreateNewSeries();
-  		        mCurrentSeries.add(new Date(date[i]), od[i]);
+  	                CreateNewSeries(0);
+  		        mCurrentSeries[0].add(new Date(date[i]), od[i]);
   		        if (null != mChartView)
   		        	mChartView.repaint();
   		    } else {
@@ -356,12 +358,13 @@ public class ODChartBuilder extends Activity {
 		}
 	}
     
-    public void init_time_series() {
+    public void init_time_series(int sensor_num) {
         Date date = null;
         double od_value = 0;
         long size = 0;
         
-        FileOperateByteArray read_file = new FileOperateByteArray(SensorDataComposition.sensor_raw_folder_name, SensorDataComposition.sensor_raw_file_name, true);
+        String file_name = SensorDataComposition.sensor_raw_file_name + (sensor_num+1);
+        FileOperateByteArray read_file = new FileOperateByteArray(SensorDataComposition.sensor_raw_folder_name, file_name, true);
         try {
         	size = read_file.open_read_file(read_file.generate_filename_no_date());
         } catch (IOException e) {
@@ -382,10 +385,10 @@ public class ODChartBuilder extends Activity {
 				 
 				 od_value = one_sensor_data.get_sensor_od_value();    
 		        // od_value = OD_calculate.calculate_od(one_sensor_data.get_channel_data());      
-		         if (mCurrentSeries == null) {
+		         if (mCurrentSeries[sensor_num] == null) {
 		        	 chart_start_time = date.getTime();
 		             mRenderer.setRange(new double[] {chart_start_time, chart_start_time+20000, od_value-2, od_value+2});
-				     CreateNewSeries();
+				     CreateNewSeries(sensor_num);
 		         }
 		         
 		         chart_end_time = date.getTime();
@@ -398,26 +401,26 @@ public class ODChartBuilder extends Activity {
 		         if (1 == current_raw_index) {
 		        	 mRenderer.setRange(new double[] {chart_start_time, chart_start_time+(chart_end_time-chart_start_time)*10, od_value-2, od_value+2});
 		         }
-			     mCurrentSeries.add(date, od_value);
+		         mCurrentSeries[sensor_num].add(date, od_value+(double)(sensor_num*0.1));
 			}
 		    
 			 refresh_current_view_range(date, od_value); 
 		} else {
-			if (mCurrentSeries == null) {
+			if (mCurrentSeries[sensor_num] == null) {
 			    long init_date = new Date().getTime();
 	            mRenderer.setRange(new double[] {init_date, init_date+20000, -2, 2});
-	            CreateNewSeries();
+	            CreateNewSeries(sensor_num);
 	        }
 		}
     }
   
-    public void CreateNewSeries() {
-        String seriesTitle = SERIES_NAME + (mDataset.getSeriesCount() + 1);
+    public void CreateNewSeries(int sensor_num) {
+        String seriesTitle = SERIES_NAME + (sensor_num + 1);
         // create a new series of data
         TimeSeries series = new TimeSeries(seriesTitle);
         // XYSeries series = new XYSeries(seriesTitle);
         mDataset.addSeries(series);
-        mCurrentSeries = series;
+        mCurrentSeries[sensor_num] = series;
         // create a new renderer for the new series
         XYSeriesRenderer renderer = new XYSeriesRenderer();
         mRenderer.addSeriesRenderer(renderer);

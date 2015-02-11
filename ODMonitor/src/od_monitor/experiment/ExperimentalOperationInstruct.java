@@ -40,7 +40,7 @@ public class ExperimentalOperationInstruct {
 	
     /*graphical objects*/
     public TextView readText;
-    public SensorDataComposition current_one_sensor_data;
+    public SensorDataComposition[] current_one_sensor_data = new SensorDataComposition[EXPERIMENT_MAX_SENSOR_COUNT];
     public double init_od = 0;
     public ODCalculate od_cal = new ODCalculate();
   
@@ -198,14 +198,14 @@ public class ExperimentalOperationInstruct {
 	    return mail_alert.is_mail_alert_od_value;
 	}
 	
-	private void compare_alert_od_value() {
+	private void compare_alert_od_value(int sensor_num) {
 		if (false == mail_alert.enable_mail_alert_od_value) {
 			mail_alert.is_mail_alert_od_value = false;
 			return;
 		}
 		
 		if (mail_alert.once_alert_od_value) {
-		    if (mail_alert.mail_alert_od_value < current_one_sensor_data.get_sensor_od_value()) {
+		    if (mail_alert.mail_alert_od_value < current_one_sensor_data[sensor_num].get_sensor_od_value()) {
 			    mail_alert.mail_alert_od_value_count++;
 			    if (experiment_mail_alert.ALERT_OD_VALUE_COUNT_THRESHOLD <= mail_alert.mail_alert_od_value_count) {
 				    mail_alert.is_mail_alert_od_value = true;
@@ -346,11 +346,11 @@ public class ExperimentalOperationInstruct {
 		return ret;
 	}
 	
-	public String get_current_one_sensor_data_string() {
-		return current_one_sensor_data.get_sensor_data_string();
+	public String get_current_one_sensor_data_string(int sensor_num) {
+		return current_one_sensor_data[sensor_num].get_sensor_data_string();
 	}
 	
-	public SensorDataComposition get_current_one_sensor_data() {
+	public SensorDataComposition[] get_current_one_sensor_data() {
 		return current_one_sensor_data;
 	}
 	
@@ -389,7 +389,7 @@ public class ExperimentalOperationInstruct {
     	return ret;
 	}*/
 	
-	public int save_sensor_data_to_file(int index, long time, int[] raw_data, String file_name) {
+	public int save_sensor_data_to_file(int index, long time, int[] raw_data, String file_name, int sensor_num) {
 		int ret = 0;
 		double od_value = 0;
 		
@@ -399,14 +399,14 @@ public class ExperimentalOperationInstruct {
             
             if (raw_data != null) {
                 if (raw_data.length == SensorDataComposition.raw_total_sensor_data_size) {
-    		    	current_one_sensor_data = new SensorDataComposition();
-    		    	current_one_sensor_data.set_sensor_get_index(index);
+    		    	current_one_sensor_data[sensor_num] = new SensorDataComposition();
+    		    	current_one_sensor_data[sensor_num].set_sensor_get_index(index);
     		    	// write this sensor data time to file
-    		    	current_one_sensor_data.set_sensor_measurement_time(time);
-    		    	current_one_sensor_data.set_raw_sensor_data(raw_data);
-    		    	od_value = od_cal.calculate_od(current_one_sensor_data.get_channel_data()); 
-    		    	current_one_sensor_data.set_sensor_od_value(od_value);
-    		    	write_file.write_file(current_one_sensor_data.buffer);
+    		    	current_one_sensor_data[sensor_num].set_sensor_measurement_time(time);
+    		    	current_one_sensor_data[sensor_num].set_raw_sensor_data(raw_data);
+    		    	od_value = od_cal.calculate_od(current_one_sensor_data[sensor_num].get_channel_data()); 
+    		    	current_one_sensor_data[sensor_num].set_sensor_od_value(od_value);
+    		    	write_file.write_file(current_one_sensor_data[sensor_num].buffer);
     		    } else {
     		    	ret = -3;
     		    	Log.e(Tag, "raw data length is not match");
@@ -432,20 +432,26 @@ public class ExperimentalOperationInstruct {
 		int try_count = sensor_command_retry_count;
 		
 		if (ODMonitorApplication.no_devices) {
+			int[] is_online = {1, 1, 1, 1};
 			int[] raw_data_save = {597, 704, 702, 698, 698, 694, 694, 692, 693};
 			
-			/*for (int j = 0; j < EXPERIMENT_MAX_SENSOR_COUNT; j++) {
-			    String file_name = SensorDataComposition.sensor_raw_file_name + (j+1);
-			    if (0 == save_sensor_data_to_file(sensor_data_index, new Date().getTime(), raw_data_save, file_name)) {
-            	    compare_alert_od_value();
-	                ret = 0;
-	            }
-			}*/
+			long current_system_time = System.currentTimeMillis();
+			for (int j = 0; j < EXPERIMENT_MAX_SENSOR_COUNT; j++) {
+				if (1 == is_online[j]) {
+			        String file_name = SensorDataComposition.sensor_raw_file_name + (j+1);
+			        if (0 == save_sensor_data_to_file(sensor_data_index, current_system_time, raw_data_save, file_name, j)) {
+            	        compare_alert_od_value(j);
+	                    ret = 0;
+	                }
+				} else {
+					
+				}
+			}
 			
-			if (0 == save_sensor_data_to_file(sensor_data_index, new Date().getTime(), raw_data_save, SensorDataComposition.sensor_raw_file_name)) {
+			/*if (0 == save_sensor_data_to_file(sensor_data_index, new Date().getTime(), raw_data_save, SensorDataComposition.sensor_raw_file_name)) {
         	    compare_alert_od_value();
                 ret = 0;
-            }
+            }*/
 			
 			sensor_data_index++;
 			current_instruct_data.next_instruct_index++;	
@@ -473,8 +479,8 @@ public class ExperimentalOperationInstruct {
 	                }
 	        
 	                String file_name = SensorDataComposition.sensor_raw_file_name + (j+1);
-	                if (0 == save_sensor_data_to_file(sensor_data_index, new Date().getTime(), raw_data_save, SensorDataComposition.sensor_raw_file_name)) {
-	                	compare_alert_od_value();
+	                if (0 == save_sensor_data_to_file(sensor_data_index, new Date().getTime(), raw_data_save, SensorDataComposition.sensor_raw_file_name, j)) {
+	                	compare_alert_od_value(j);
 			            ret = 0;
 			        }
 	        	}

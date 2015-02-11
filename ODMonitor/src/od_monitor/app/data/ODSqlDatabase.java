@@ -61,14 +61,17 @@ public class ODSqlDatabase {
 		} catch (SQLException e) {}
 	}
 	
-	public void InsertODDateToDB(SensorDataComposition sensor_data) {
+	public void InsertODDateToDB(SensorDataComposition[] sensor_data) {
 		String sql_od_value = "insert into " + OD_VALUE_TABLE_NAME + " (" + 
 			INDEX + ", " + DATE + ", " + OD1 + ", " + OD2 + ", " + OD3 + ", " + OD4
-					+ ") values('" + sensor_data.get_sensor_get_index_string()
-					+ "', '" + sensor_data.get_sensor_measurement_time_string() + "','"
-					+ sensor_data.get_sensor_od_value_string() + "','NA','NA','NA');";
+					+ ") values('" + sensor_data[0].get_sensor_get_index_string()
+					+ "', '" + sensor_data[0].get_sensor_measurement_time_string() + "','"
+					+ sensor_data[0].get_sensor_od_value_string() + "','" 
+					+ sensor_data[1].get_sensor_od_value_string() + "','"
+					+ sensor_data[2].get_sensor_od_value_string() + "','" 
+					+ sensor_data[3].get_sensor_od_value_string() + "');";
 		
-		int[] channel_data = sensor_data.get_channel_data();
+		int[] channel_data = sensor_data[0].get_channel_data();
 		String[] channel_data_string = {Integer.toString(channel_data[0]), Integer.toString(channel_data[1]), Integer.toString( channel_data[2]),
 				                        Integer.toString(channel_data[3]), Integer.toString(channel_data[4]), Integer.toString(channel_data[5]),
 				                        Integer.toString(channel_data[6]), Integer.toString(channel_data[7])};
@@ -76,8 +79,8 @@ public class ODSqlDatabase {
 		String sql_od_channel_raw = "insert into " + OD_CHANNEL_RAW_TABLE_NAME + " (" + 
 				INDEX + ", " + DATE + ", " + CH1 + ", " + CH2 + ", " + CH3 + ", " + CH4
 				        + ", " + CH5 + ", " + CH6 + ", " + CH7 + ", " + CH8
-						+ ") values('" + sensor_data.get_sensor_get_index_string()
-						+ "', '" + sensor_data.get_sensor_measurement_time_string() + "','"
+						+ ") values('" + sensor_data[0].get_sensor_get_index_string()
+						+ "', '" + sensor_data[0].get_sensor_measurement_time_string() + "','"
 						+ channel_data_string[0] + "','"
 						+ channel_data_string[1] + "','"
 						+ channel_data_string[2] + "','"
