@@ -208,13 +208,20 @@ public class ODChartBuilder extends Activity {
   public void refresh_current_view_range(Date x, double y) {
 	  double XMax = mRenderer.getXAxisMax();
 	  double XMin = mRenderer.getXAxisMin();
-	  double thread = XMin+(XMax-XMin)*8.0/10.0;
-	  if (thread < x.getTime()) {
+	  double YMax = mRenderer.getYAxisMax();
+	  double YMin = mRenderer.getYAxisMin();
+	  double threadX = XMin+(XMax-XMin)*8.0/10.0;
+	  if (threadX < x.getTime()) {
 		  //double refresh_XMin = XMin+(XMax-XMin)*7.0/10.0;
 		  
 		  double refresh_XMin = x.getTime()-((XMax-XMin)*3.0/10.0);
 		  mRenderer.setXAxisMin(refresh_XMin);
 		  mRenderer.setXAxisMax(refresh_XMin+(XMax-XMin));
+	  }
+	  
+	  if ((y > YMax) || (y < YMin)) {
+		  mRenderer.setYAxisMin(y-2);
+		  mRenderer.setYAxisMax(y+2);
 	  }
   }
 
@@ -381,7 +388,7 @@ public class ODChartBuilder extends Activity {
 				 offset += SensorDataComposition.total_size;
 				 
 				 od_value = one_sensor_data.get_sensor_od_value();    
-		        // od_value = OD_calculate.calculate_od(one_sensor_data.get_channel_data());      
+		         //od_value = od_cal.calculate_od(one_sensor_data.get_channel_data());      
 		         if (mCurrentSeries == null) {
 		        	 chart_start_time = date.getTime();
 		             mRenderer.setRange(new double[] {chart_start_time, chart_start_time+20000, od_value-2, od_value+2});

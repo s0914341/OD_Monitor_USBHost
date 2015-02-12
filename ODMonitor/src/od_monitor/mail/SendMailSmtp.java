@@ -181,7 +181,11 @@ public class SendMailSmtp implements Html.ImageGetter {
 		         
 		            //sender.sendMail_html(subject, email_html_body, from, to);
 		        	String from = email_set.get_fromEmail();
-		        	String subject = email_set.get_emailSubject();
+		        	String subject = "";
+		        	if (list_mail_attach.size() > 0)
+		        	    subject = email_set.get_emailSubject() +  list_mail_attach.get(0).mail_alert_type;
+		        	else 
+		        		subject = email_set.get_emailSubject();
 		        	String to = email_set.get_toEmails();
 		            sender.sendMail_html_with_attachment(subject, body, from, to, _multipart);
 		        } catch (Exception e) {

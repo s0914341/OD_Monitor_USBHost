@@ -27,6 +27,7 @@ public class ODCalculate {
 	public static int Ref_OD_times = 0;
 	public static double Ref_OD = 0.0;
 	public double initial_OD600 = 0.0;
+	public double pre_final_od = 0.0;
 	
 	
 	public static byte[] parse_date(String s) {
@@ -79,7 +80,6 @@ public class ODCalculate {
 		double final_od = 0, mapped_od = 0;
 		double[] upscale_raw_data = new double[SensorDataComposition.raww_total_sensor_channel];
 		double[] channels_od = new double[SensorDataComposition.raww_total_sensor_channel];
-		
 		
         if (data.length == SensorDataComposition.raww_total_sensor_channel) {
         	channel_index = 0;
@@ -134,20 +134,32 @@ public class ODCalculate {
          
         }
         
-        if ( Ref_OD_times < Ref_OD_Count ) {
-          Ref_OD = Ref_OD + final_od;
-          Ref_OD_times++;
-          if ( Ref_OD_times == Ref_OD_Count )
-            Ref_OD = Ref_OD / Ref_OD_Count;
-          final_od = 0;
-        }
-        else {
-           if (channel_count > 0)
-             final_od = final_od - Ref_OD;
+        if (Ref_OD_times < Ref_OD_Count) {
+            Ref_OD = Ref_OD + final_od;
+            Ref_OD_times++;
+            if ( Ref_OD_times == Ref_OD_Count )
+                Ref_OD = Ref_OD / Ref_OD_Count;
+            final_od = 0;
+        } else {
+            if (channel_count > 0) {
+                final_od = final_od - Ref_OD;
+            } else {
+            	int large_zero = 0;
+            	for (int i = 0; i < data.length; i++) {
+            		if (0 < data[i])
+            			large_zero++;
+            	}
+            	
+            	if ((large_zero > 0) && (data[0] == 0) && (data[1] == 0) && (data[2] == 0)) {
+            		final_od = pre_final_od;
+            	}
+            }
         }
         
+        pre_final_od = final_od;
+        
 //0.6143 * Final_OD - 0.5181 * Final_OD ^ 2 + 0.1981 * Final_OD ^ 3
-        if ( final_od >= 0) {
+        if (final_od >= 0) {
             mapped_od = 0.6143 * final_od - 0.5181 * Math.pow( final_od, 2 )  + 0.1981 * Math.pow( final_od , 3 );
         } else {
           //  mapped_od = initial_OD600 + Math.pow( -1, 2 * Math.random() + 1 ) * ( Math.floor( ( 3 * Math.random() ) + 1 ) ) * 0.01;
@@ -160,6 +172,7 @@ public class ODCalculate {
 	public void initialize (double init_od) {
 		Ref_OD_times = 0;
 		Ref_OD = 0;
+		pre_final_od = 0.0;
 		initial_OD600 = init_od;
 	}
 }

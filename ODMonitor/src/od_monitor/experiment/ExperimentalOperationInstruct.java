@@ -36,7 +36,7 @@ public class ExperimentalOperationInstruct {
 	private static final int sensor_command_retry_count = 5;
 	private static final long shaker_command_fail_retry_delay = 300;
 	private static final long MAIL_ALERT_UNIT = 60000;
-	//private static final long MAIL_ALERT_UNIT = 200;
+	//private static final long MAIL_ALERT_UNIT = 1000;
 	
     /*graphical objects*/
     public TextView readText;
@@ -65,7 +65,7 @@ public class ExperimentalOperationInstruct {
     public ODMonitorSensor mODMonitorSensor;
     private byte[] sensor_raw_buffer;
     public class experiment_mail_alert {
-    	public final static int ALERT_OD_VALUE_COUNT_THRESHOLD = 3;
+    	public final static int ALERT_OD_VALUE_COUNT_THRESHOLD = 1;
     	
     	public boolean enable_mail_alert_interval = false;
     	public boolean enable_mail_alert_od_value = false;
@@ -195,7 +195,12 @@ public class ExperimentalOperationInstruct {
 	}
 	
 	public boolean is_mail_alert_od_value() {
-	    return mail_alert.is_mail_alert_od_value;
+		if (mail_alert.is_mail_alert_od_value) {
+			mail_alert.is_mail_alert_od_value = false;
+			return true;
+		} else {
+			return false;
+		}
 	}
 	
 	private void compare_alert_od_value() {
@@ -205,7 +210,7 @@ public class ExperimentalOperationInstruct {
 		}
 		
 		if (mail_alert.once_alert_od_value) {
-		    if (mail_alert.mail_alert_od_value < current_one_sensor_data.get_sensor_od_value()) {
+		    if (mail_alert.mail_alert_od_value <= current_one_sensor_data.get_sensor_od_value()) {
 			    mail_alert.mail_alert_od_value_count++;
 			    if (experiment_mail_alert.ALERT_OD_VALUE_COUNT_THRESHOLD <= mail_alert.mail_alert_od_value_count) {
 				    mail_alert.is_mail_alert_od_value = true;
@@ -405,6 +410,7 @@ public class ExperimentalOperationInstruct {
     		    	current_one_sensor_data.set_sensor_measurement_time(time);
     		    	current_one_sensor_data.set_raw_sensor_data(raw_data);
     		    	od_value = od_cal.calculate_od(current_one_sensor_data.get_channel_data()); 
+
     		    	current_one_sensor_data.set_sensor_od_value(od_value);
     		    	write_file.write_file(current_one_sensor_data.buffer);
     		    } else {

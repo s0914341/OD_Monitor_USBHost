@@ -204,6 +204,7 @@ public class ODMonitorActivity extends Activity {
 	public class mail_attach_file {
 		public String file;
 		public String content_type;
+		public String mail_alert_type;
 	};
 	
 	/** Called when the activity is first created. */
@@ -814,7 +815,12 @@ public class ODMonitorActivity extends Activity {
 				exp.set_mail_alert_od_value(email_set.get_alert_od_value());
 				exp.set_enable_mail_alert_interval(email_set.is_enable_alert_interval());
 				exp.set_enable_mail_alert_od_value(email_set.is_enable_alert_od_value());
-				exp.enable_once_mail_alert_od_value();
+				
+				SensorDataComposition sensor_data = exp.get_current_one_sensor_data();
+				if (null != sensor_data) {
+				    if (email_set.get_alert_od_value() > sensor_data.get_sensor_od_value())
+				        exp.enable_once_mail_alert_od_value();
+				}
 			} else {
 				exp.set_enable_mail_alert_interval(false);
 				exp.set_enable_mail_alert_od_value(false);
@@ -892,11 +898,18 @@ public class ODMonitorActivity extends Activity {
 		        	mail_alert_shake.start();
 		        	
 		        	List<mail_attach_file> list_mail_attach = new ArrayList<mail_attach_file>();
-		        	list_mail_attach.add(export_experiment_chart());
+		        	String mail_alert_type = b.getString("mail_alert_type", "no type");
+		        	mail_attach_file mail_attach = export_experiment_chart();
+		        	mail_attach.mail_alert_type = mail_alert_type;
+		        	list_mail_attach.add(mail_attach);
 		        	
 		        	if (null != od_database.get_database()) {
-		        	    list_mail_attach.add(export_experiment_csv(od_database.get_database(), ODSqlDatabase.OD_VALUE_TABLE_NAME));
-		        	    list_mail_attach.add(export_experiment_csv(od_database.get_database(), ODSqlDatabase.OD_CHANNEL_RAW_TABLE_NAME));
+		        		mail_attach = export_experiment_csv(od_database.get_database(), ODSqlDatabase.OD_VALUE_TABLE_NAME);
+		        		mail_attach.mail_alert_type = mail_alert_type;
+		        	    list_mail_attach.add(mail_attach);
+		        	    mail_attach = export_experiment_csv(od_database.get_database(), ODSqlDatabase.OD_CHANNEL_RAW_TABLE_NAME);
+		        	    mail_attach.mail_alert_type = mail_alert_type;
+		        	    list_mail_attach.add(mail_attach);
 		        	} else {
 		        		Log.d (Tag, "OD_monitor_db is not created!");
 		        	}
@@ -992,6 +1005,7 @@ public class ODMonitorActivity extends Activity {
 					experiment_thread_run = false;
 					b = new Bundle(1);
 					b.putInt("experiment status", EXPERIMENT_STOP);
+					b.putString("mail_alert_type", "(experiment end)");
 					msg = mHandler.obtainMessage();
 			        msg.setData(b);
 				    mHandler.sendMessage(msg);
@@ -1002,6 +1016,7 @@ public class ODMonitorActivity extends Activity {
 					experiment_thread_run = false;
 					b = new Bundle(1);
 					b.putInt("experiment status", EXPERIMENT_INTERRUPTION);
+					b.putString("mail_alert_type", "(experiment interruption)");
 					msg = mHandler.obtainMessage();
 			        msg.setData(b);
 				    mHandler.sendMessage(msg);
@@ -1016,6 +1031,7 @@ public class ODMonitorActivity extends Activity {
 				if (experiment.is_mail_alert_interval()) {
 					b = new Bundle(1);
 					b.putInt("experiment status", EXPERIMENT_EMAIL_ALERT);
+					b.putString("mail_alert_type", "(mail alert interval)");
 				    msg = mHandler.obtainMessage();
 			        msg.setData(b);
 				    mHandler.sendMessage(msg);
@@ -1033,6 +1049,7 @@ public class ODMonitorActivity extends Activity {
 				if (experiment.is_mail_alert_od_value()) {
 					b = new Bundle(1);
 					b.putInt("experiment status", EXPERIMENT_EMAIL_ALERT);
+					b.putString("mail_alert_type", "(mail alert od value)");
 				    msg = mHandler.obtainMessage();
 			        msg.setData(b);
 				    mHandler.sendMessage(msg);
