@@ -27,6 +27,7 @@ public class ODCalculate {
 	public static int Ref_OD_times = 0;
 	public static double Ref_OD = 0.0;
 	public double initial_OD600 = 0.0;
+	public double pre_final_od = 0.0;
 	
 	
 	public static byte[] parse_date(String s) {
@@ -134,17 +135,28 @@ public class ODCalculate {
          
         }
         
-        if ( Ref_OD_times < Ref_OD_Count ) {
-          Ref_OD = Ref_OD + final_od;
-          Ref_OD_times++;
-          if ( Ref_OD_times == Ref_OD_Count )
-            Ref_OD = Ref_OD / Ref_OD_Count;
-          final_od = 0;
+        if (Ref_OD_times < Ref_OD_Count) {
+            Ref_OD = Ref_OD + final_od;
+            Ref_OD_times++;
+            if ( Ref_OD_times == Ref_OD_Count )
+                Ref_OD = Ref_OD / Ref_OD_Count;
+            final_od = 0;
+        } else {
+            if (channel_count > 0) {
+                final_od = final_od - Ref_OD;
+            } else {
+            	int large_zero = 0;
+            	for (int i = 0; i < data.length; i++) {
+            		if (0 < data[i])
+            			large_zero++;
+            	}
+            	
+            	if (large_zero > 0)
+            		final_od = pre_final_od;
+            }
         }
-        else {
-           if (channel_count > 0)
-             final_od = final_od - Ref_OD;
-        }
+        
+        pre_final_od = final_od;
         
 //0.6143 * Final_OD - 0.5181 * Final_OD ^ 2 + 0.1981 * Final_OD ^ 3
         if ( final_od >= 0) {
@@ -160,6 +172,7 @@ public class ODCalculate {
 	public void initialize (double init_od) {
 		Ref_OD_times = 0;
 		Ref_OD = 0;
+		pre_final_od = 0.0;
 		initial_OD600 = init_od;
 	}
 }

@@ -79,6 +79,7 @@ public class ODChartBuilder extends Activity {
   private GraphicalView mChartView;
   public long current_index = -1;
   public int current_raw_index = -1;
+  private static final int[] SERIES_COLOR = {Color.GREEN, Color.CYAN, Color.YELLOW, Color.MAGENTA};
   
   public static final String SERIES_NAME = "OD series ";
   private static final long SECOND = 1000;
@@ -425,7 +426,7 @@ public class ODChartBuilder extends Activity {
         XYSeriesRenderer renderer = new XYSeriesRenderer();
         mRenderer.addSeriesRenderer(renderer);
         // set some renderer properties
-        renderer.setColor(Color.argb(255, 0, 255, 0));
+        renderer.setColor(SERIES_COLOR[sensor_num]);
         renderer.setPointStyle(PointStyle.CIRCLE);
         renderer.setFillPoints(true);
         renderer.setDisplayChartValues(true);
