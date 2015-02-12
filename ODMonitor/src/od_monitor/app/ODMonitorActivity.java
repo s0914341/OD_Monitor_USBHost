@@ -211,36 +211,7 @@ public class ODMonitorActivity extends Activity {
     public void onCreate(Bundle savedInstanceState)
     {     
     	super.onCreate(savedInstanceState);
-    	setContentView(R.layout.od_monitor);
-    	//LayoutInflater inflater = getLayoutInflater(); //½Õ¥ÎActivityªºgetLayoutInflater()
-    	
-    	
-    	
-    	/*View v = inflater.inflate(R.layout.od_monitor, null, false);
-    	if ( v instanceof LinearLayout ) {
-    		Log.d ( Tag, " LinearLayout" );
-    		LinearLayout lin_layout = ( LinearLayout ) v;
-    		lin_layout.setDrawingCacheEnabled(true);
-    		lin_layout.buildDrawingCache();
-    		Bitmap bm = lin_layout.getDrawingCache();
-    		
-    		ImageView img_v = (ImageView) lin_layout.findViewById( R.id.ShakerStatus );
-    		img_v.setDrawingCacheEnabled(true);
-    		img_v.buildDrawingCache();
-    		Bitmap bm1 = img_v.getDrawingCache();
-    		
-    		
-    		FileOperateBmp write_file = new FileOperateBmp("od_chart", "chart", "png");
-    		  try {
-    			  write_file.create_file(write_file.generate_filename());
-    		  } catch (IOException e) {
-    			  // TODO Auto-generated catch block
-    			  e.printStackTrace();
-    		  }
-    		  write_file.write_file(bm1, Bitmap.CompressFormat.PNG, 100);
-    		  write_file.flush_close_file(); 
-    	}*/
-    	
+    	setContentView(R.layout.od_monitor); 	
         Thread.currentThread().setName("Thread_ODMonitorActivity");
         
         IntentFilter filter = new IntentFilter();
@@ -483,7 +454,7 @@ public class ODMonitorActivity extends Activity {
          } 
          });*/
         
-      //  FileToODDataDB();
+        FileToODDataDB();
         Log.d ( Tag, "intent get action: " +this.getIntent().getAction());
         Log.d(Tag, "on Create");
         mRequest_USB_permission = false;
@@ -511,44 +482,83 @@ public class ODMonitorActivity extends Activity {
 
         stop.show();
     }
+    
+    class mutil_sensor_data_information {
+    	public boolean is_data_valid = false;
+    	public byte[] sensor_data = null;
+    	public long sensor_data_size = 0;
+    	public SensorDataComposition sensor_composition = null;
+    }
 	
-	/*void FileToODDataDB() {
+	void FileToODDataDB() {
 		Date date = null;
         double od_value = 0;
-        long size = 0;
-        
-        FileOperateByteArray read_file = new FileOperateByteArray(SensorDataComposition.sensor_raw_folder_name, SensorDataComposition.sensor_raw_file_name, true);
-        try {
-        	size = read_file.open_read_file(read_file.generate_filename_no_date());
-        } catch (IOException e) {
-	        // TODO Auto-generated catch block
-        	Log.d(Tag, "file open fail!");
-	        e.printStackTrace();
-	        return;
+        boolean show_data_to_db = false;
+        List<mutil_sensor_data_information> list = new ArrayList<mutil_sensor_data_information>();
+          
+        for (int i = 0; i < ExperimentalOperationInstruct.EXPERIMENT_MAX_SENSOR_COUNT; i++) {
+        	String file_name = SensorDataComposition.sensor_raw_file_name + (i+1);
+        	mutil_sensor_data_information sensor_info = new mutil_sensor_data_information();
+            FileOperateByteArray read_file = new FileOperateByteArray(SensorDataComposition.sensor_raw_folder_name, file_name, true);
+            try {
+            	sensor_info.sensor_data_size = read_file.open_read_file(read_file.generate_filename_no_date());
+            	if (sensor_info.sensor_data_size >= SensorDataComposition.total_size) {
+            	    sensor_info.sensor_data = new byte[(int)sensor_info.sensor_data_size];
+            	    read_file.read_file(sensor_info.sensor_data);
+            	    sensor_info.sensor_composition = new SensorDataComposition();
+            	    sensor_info.is_data_valid = true;
+            	}
+            } catch (IOException e) {
+	            // TODO Auto-generated catch block
+        	    Log.d(Tag, "file open fail!");
+	            e.printStackTrace();
+            }
+            
+            list.add(sensor_info);
         }
         
-        if (size >= SensorDataComposition.total_size) {
-			int offset = 0;
-		    byte[] data = new byte[(int) size];
-		    read_file.read_file(data);
-		    SensorDataComposition one_sensor_data = new SensorDataComposition();
-		    od_database.CreateODDataDB();
-			
-			while ((size-offset) >= SensorDataComposition.total_size) {
-				one_sensor_data.set_buffer(data, offset, SensorDataComposition.total_size);
-				date = new Date(one_sensor_data.get_sensor_measurement_time());
-				od_value = one_sensor_data.get_sensor_od_value();    
+        for (int i = 0; i < list.size(); i++) {
+        	if (list.get(i).is_data_valid) {
+        	    show_data_to_db = true;
+        		break;
+        	}
+        }
+        
+        if (show_data_to_db) {
+        	od_database.CreateODDataDB(ExperimentalOperationInstruct.EXPERIMENT_MAX_SENSOR_COUNT);
+        	int offset = 0;
+        	SensorDataComposition[] sensor_data_array = new SensorDataComposition[ExperimentalOperationInstruct.EXPERIMENT_MAX_SENSOR_COUNT];
+        	while (true) {
+        		mutil_sensor_data_information sensor_info;
+        		boolean sensor_data_read_end = true;
+        		for (int i = 0; i < list.size(); i++) {
+        			sensor_info = list.get(i);
+        			if (((int)sensor_info.sensor_data_size-offset) >= SensorDataComposition.total_size ) {
+        				sensor_info.sensor_composition.set_buffer(sensor_info.sensor_data, offset, SensorDataComposition.total_size);
+        				date = new Date(sensor_info.sensor_composition.get_sensor_measurement_time());
+        				od_value = sensor_info.sensor_composition.get_sensor_od_value();   
+        				sensor_data_array[i] = sensor_info.sensor_composition;
+        				sensor_data_read_end = false;
+        			} else {
+        				sensor_data_array[i] = null;
+        			}
+        			od_database.InsertODRawDataToDB(i, sensor_data_array[i]);
+        		}
+        		
+        		if (sensor_data_read_end)
+        			break;
+        		
 				offset += SensorDataComposition.total_size;
-				od_database.InsertODDateToDB(one_sensor_data);
+				od_database.InsertODDataToDB(sensor_data_array);
 			}
 			
 			table.gvUpdatePageBar("select count(*) from " + ODSqlDatabase.OD_VALUE_TABLE_NAME, od_database.get_database());
 		    table.gvReadyTable("select * from " + ODSqlDatabase.OD_VALUE_TABLE_NAME, od_database.get_database());
 			table.refresh_last_table();
-		} else {
-			Log.d(Tag, "file is nothing to show!");
-		}
-	}*/
+        } else {
+        	Log.d(Tag, "no file to show!");
+        }
+	}
     
     public void EnumerationDeviceShaker() {
     	if (experiment.shaker.Enumeration()) {
@@ -860,7 +870,7 @@ public class ODMonitorActivity extends Activity {
 		        	experiment_time_thread= new Thread(myRunnableThread); 
 		        	experiment_time_run = true;
 		        	experiment_time_thread.start();
-		        	od_database.CreateODDataDB();
+		        	od_database.CreateODDataDB(ExperimentalOperationInstruct.EXPERIMENT_MAX_SENSOR_COUNT);
 		        } break;
 		        	
 		        case EXPERIMENT_EMAIL_ALERT_SETTING_LOAD: {
@@ -909,7 +919,7 @@ public class ODMonitorActivity extends Activity {
 		        	notify_chart_receive_data();
 		        	SensorDataComposition[] sensor_data = (SensorDataComposition[])b.getSerializable("sensor_data_composition_array");
 		        	if (null != sensor_data) {
-		        		od_database.InsertODDateToDB(sensor_data);
+		        		od_database.InsertODDataToDB(sensor_data);
 		        		table.gvUpdatePageBar("select count(*) from " + ODSqlDatabase.OD_VALUE_TABLE_NAME, od_database.get_database());
 						table.gvReadyTable("select * from " + ODSqlDatabase.OD_VALUE_TABLE_NAME, od_database.get_database());
 						table.refresh_last_table();

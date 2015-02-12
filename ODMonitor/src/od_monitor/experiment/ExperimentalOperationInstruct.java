@@ -234,13 +234,16 @@ public class ExperimentalOperationInstruct {
 		if (!ODMonitorApplication.no_devices)
 		    mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_HELLO, 0, 0, null, 1 );
 		if (0 == open_shaker_port()) {
-			FileOperateByteArray write_file = new FileOperateByteArray(SensorDataComposition.sensor_raw_folder_name, SensorDataComposition.sensor_raw_file_name, true);
-	    	try {
-	    		write_file.delete_file(write_file.generate_filename_no_date());
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}	
+			for (int i = 0; i < EXPERIMENT_MAX_SENSOR_COUNT; i++) {
+			    String file_name = SensorDataComposition.sensor_raw_file_name + (i+1);
+				FileOperateByteArray write_file = new FileOperateByteArray(SensorDataComposition.sensor_raw_folder_name, file_name, true);
+	    	    try {
+	    		    write_file.delete_file(write_file.generate_filename_no_date());
+			    } catch (IOException e) {
+				    // TODO Auto-generated catch block
+				    e.printStackTrace();
+			    }	
+			}
 		} else {
 			ret = -1;
 		}
@@ -404,7 +407,11 @@ public class ExperimentalOperationInstruct {
     		    	// write this sensor data time to file
     		    	current_one_sensor_data[sensor_num].set_sensor_measurement_time(time);
     		    	current_one_sensor_data[sensor_num].set_raw_sensor_data(raw_data);
-    		    	od_value = od_cal.calculate_od(current_one_sensor_data[sensor_num].get_channel_data()); 
+    		    	if (ODMonitorApplication.no_devices) {
+    		    	    od_value = od_cal.calculate_od(current_one_sensor_data[sensor_num].get_channel_data())+(double)(sensor_num+1)*Math.random(); 
+    		    	} else {
+    		    		od_value = od_cal.calculate_od(current_one_sensor_data[sensor_num].get_channel_data());
+    		    	}
     		    	current_one_sensor_data[sensor_num].set_sensor_od_value(od_value);
     		    	write_file.write_file(current_one_sensor_data[sensor_num].buffer);
     		    } else {
@@ -436,11 +443,11 @@ public class ExperimentalOperationInstruct {
 			int[] raw_data_save = {597, 704, 702, 698, 698, 694, 694, 692, 693};
 			
 			long current_system_time = System.currentTimeMillis();
-			for (int j = 0; j < EXPERIMENT_MAX_SENSOR_COUNT; j++) {
-				if (1 == is_online[j]) {
-			        String file_name = SensorDataComposition.sensor_raw_file_name + (j+1);
-			        if (0 == save_sensor_data_to_file(sensor_data_index, current_system_time, raw_data_save, file_name, j)) {
-            	        compare_alert_od_value(j);
+			for (int sensor_num = 0; sensor_num < EXPERIMENT_MAX_SENSOR_COUNT; sensor_num++) {
+				if (1 == is_online[sensor_num]) {
+			        String file_name = SensorDataComposition.sensor_raw_file_name + (sensor_num+1);
+			        if (0 == save_sensor_data_to_file(sensor_data_index, current_system_time, raw_data_save, file_name, sensor_num)) {
+            	        compare_alert_od_value(sensor_num);
 	                    ret = 0;
 	                }
 				} else {
