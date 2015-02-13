@@ -414,8 +414,13 @@ public class ODChartBuilder extends Activity {
 				 offset += SensorDataComposition.total_size;
 				 
 				 od_value = one_sensor_data.get_sensor_od_value();    
+<<<<<<< HEAD
+		         //od_value = od_cal.calculate_od(one_sensor_data.get_channel_data());      
+		         if (mCurrentSeries == null) {
+=======
 		        // od_value = OD_calculate.calculate_od(one_sensor_data.get_channel_data());      
 		         if (mCurrentSeries[sensor_num] == null) {
+>>>>>>> four_sensor
 		        	 chart_start_time = date.getTime();
 		             mRenderer.setRange(new double[] {chart_start_time, chart_start_time+20000, od_value-2, od_value+2});
 				     CreateNewSeries(sensor_num);

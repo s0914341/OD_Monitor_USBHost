@@ -210,7 +210,11 @@ public class ExperimentalOperationInstruct {
 		}
 		
 		if (mail_alert.once_alert_od_value) {
+<<<<<<< HEAD
 		    if (mail_alert.mail_alert_od_value <= current_one_sensor_data.get_sensor_od_value()) {
+=======
+		    if (mail_alert.mail_alert_od_value < current_one_sensor_data[sensor_num].get_sensor_od_value()) {
+>>>>>>> four_sensor
 			    mail_alert.mail_alert_od_value_count++;
 			    if (experiment_mail_alert.ALERT_OD_VALUE_COUNT_THRESHOLD <= mail_alert.mail_alert_od_value_count) {
 				    mail_alert.is_mail_alert_od_value = true;
@@ -410,6 +414,14 @@ public class ExperimentalOperationInstruct {
     		    	current_one_sensor_data[sensor_num] = new SensorDataComposition();
     		    	current_one_sensor_data[sensor_num].set_sensor_get_index(index);
     		    	// write this sensor data time to file
+<<<<<<< HEAD
+    		    	current_one_sensor_data.set_sensor_measurement_time(time);
+    		    	current_one_sensor_data.set_raw_sensor_data(raw_data);
+    		    	od_value = od_cal.calculate_od(current_one_sensor_data.get_channel_data()); 
+
+    		    	current_one_sensor_data.set_sensor_od_value(od_value);
+    		    	write_file.write_file(current_one_sensor_data.buffer);
+=======
     		    	current_one_sensor_data[sensor_num].set_sensor_measurement_time(time);
     		    	current_one_sensor_data[sensor_num].set_raw_sensor_data(raw_data);
     		    	if (ODMonitorApplication.no_devices) {
@@ -419,6 +431,7 @@ public class ExperimentalOperationInstruct {
     		    	}
     		    	current_one_sensor_data[sensor_num].set_sensor_od_value(od_value);
     		    	write_file.write_file(current_one_sensor_data[sensor_num].buffer);
+>>>>>>> four_sensor
     		    } else {
     		    	ret = -3;
     		    	Log.e(Tag, "raw data length is not match");

@@ -150,9 +150,14 @@ public class ODCalculate {
             			large_zero++;
             	}
             	
+<<<<<<< HEAD
             	if ((large_zero > 0) && (data[0] == 0) && (data[1] == 0) && (data[2] == 0)) {
             		final_od = pre_final_od;
             	}
+=======
+            	if (large_zero > 0)
+            		final_od = pre_final_od;
+>>>>>>> four_sensor
             }
         }
         
