@@ -9,6 +9,7 @@ import od_monitor.app.R;
 import od_monitor.app.data.SensorDataComposition;
 import od_monitor.app.file.FileOperateBmp;
 import od_monitor.app.file.FileOperateByteArray;
+import od_monitor.experiment.ExperimentalOperationInstruct;
 
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
@@ -36,13 +37,13 @@ public class ODChartToBitmap {
 	  /** The main renderer that includes all the renderers customizing a chart. */
 	private XYMultipleSeriesRenderer mRenderer = new XYMultipleSeriesRenderer();
 	  /** The most recently added series. */
-	private TimeSeries mCurrentSeries = null;
+	private TimeSeries[] mCurrentSeries = {null, null, null, null};
 	  /** The most recently created renderer, customizing the current series. */
     private XYSeriesRenderer mCurrentRenderer;
 	  /** The chart view that displays the data. */
 	private GraphicalView mChartView;
 	public long current_index = -1;
-	public int current_raw_index = -1;
+	public int[] current_raw_index = {-1, -1, -1, -1};
 	
 	private long chart_start_time = System.currentTimeMillis();
 	private long chart_end_time = chart_start_time + 20000;
@@ -66,16 +67,43 @@ public class ODChartToBitmap {
 	      mRenderer.setInScroll(true);
 	      mRenderer.setShowGrid(true);
 	      mRenderer.setPointSize(8);
-	      init_od_series();
+	      for (int i = 0; i < ExperimentalOperationInstruct.EXPERIMENT_MAX_SENSOR_COUNT; i++)
+	          init_od_series(i);
 	      
-	      if (mCurrentSeries.getItemCount() > 1) {
-    	      double margin = 0;
-    	      margin = (mCurrentSeries.getMaxY() - mCurrentSeries.getMinY())/10;
-    	      if (0 == margin)
-    		      margin = 1;
-    	      mRenderer.setRange(new double[] {mCurrentSeries.getMinX(), mCurrentSeries.getMaxX(), mCurrentSeries.getMinY() - margin , mCurrentSeries.getMaxY() + margin});
-    	  }
-	       
+	      double XMax = 0, XMin = 0, YMax = 0, YMin = 0;
+	      int have_item_count = 0;
+	      for (int i = 0; i < ExperimentalOperationInstruct.EXPERIMENT_MAX_SENSOR_COUNT; i++) {
+	    	  if (mCurrentSeries[i].getItemCount() > 0) {
+	    		  if (mCurrentSeries[i].getMaxY() > YMax)
+	    	          YMax = mCurrentSeries[i].getMaxY();
+	    		  
+	    		  if (mCurrentSeries[i].getMaxX() > XMax)
+	    	          XMax = mCurrentSeries[i].getMaxX();
+	    		  
+	    		  if (mCurrentSeries[i].getMinY() > YMin)
+	    	          YMin = mCurrentSeries[i].getMinY();
+	    		  
+	    		  if (mCurrentSeries[i].getMinX() > XMin)
+	    	          XMin = mCurrentSeries[i].getMinX();
+	    		  
+	    		  have_item_count++;
+	    	  }  
+	      }
+	      
+	      if (have_item_count > 1) {
+	          double margin = 0;
+	          margin = (YMax - YMin)/10;
+	          if (0 == margin)
+		          margin = 1;
+	          
+	          if (0 == (XMax-XMin)) {
+	        	  mRenderer.setYAxisMin(YMin - margin);
+	    		  mRenderer.setYAxisMax(YMax + margin);
+	          } else {
+	              mRenderer.setRange(new double[] {XMin, XMax, YMin - margin , YMax + margin});
+	          }
+	      }
+	      
 	      mChartView = ChartFactory.getTimeChartView(context, mDataset, mRenderer, "MM/dd h:mm:ss a");
 	      mChartView.layout(left, top, right, bottom);
 	     
@@ -100,18 +128,18 @@ public class ODChartToBitmap {
 		return file_name;
 	}
 	
-	public void CreateNewSeries() {
-        String seriesTitle = SERIES_NAME + (mDataset.getSeriesCount() + 1);
+	public void CreateNewSeries(int sensor_num) {
+        String seriesTitle = SERIES_NAME + (sensor_num + 1);
         // create a new series of data
         TimeSeries series = new TimeSeries(seriesTitle);
         // XYSeries series = new XYSeries(seriesTitle);
         mDataset.addSeries(series);
-        mCurrentSeries = series;
+        mCurrentSeries[sensor_num] = series;
         // create a new renderer for the new series
         XYSeriesRenderer renderer = new XYSeriesRenderer();
         mRenderer.addSeriesRenderer(renderer);
         // set some renderer properties
-        renderer.setColor(Color.argb(255, 0, 255, 0));
+        renderer.setColor(ODChartBuilder.SERIES_COLOR[sensor_num]);
         renderer.setPointStyle(PointStyle.CIRCLE);
         renderer.setFillPoints(true);
         renderer.setDisplayChartValues(true);
@@ -122,21 +150,30 @@ public class ODChartToBitmap {
 	public void refresh_current_view_range(Date x, double y) {
 		  double XMax = mRenderer.getXAxisMax();
 		  double XMin = mRenderer.getXAxisMin();
-		  double thread = XMin+(XMax-XMin)*8.0/10.0;
-		  if (thread < x.getTime()) {
+		  double YMax = mRenderer.getYAxisMax();
+		  double YMin = mRenderer.getYAxisMin();
+		  double threadX = XMin+(XMax-XMin)*8.0/10.0;
+		  if (threadX < x.getTime()) {
+			  //double refresh_XMin = XMin+(XMax-XMin)*7.0/10.0;
+			  
 			  double refresh_XMin = x.getTime()-((XMax-XMin)*3.0/10.0);
 			  mRenderer.setXAxisMin(refresh_XMin);
 			  mRenderer.setXAxisMax(refresh_XMin+(XMax-XMin));
 		  }
-	  }
+		  
+		  if ((y > YMax) || (y < YMin)) {
+			  mRenderer.setYAxisMin(y-2);
+			  mRenderer.setYAxisMax(y+2);
+		  }
+	}
 	
-	public void init_od_series() {
+	public void init_od_series(int sensor_num) {
         Date date = null;
         double od_value = 0;
         long size = 0;
         
-   
-        FileOperateByteArray read_file = new FileOperateByteArray(SensorDataComposition.sensor_raw_folder_name, SensorDataComposition.sensor_raw_file_name, true);
+        String file_name = SensorDataComposition.sensor_raw_file_name + (sensor_num+1);
+        FileOperateByteArray read_file = new FileOperateByteArray(SensorDataComposition.sensor_raw_folder_name, file_name, true);
         try {
         	size = read_file.open_read_file(read_file.generate_filename_no_date());
         } catch (IOException e) {
@@ -157,10 +194,10 @@ public class ODChartToBitmap {
 				 
 				 od_value = one_sensor_data.get_sensor_od_value();    
 		        // od_value = OD_calculate.calculate_od(one_sensor_data.get_channel_data());      
-		         if (mCurrentSeries == null) {
+		         if (mCurrentSeries[sensor_num] == null) {
 		        	 chart_start_time = date.getTime();
 		             mRenderer.setRange(new double[] {chart_start_time, chart_start_time+20000, od_value-2, od_value+2});
-				     CreateNewSeries();
+				     CreateNewSeries(sensor_num);
 		         }
 		         
 		         chart_end_time = date.getTime();
@@ -169,19 +206,19 @@ public class ODChartToBitmap {
 		         else if (od_value < chart_min_od_value)
 		        	 chart_min_od_value = od_value;
 		            
-		         current_raw_index = one_sensor_data.get_sensor_get_index();
-		         if (1 == current_raw_index) {
+		         current_raw_index[sensor_num] = one_sensor_data.get_sensor_get_index();
+		         if (1 == current_raw_index[sensor_num]) {
 		        	 mRenderer.setRange(new double[] {chart_start_time, chart_start_time+(chart_end_time-chart_start_time)*10, od_value-2, od_value+2});
 		         }
-			     mCurrentSeries.add(date, od_value);
+		         mCurrentSeries[sensor_num].add(date, od_value);
 			}
 		    
 			 refresh_current_view_range(date, od_value); 
 		} else {
-			if (mCurrentSeries == null) {
+			if (mCurrentSeries[sensor_num] == null) {
 			    long init_date = new Date().getTime();
 	            mRenderer.setRange(new double[] {init_date, init_date+20000, -2, 2});
-	            CreateNewSeries();
+	            CreateNewSeries(sensor_num);
 	        }
 		}
     }

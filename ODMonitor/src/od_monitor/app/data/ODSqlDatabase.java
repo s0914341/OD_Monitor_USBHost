@@ -68,26 +68,29 @@ public class ODSqlDatabase {
 	}
 	
 	public void InsertODDataToDB(SensorDataComposition[] sensor_data) {
-		String[] od_value = new String[sensor_data.length];
-		String index = "", measure_time = "";
+		String index = "NA";
+		String measure_time = "NA";
 		for (int i = 0; i < sensor_data.length; i++) {
-			if (null != sensor_data[i]) {
+			if (!sensor_data[i].get_sensor_get_index_string().equals("NA")) {
 				index = sensor_data[i].get_sensor_get_index_string();
 				measure_time = sensor_data[i].get_sensor_measurement_time_string();
-				od_value[i] = sensor_data[i].get_sensor_od_value_string();
-			} else {
-				od_value[i] = "NA";
+				break;
 			}
+		}
+		
+		String[] od_array = {"NA", "NA", "NA", "NA"};
+		for (int i = 0; i < sensor_data.length; i++) {
+			od_array[i] = sensor_data[i].get_sensor_od_value_string();
 		}
 		
 		String sql_od_value = "insert into " + OD_VALUE_TABLE_NAME + " (" + 
 			INDEX + ", " + DATE + ", " + OD1 + ", " + OD2 + ", " + OD3 + ", " + OD4
 					+ ") values('" + index
 					+ "', '" + measure_time + "','"
-					+ od_value[0] + "','" 
-					+ od_value[1] + "','"
-					+ od_value[2] + "','" 
-					+ od_value[3] + "');";
+					+ od_array[0] + "','" 
+					+ od_array[1] + "','"
+					+ od_array[2] + "','" 
+					+ od_array[3] + "');";
 		
 		try {
 			OD_monitor_db.execSQL(sql_od_value);
@@ -96,23 +99,14 @@ public class ODSqlDatabase {
 	}
 	
 	public void InsertODRawDataToDB(int sensor_num, SensorDataComposition sensor_data) {
-		String[] channel_data_string = {"NA", "NA", "NA", "NA", "NA", "NA", "NA", "NA"};
-		String index = "NA";
-		String measure_time = "NA";
-		
-		if (null != sensor_data) {
-		    int[] channel_data = sensor_data.get_channel_data();
-		    for (int i = 0; i < channel_data.length; i++)
-		        channel_data_string[i] = Integer.toString(channel_data[i]);
-				                       
-		}
+		String[] channel_data_string = sensor_data.get_channel_data_string_array();
 		
 		String table_name = OD_CHANNEL_RAW_TABLE_NAME+(sensor_num+1);
 		String sql_od_channel_raw = "insert into " + table_name + " (" + 
 				INDEX + ", " + DATE + ", " + CH1 + ", " + CH2 + ", " + CH3 + ", " + CH4
 				        + ", " + CH5 + ", " + CH6 + ", " + CH7 + ", " + CH8
-						+ ") values('" + index
-						+ "', '" + measure_time + "','"
+						+ ") values('" + sensor_data.get_sensor_get_index_string()
+						+ "', '" + sensor_data.get_sensor_measurement_time_string() + "','"
 						+ channel_data_string[0] + "','"
 						+ channel_data_string[1] + "','"
 						+ channel_data_string[2] + "','"

@@ -79,7 +79,7 @@ public class ODChartBuilder extends Activity {
   private GraphicalView mChartView;
   public long current_index = -1;
   public int[] current_raw_index = {-1, -1, -1, -1};
-  private static final int[] SERIES_COLOR = {Color.GREEN, Color.CYAN, Color.YELLOW, Color.MAGENTA};
+  public static final int[] SERIES_COLOR = {Color.GREEN, Color.CYAN, Color.YELLOW, Color.MAGENTA};
   
   public static final String SERIES_NAME = "OD series ";
   private static final long SECOND = 1000;

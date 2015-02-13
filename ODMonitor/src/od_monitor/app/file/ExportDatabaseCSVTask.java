@@ -22,6 +22,7 @@ import android.widget.Toast;
 import com.opencsv.CSVWriter;
 
 public class ExportDatabaseCSVTask extends AsyncTask<String, Void, Boolean> {
+	public static final String sensor_csv_folder_name = "sensor_od_csv";
 	public SQLiteDatabase myDatabase = null;
 	public String Table_Name;
 	public static Context context = null;
@@ -56,16 +57,16 @@ public class ExportDatabaseCSVTask extends AsyncTask<String, Void, Boolean> {
 	        
 	    File sdcard = Environment.getExternalStorageDirectory();
 	    String file_Dir = sdcard.getPath() + FileOperation.work_directory; 
-	    file_dir = file_Dir + SensorDataComposition.sensor_raw_folder_name;
+	    file_dir = file_Dir + sensor_csv_folder_name;
 	    File exportDir =  new File(file_dir);
 	        
 	    if (!exportDir.exists()) { exportDir.mkdirs(); }
 
 	    SimpleDateFormat file_date = new SimpleDateFormat("yyyyMMdd_HHmmss");
-	    if (Table_Name.equals(ODSqlDatabase.OD_CHANNEL_RAW_TABLE_NAME)) 
-	        file_name = "ODChannelRawData" + file_date.format(new Date()) + ".csv";
-	    else
+	    if (Table_Name.equals(ODSqlDatabase.OD_VALUE_TABLE_NAME)) 
 	    	file_name = "ODExperimentData" + file_date.format(new Date()) + ".csv";
+	    else
+	    	file_name = "ODChannelData" + "_" + Table_Name + "_" + file_date.format(new Date()) + ".csv";
 	    File file = new File(exportDir, file_name);
 	    try {
 	        file.createNewFile();

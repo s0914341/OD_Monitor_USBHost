@@ -78,14 +78,14 @@ public class ODCalculate {
 		int channel_count = 0;
 		double primitive_od = 0;
 		double final_od = 0, mapped_od = 0;
-		double[] upscale_raw_data = new double[SensorDataComposition.raww_total_sensor_channel];
-		double[] channels_od = new double[SensorDataComposition.raww_total_sensor_channel];
+		double[] upscale_raw_data = new double[SensorDataComposition.raw_total_sensor_channel];
+		double[] channels_od = new double[SensorDataComposition.raw_total_sensor_channel];
 		
-        if (data.length == SensorDataComposition.raww_total_sensor_channel) {
+        if (data.length == SensorDataComposition.raw_total_sensor_channel) {
         	channel_index = 0;
-        	while (channel_index < SensorDataComposition.raww_total_sensor_channel) {
+        	while (channel_index < SensorDataComposition.raw_total_sensor_channel) {
         		raw_data = data[channel_index];
-        	    if ((channel_index > 0) && channel_index < SensorDataComposition.raww_total_sensor_channel) {
+        	    if ((channel_index > 0) && channel_index < SensorDataComposition.raw_total_sensor_channel) {
         		    if (data[channel_index-1] > 0) {
         	            channel_ratio = ((double)data[channel_index]/(double)data[channel_index-1])/Adjecency_Channel_Ratio[channel_index-1];
         	            if (channel_ratio > 0.9 && channel_ratio < 1.11) {

@@ -27,7 +27,7 @@ public class SensorDataComposition implements Serializable {
 	public static final int raw_sensor_ch7_index = 7;
 	public static final int raw_sensor_ch8_index = 8;
 	
-	public static final int raww_total_sensor_channel = 8;
+	public static final int raw_total_sensor_channel = 8;
 	public static final int raw_total_sensor_data_size = raw_sensor_ch8_index+1;
 	
 	private static final int sensor_get_index = 0;
@@ -42,13 +42,38 @@ public class SensorDataComposition implements Serializable {
 	private static final int sensor_ch7_index = 40;
 	private static final int sensor_ch8_index = 44;
 	private static final int sensor_od_value_index = 48;
+	private static final int data_valid_index = 56;
 	
-	public static final int total_size = 56;
+	public static final int total_size = 60;
 	
 	public byte[] buffer = new byte[total_size];
 	
 	public SensorDataComposition () {
-
+		set_data_valid(true);
+		set_sensor_measurement_time(0);
+		set_sensor_get_index(-1);
+	}
+	
+	public boolean is_data_valid() {
+		boolean data_valid = true;
+		
+		ByteBuffer byte_buffer = ByteBuffer.wrap(buffer, data_valid_index, 4);
+        if (1 != byte_buffer.getInt()) {
+        	data_valid = false; 
+        }
+		
+		return data_valid;
+	}
+	
+	public void set_data_valid(boolean valid) {
+		int data_valid = 1;
+		
+		if (!valid) {
+			data_valid = 0;
+		}
+		
+		byte[] data_valid_bytes = ByteBuffer.allocate(4).putInt(data_valid).array();
+		System.arraycopy(data_valid_bytes, 0, buffer, data_valid_index, 4);
 	}
 	
 	public static double od_round(double value, int places) {
@@ -71,9 +96,9 @@ public class SensorDataComposition implements Serializable {
 	}
 	
 	public int[] get_channel_data() {
-        int[] channel_data = new int[raww_total_sensor_channel];
+        int[] channel_data = new int[raw_total_sensor_channel];
         
-        for (int i = 0; i < raww_total_sensor_channel; i++) {
+        for (int i = 0; i < raw_total_sensor_channel; i++) {
         	channel_data[i] = ByteBuffer.wrap(buffer, sensor_ch1_index+(i*4), 4).getInt();
         }
 		
@@ -86,19 +111,28 @@ public class SensorDataComposition implements Serializable {
 	}
 	
 	public String get_sensor_od_value_string() {
-		String str = Double.toString(get_sensor_od_value());
+		String str = "NA";
+		if (is_data_valid())
+		    str = Double.toString(get_sensor_od_value());
 		return str;
 	}
 	
 	public String get_sensor_measurement_time_string() {
-		Date date = new Date(get_sensor_measurement_time());
-		SimpleDateFormat sdf = new SimpleDateFormat("MM/dd HH:mm:ss");
-		String str = sdf.format(date);
+		String str = "NA";
+		if (0 != get_sensor_measurement_time()) {
+			Date date = new Date(get_sensor_measurement_time());
+		    SimpleDateFormat sdf = new SimpleDateFormat("MM/dd HH:mm:ss");
+		    str = sdf.format(date);
+		}
 		return str;
 	}
 	
 	public String get_sensor_get_index_string() {
-		String str = Integer.toString(get_sensor_get_index());
+		String str = "NA";
+		
+		if (-1 != get_sensor_get_index())
+		    str = Integer.toString(get_sensor_get_index());
+		
 		return str;
 	}
 	
@@ -159,5 +193,17 @@ public class SensorDataComposition implements Serializable {
 				channel_data[0], channel_data[1], channel_data[2], channel_data[3], channel_data[4], channel_data[5], channel_data[6], channel_data[7]);
 		
 		return sensor_string;
+	}
+	
+	public String[] get_channel_data_string_array() {
+		String[] channel_data_string = {"NA", "NA", "NA", "NA", "NA", "NA", "NA", "NA"};
+		if (is_data_valid()) {
+			int[] channel_data = get_channel_data();
+			for (int i = 0; i < channel_data.length; i++) {
+			    channel_data_string[i] = Integer.toString(channel_data[i]);
+			}
+		}
+		
+		return channel_data_string;
 	}
 }

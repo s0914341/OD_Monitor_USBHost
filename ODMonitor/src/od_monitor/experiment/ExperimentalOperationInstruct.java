@@ -63,7 +63,7 @@ public class ExperimentalOperationInstruct {
     /*20150121 added by michael
      * sensor instance */
     public ODMonitorSensor mODMonitorSensor;
-    private byte[] sensor_raw_buffer;
+    private mutil_sensor_raw_data_composition sensor_raw;
     public class experiment_mail_alert {
     	public final static int ALERT_OD_VALUE_COUNT_THRESHOLD = 1;
     	
@@ -87,6 +87,37 @@ public class ExperimentalOperationInstruct {
 		public long repeat_time;
 	};
 	
+	public class mutil_sensor_raw_data_composition {
+		private static final int ONE_SENSOR_COMPOSITION_SIZE = 10;
+		private static final int IS_ONLINE = 0;
+		private static final int INDEX = 1;
+		private int total_sensor_count = 0;
+		public byte[] sensor_raw_buffer = null;
+		public int[] raw_data = null;
+		
+		public mutil_sensor_raw_data_composition (int total_sensor) {
+			total_sensor_count = total_sensor;
+			sensor_raw_buffer = new byte[total_sensor_count*4*ONE_SENSOR_COMPOSITION_SIZE];
+		}
+		
+		public void convert_raw_byte_to_int_buffer() {
+			 IntBuffer raw_IntBuffer = ByteBuffer.wrap(sensor_raw_buffer).order(ByteOrder.LITTLE_ENDIAN).asIntBuffer();
+		     raw_data = new int[raw_IntBuffer.remaining()];
+		     raw_IntBuffer.get(raw_data);
+		}
+		
+		public int get_is_online(int sensor_num) {
+			return raw_data[IS_ONLINE + sensor_num*ONE_SENSOR_COMPOSITION_SIZE];
+		}
+		
+		public int[] get_raw_data(int sensor_num) {
+			int[] channel_data = new int[SensorDataComposition.raw_total_sensor_data_size];
+			System.arraycopy(raw_data, INDEX + sensor_num*ONE_SENSOR_COMPOSITION_SIZE, channel_data, 0, SensorDataComposition.raw_total_sensor_data_size);
+			
+			return channel_data;
+		}
+	}
+	
 	public ExperimentalOperationInstruct(Context parentContext, D2xxManager ftdid2xxContext, TextView read_text) {
 	    ExperimentalOperationInstructContext = parentContext;
 	    ftdid2xx = ftdid2xxContext;
@@ -107,8 +138,8 @@ public class ExperimentalOperationInstruct {
 	    sensor.flowControl = 0;
 	    
         /*20150121 added by michael*/
-        mODMonitorSensor = new ODMonitorSensor ( parentContext );
-        sensor_raw_buffer = new byte[160];
+        mODMonitorSensor = new ODMonitorSensor (parentContext);
+        sensor_raw = new mutil_sensor_raw_data_composition(EXPERIMENT_MAX_SENSOR_COUNT);
 	}
 	
 	public double get_init_od() {
@@ -210,7 +241,7 @@ public class ExperimentalOperationInstruct {
 		}
 		
 		if (mail_alert.once_alert_od_value) {
-		    if (mail_alert.mail_alert_od_value <= current_one_sensor_data.get_sensor_od_value()) {
+		    if (mail_alert.mail_alert_od_value <= current_one_sensor_data[sensor_num].get_sensor_od_value()) {
 			    mail_alert.mail_alert_od_value_count++;
 			    if (experiment_mail_alert.ALERT_OD_VALUE_COUNT_THRESHOLD <= mail_alert.mail_alert_od_value_count) {
 				    mail_alert.is_mail_alert_od_value = true;
@@ -397,27 +428,29 @@ public class ExperimentalOperationInstruct {
     	return ret;
 	}*/
 	
-	public int save_sensor_data_to_file(int index, long time, int[] raw_data, String file_name, int sensor_num) {
+	public int save_sensor_data_to_file(int index, long time, int[] raw_data, String file_name, int sensor_num, boolean data_valid) {
 		int ret = 0;
 		double od_value = 0;
 		
         FileOperateByteArray write_file = new FileOperateByteArray(SensorDataComposition.sensor_raw_folder_name, file_name, true);
     	try {
-            write_file.create_file(write_file.generate_filename_no_date());
-            
+            write_file.create_file(write_file.generate_filename_no_date());  
             if (raw_data != null) {
                 if (raw_data.length == SensorDataComposition.raw_total_sensor_data_size) {
     		    	current_one_sensor_data[sensor_num] = new SensorDataComposition();
+    		    	current_one_sensor_data[sensor_num].set_data_valid(data_valid);
     		    	current_one_sensor_data[sensor_num].set_sensor_get_index(index);
     		    	// write this sensor data time to file
     		    	current_one_sensor_data[sensor_num].set_sensor_measurement_time(time);
-    		    	current_one_sensor_data[sensor_num].set_raw_sensor_data(raw_data);
-    		    	if (ODMonitorApplication.no_devices) {
-    		    	    od_value = od_cal.calculate_od(current_one_sensor_data[sensor_num].get_channel_data())+(double)(sensor_num+1)*Math.random(); 
-    		    	} else {
-    		    		od_value = od_cal.calculate_od(current_one_sensor_data[sensor_num].get_channel_data());
+    		    	if (data_valid) {
+    		    	    current_one_sensor_data[sensor_num].set_raw_sensor_data(raw_data);
+    		    	    if (ODMonitorApplication.no_devices) {
+    		    	        od_value = od_cal.calculate_od(current_one_sensor_data[sensor_num].get_channel_data())+(double)(sensor_num+1)*Math.random(); 
+    		    	    } else {
+    		    		    od_value = od_cal.calculate_od(current_one_sensor_data[sensor_num].get_channel_data());
+    		    	    }
+    		    	    current_one_sensor_data[sensor_num].set_sensor_od_value(od_value);
     		    	}
-    		    	current_one_sensor_data[sensor_num].set_sensor_od_value(od_value);
     		    	write_file.write_file(current_one_sensor_data[sensor_num].buffer);
     		    } else {
     		    	ret = -3;
@@ -444,20 +477,17 @@ public class ExperimentalOperationInstruct {
 		int try_count = sensor_command_retry_count;
 		
 		if (ODMonitorApplication.no_devices) {
-			int[] is_online = {1, 1, 1, 1};
+			boolean[] is_online = {true, true, true, true};
 			int[] raw_data_save = {597, 704, 702, 698, 698, 694, 694, 692, 693};
 			
 			long current_system_time = System.currentTimeMillis();
 			for (int sensor_num = 0; sensor_num < EXPERIMENT_MAX_SENSOR_COUNT; sensor_num++) {
-				if (1 == is_online[sensor_num]) {
-			        String file_name = SensorDataComposition.sensor_raw_file_name + (sensor_num+1);
-			        if (0 == save_sensor_data_to_file(sensor_data_index, current_system_time, raw_data_save, file_name, sensor_num)) {
-            	        compare_alert_od_value(sensor_num);
-	                    ret = 0;
-	                }
-				} else {
-					
-				}
+			    String file_name = SensorDataComposition.sensor_raw_file_name + (sensor_num+1);
+			    if (0 == save_sensor_data_to_file(sensor_data_index, current_system_time, raw_data_save, file_name, sensor_num, is_online[sensor_num])) {
+			    	if (is_online[sensor_num])
+			    	    compare_alert_od_value(sensor_num);
+	                ret = 0;
+	            }
 			}
 			
 			/*if (0 == save_sensor_data_to_file(sensor_data_index, new Date().getTime(), raw_data_save, SensorDataComposition.sensor_raw_file_name)) {
@@ -477,26 +507,25 @@ public class ExperimentalOperationInstruct {
 			} catch (InterruptedException e) {
 			}
 	        
-	        mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_GET_RAW_DATA, 0, 0, sensor_raw_buffer, 0 );
-	        IntBuffer raw_IntBuffer = ByteBuffer.wrap(sensor_raw_buffer).order(ByteOrder.LITTLE_ENDIAN).asIntBuffer();
-	        int[] raw_data = new int[raw_IntBuffer.remaining()];
-	        raw_IntBuffer.get(raw_data);
-	        Log.d(Tag, raw_data[0]+","+ raw_data[1]+","+ raw_data[2]+","+raw_data[3]+","+raw_data[4]+","+raw_data[5]+","+raw_data[6]+","+raw_data[7]+","+raw_data[8]+","+raw_data[9]);
-	        int[] raw_data_save = new int[SensorDataComposition.raw_total_sensor_data_size];
+	        mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_GET_RAW_DATA, 0, 0, sensor_raw.sensor_raw_buffer, 0 );
+	        sensor_raw.convert_raw_byte_to_int_buffer();
+	       // Log.d(Tag, raw_data[0]+","+ raw_data[1]+","+ raw_data[2]+","+raw_data[3]+","+raw_data[4]+","+raw_data[5]+","+raw_data[6]+","+raw_data[7]+","+raw_data[8]+","+raw_data[9]);
+	       // int[] raw_data_save = new int[SensorDataComposition.raw_total_sensor_data_size];
 	        
-	        for (int j = 0; j < 4; j++) {
-	        	if (1 == raw_data[j*10]) {
-	                for (int i = 0; i < SensorDataComposition.raw_total_sensor_data_size; i++) {
-	        	        raw_data_save[i] = raw_data[1+i+j*10];
-	                }
 	        
-	                String file_name = SensorDataComposition.sensor_raw_file_name + (j+1);
-	                if (0 == save_sensor_data_to_file(sensor_data_index, new Date().getTime(), raw_data_save, SensorDataComposition.sensor_raw_file_name, j)) {
-	                	compare_alert_od_value(j);
-			            ret = 0;
-			        }
-	        	}
-	        }
+	        long current_system_time = System.currentTimeMillis();
+			for (int sensor_num = 0; sensor_num < EXPERIMENT_MAX_SENSOR_COUNT; sensor_num++) {
+				boolean data_valid = false;
+				if (1 == sensor_raw.get_is_online(sensor_num)) {
+					data_valid = true;
+				}
+			    String file_name = SensorDataComposition.sensor_raw_file_name + (sensor_num+1);
+			    if (0 == save_sensor_data_to_file(sensor_data_index, current_system_time, sensor_raw.get_raw_data(sensor_num), file_name, sensor_num, data_valid)) {
+            	    if (data_valid)
+			    	    compare_alert_od_value(sensor_num);
+	                ret = 0;
+	            }
+			}
 	        	
 	        sensor_data_index++;
 			current_instruct_data.next_instruct_index++;
@@ -517,8 +546,9 @@ public class ExperimentalOperationInstruct {
 		char[] readDataChar = new char[cmd.length+10];
 		int receive_length = 0;
 		
-		if (ODMonitorApplication.no_devices)
-			return ret;
+		if (ODMonitorApplication.no_devices) {
+			return 0;
+		}
 		
         for (int i = 0; i < cmd.length; i++) {
             String send_cmd = String.copyValueOf(cmd, i, 1);

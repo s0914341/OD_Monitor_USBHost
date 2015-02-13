@@ -210,7 +210,7 @@ public class ODMonitorActivity extends Activity {
 	public class mail_attach_file {
 		public String file;
 		public String content_type;
-		public String mail_alert_type;
+		public String mail_alert_type = "";
 	};
 	
 	/** Called when the activity is first created. */
@@ -491,10 +491,10 @@ public class ODMonitorActivity extends Activity {
     }
     
     class mutil_sensor_data_information {
-    	public boolean is_data_valid = false;
+    	public boolean is_file_valid = false;
     	public byte[] sensor_data = null;
     	public long sensor_data_size = 0;
-    	public SensorDataComposition sensor_composition = null;
+    	public SensorDataComposition sensor_composition = new SensorDataComposition();
     }
 	
 	void FileToODDataDB() {
@@ -512,8 +512,8 @@ public class ODMonitorActivity extends Activity {
             	if (sensor_info.sensor_data_size >= SensorDataComposition.total_size) {
             	    sensor_info.sensor_data = new byte[(int)sensor_info.sensor_data_size];
             	    read_file.read_file(sensor_info.sensor_data);
-            	    sensor_info.sensor_composition = new SensorDataComposition();
-            	    sensor_info.is_data_valid = true;
+            	    //sensor_info.sensor_composition.set_data_valid(true);
+            	    sensor_info.is_file_valid = true;
             	}
             } catch (IOException e) {
 	            // TODO Auto-generated catch block
@@ -525,7 +525,7 @@ public class ODMonitorActivity extends Activity {
         }
         
         for (int i = 0; i < list.size(); i++) {
-        	if (list.get(i).is_data_valid) {
+        	if (list.get(i).is_file_valid) {
         	    show_data_to_db = true;
         		break;
         	}
@@ -542,18 +542,22 @@ public class ODMonitorActivity extends Activity {
         			sensor_info = list.get(i);
         			if (((int)sensor_info.sensor_data_size-offset) >= SensorDataComposition.total_size ) {
         				sensor_info.sensor_composition.set_buffer(sensor_info.sensor_data, offset, SensorDataComposition.total_size);
-        				date = new Date(sensor_info.sensor_composition.get_sensor_measurement_time());
-        				od_value = sensor_info.sensor_composition.get_sensor_od_value();   
-        				sensor_data_array[i] = sensor_info.sensor_composition;
+        				//date = new Date(sensor_info.sensor_composition.get_sensor_measurement_time());
+        				//od_value = sensor_info.sensor_composition.get_sensor_od_value();   
         				sensor_data_read_end = false;
         			} else {
-        				sensor_data_array[i] = null;
+        				sensor_info.sensor_composition.set_data_valid(false);
         			}
-        			od_database.InsertODRawDataToDB(i, sensor_data_array[i]);
+        			
+        			sensor_data_array[i] = sensor_info.sensor_composition;
         		}
         		
-        		if (sensor_data_read_end)
+        		if (sensor_data_read_end) {
         			break;
+        		} else {
+        			for (int i = 0; i < sensor_data_array.length; i++)
+        			    od_database.InsertODRawDataToDB(i, sensor_data_array[i]);
+        		}
         		
 				offset += SensorDataComposition.total_size;
 				od_database.InsertODDataToDB(sensor_data_array);
@@ -711,7 +715,10 @@ public class ODMonitorActivity extends Activity {
 	        	
 	        	if (null != od_database.get_database()) {
 	        	    list_mail_attach.add(export_experiment_csv(od_database.get_database(), ODSqlDatabase.OD_VALUE_TABLE_NAME));
-	        	    list_mail_attach.add(export_experiment_csv(od_database.get_database(), ODSqlDatabase.OD_CHANNEL_RAW_TABLE_NAME));
+	        	    for (int i = 0; i < ExperimentalOperationInstruct.EXPERIMENT_MAX_SENSOR_COUNT; i++) {
+	        	    	String table_name = ODSqlDatabase.OD_CHANNEL_RAW_TABLE_NAME + (i+1);
+	        	        list_mail_attach.add(export_experiment_csv(od_database.get_database(), table_name));
+	        	    }
 	        	} else {
 	        		Log.d (Tag, "OD_monitor_db is not created!");
 	        	}
@@ -832,10 +839,13 @@ public class ODMonitorActivity extends Activity {
 				exp.set_enable_mail_alert_interval(email_set.is_enable_alert_interval());
 				exp.set_enable_mail_alert_od_value(email_set.is_enable_alert_od_value());
 				
-				SensorDataComposition sensor_data = exp.get_current_one_sensor_data();
-				if (null != sensor_data) {
-				    if (email_set.get_alert_od_value() > sensor_data.get_sensor_od_value())
-				        exp.enable_once_mail_alert_od_value();
+				SensorDataComposition[] sensor_data_array = exp.get_current_one_sensor_data();
+				
+				for (int i = 0; i < sensor_data_array.length; i++) {
+					if (null != sensor_data_array[i]) {
+					    if (email_set.get_alert_od_value() > sensor_data_array[i].get_sensor_od_value())
+					        exp.enable_once_mail_alert_od_value();
+					}
 				}
 			} else {
 				exp.set_enable_mail_alert_interval(false);
@@ -946,9 +956,12 @@ public class ODMonitorActivity extends Activity {
 		        		mail_attach = export_experiment_csv(od_database.get_database(), ODSqlDatabase.OD_VALUE_TABLE_NAME);
 		        		mail_attach.mail_alert_type = mail_alert_type;
 		        	    list_mail_attach.add(mail_attach);
-		        	    mail_attach = export_experiment_csv(od_database.get_database(), ODSqlDatabase.OD_CHANNEL_RAW_TABLE_NAME);
-		        	    mail_attach.mail_alert_type = mail_alert_type;
-		        	    list_mail_attach.add(mail_attach);
+		        	    for (int i = 0; i < ExperimentalOperationInstruct.EXPERIMENT_MAX_SENSOR_COUNT; i++) {
+		        	    	String table_name = ODSqlDatabase.OD_CHANNEL_RAW_TABLE_NAME + (i+1);
+		        	        mail_attach = export_experiment_csv(od_database.get_database(), table_name);
+		        	        mail_attach.mail_alert_type = mail_alert_type;
+		        	        list_mail_attach.add(mail_attach);
+		        	    }
 		        	} else {
 		        		Log.d (Tag, "OD_monitor_db is not created!");
 		        	}
@@ -962,6 +975,9 @@ public class ODMonitorActivity extends Activity {
 		        	SensorDataComposition[] sensor_data = (SensorDataComposition[])b.getSerializable("sensor_data_composition_array");
 		        	if (null != sensor_data) {
 		        		od_database.InsertODDataToDB(sensor_data);
+		        		for (int i = 0; i < sensor_data.length; i++) {
+		        			od_database.InsertODRawDataToDB(i, sensor_data[i]);
+		        		}
 		        		table.gvUpdatePageBar("select count(*) from " + ODSqlDatabase.OD_VALUE_TABLE_NAME, od_database.get_database());
 						table.gvReadyTable("select * from " + ODSqlDatabase.OD_VALUE_TABLE_NAME, od_database.get_database());
 						table.refresh_last_table();
