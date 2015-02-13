@@ -501,7 +501,7 @@ public class ExperimentalOperationInstruct {
 	}
 	
 	public int send_shaker_command(char[] cmd) {
-		int ret = 0;
+		int ret = -1;
 		char[] readDataChar = new char[cmd.length+10];
 		int receive_length = 0;
 		
@@ -512,8 +512,8 @@ public class ExperimentalOperationInstruct {
             String send_cmd = String.copyValueOf(cmd, i, 1);
     		if (0 < (receive_length = shaker.SendMessage(send_cmd, readDataChar))) {
     		    String read_string = String.copyValueOf(readDataChar, 0, receive_length);
-    		    if (false == read_string.equals(send_cmd)) {
-    		        ret = -1;
+    		    if (read_string.equals(send_cmd)) {
+    		        ret = 0;
     		    }
     		} else {
     		}

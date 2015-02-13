@@ -141,6 +141,12 @@ public class ODMonitorActivity extends Activity {
 	public static final int EXPERIMENT_INTERRUPTION = 6;
 	public static final int EXPERIMENT_EMAIL_ALERT_SETTING_LOAD = 7;
 	
+	public static final int INTERRUPT_TYPE_NA = 0;
+	public static final int INTERRUPT_TYPE_SHAKER = -1;
+	public static final int INTERRUPT_TYPE_DEVICES = -2;
+	public static final int INTERRUPT_TYPE_SENSOR = -3;
+	public static final int INTERRUPT_TYPE_DELAY = -4;
+	
 	public static final long WAIT_TIMEOUT = 3000;
 	public static final long WAIT_TIMEOUT_GET_EXPERIMENT = 10000;
 	public byte  ledPrevMap = 0x00;
@@ -854,7 +860,8 @@ public class ODMonitorActivity extends Activity {
 	}
 		
 	final Handler handler =  new Handler() {
-    	public void handleMessage(Message msg) {	
+    	public void handleMessage(Message msg) {
+    		String interrupt_type_string = "";
 		    Bundle b = msg.getData();   
 		    int experiment_status = b.getInt("experiment status");
 		    switch (experiment_status) {
@@ -886,6 +893,27 @@ public class ODMonitorActivity extends Activity {
 		        break;
 		        
 		        case EXPERIMENT_INTERRUPTION:
+		        	switch (b.getInt("experiment interrupt_type")) {
+		        	    case INTERRUPT_TYPE_SHAKER:
+		        	    	interrupt_type_string = "(send shaker command error)";
+		        	    	Toast.makeText(ODMonitorActivity.this, interrupt_type_string, Toast.LENGTH_SHORT).show();
+		        	    break;
+		        	    
+		        	    case INTERRUPT_TYPE_DEVICES:
+		        	    	interrupt_type_string = "(Devices error)";
+		        	    	Toast.makeText(ODMonitorActivity.this, interrupt_type_string, Toast.LENGTH_SHORT).show();
+		        	    break;
+		        	    
+		        	    case INTERRUPT_TYPE_SENSOR:
+		        	    	interrupt_type_string = "(sensor device error)";
+		        	    	Toast.makeText(ODMonitorActivity.this, interrupt_type_string, Toast.LENGTH_SHORT).show();
+		        	    break;
+		        	    
+		        	    case INTERRUPT_TYPE_DELAY:
+		        	    	interrupt_type_string = "(delay instruction error)";
+		        	    	Toast.makeText(ODMonitorActivity.this, interrupt_type_string, Toast.LENGTH_SHORT).show();
+		        	    break;   
+		        	}
 		        case EXPERIMENT_STOP:
 		        	set_email_alert_view(false, false);
 		        	experiment_time_run = false;
@@ -898,7 +926,8 @@ public class ODMonitorActivity extends Activity {
 		        	mail_alert_shake.start();
 		        	
 		        	List<mail_attach_file> list_mail_attach = new ArrayList<mail_attach_file>();
-		        	String mail_alert_type = b.getString("mail_alert_type", "no type");
+		        	/* subject add mail alert type and interrupt type string */
+		        	String mail_alert_type = b.getString("mail_alert_type", "no type") + interrupt_type_string;
 		        	mail_attach_file mail_attach = export_experiment_chart();
 		        	mail_attach.mail_alert_type = mail_alert_type;
 		        	list_mail_attach.add(mail_attach);
@@ -951,6 +980,7 @@ public class ODMonitorActivity extends Activity {
 			int next_instruct_index = 0;
 			ExperimentScriptData current_instruct_data;
 			int ret = 0;
+			int interrupt_type = INTERRUPT_TYPE_NA;
 			Bundle b = new Bundle(1);
 			Message msg;
 			ODMonitorApplication app_data = ((ODMonitorApplication)ODMonitorActivity.this.getApplication());
@@ -1010,11 +1040,14 @@ public class ODMonitorActivity extends Activity {
 			        msg.setData(b);
 				    mHandler.sendMessage(msg);
 					break;
-				} else if ((false == sensor_status.isEnabled()) || (false == shaker_status.isEnabled())) {
+				} else if ((false == sensor_status.isEnabled()) || (false == shaker_status.isEnabled()) || (0 != ret)) {
+					if ((false == sensor_status.isEnabled()) || (false == shaker_status.isEnabled()))
+						interrupt_type = INTERRUPT_TYPE_DEVICES;
 					ret = experiment.shaker_off_instruct(current_instruct_data);
 					experiment_stop = false;
 					experiment_thread_run = false;
 					b = new Bundle(1);
+					b.putInt("experiment interrupt_type", interrupt_type);
 					b.putInt("experiment status", EXPERIMENT_INTERRUPTION);
 					b.putString("mail_alert_type", "(experiment interruption)");
 					msg = mHandler.obtainMessage();
@@ -1069,24 +1102,34 @@ public class ODMonitorActivity extends Activity {
 							msg = mHandler.obtainMessage();
 					        msg.setData(b);
 						    mHandler.sendMessage(msg);
+				        } else {
+				        	interrupt_type = INTERRUPT_TYPE_SENSOR;
 				        }
 				    break;
 						
 					case ExperimentScriptData.INSTRUCT_SHAKER_ON:
 						ret = experiment.shaker_max_time_instruct();
 						ret = experiment.shaker_on_instruct(current_instruct_data);
+						if (0 != ret)
+							interrupt_type = INTERRUPT_TYPE_SHAKER;
 					break;
 						
 					case ExperimentScriptData.INSTRUCT_SHAKER_OFF:
 						ret = experiment.shaker_off_instruct(current_instruct_data);
+						if (0 != ret)
+							interrupt_type = INTERRUPT_TYPE_SHAKER;
 					break;
 						
 					case ExperimentScriptData.INSTRUCT_SHAKER_SET_TEMPERATURE:
 						ret = experiment.shaker_set_temperature_instruct(current_instruct_data);
+						if (0 != ret)
+							interrupt_type = INTERRUPT_TYPE_SHAKER;
 					break;
 						
 					case ExperimentScriptData.INSTRUCT_SHAKER_SET_SPEED:
 						ret = experiment.shaker_set_speed_instruct(current_instruct_data);
+						if (0 != ret)
+							interrupt_type = INTERRUPT_TYPE_SHAKER;
 					break;
 						
 					case ExperimentScriptData.INSTRUCT_REPEAT_COUNT:
@@ -1100,6 +1143,8 @@ public class ODMonitorActivity extends Activity {
 
 					case ExperimentScriptData.INSTRUCT_DELAY:
 						ret = experiment.experiment_delay_instruct(current_instruct_data);
+						if (0 != ret)
+							interrupt_type = INTERRUPT_TYPE_DELAY;
 					break;
 						
 					default:

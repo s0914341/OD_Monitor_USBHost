@@ -423,7 +423,7 @@ public class DeviceUART {
             	ret = iavailable;
             	iavailable = 0;
 			} else {
-				Toast.makeText(DeviceUARTContext, "no data receive", Toast.LENGTH_SHORT).show();
+				Log.d(Tag, "no data receive!");
 			}
 		}
 		
