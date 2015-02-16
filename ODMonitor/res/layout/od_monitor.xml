@@ -286,21 +286,32 @@
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="16dp">
            	
-           	 <TextView
-                android:id="@+id/TextViewExperiment"
-                android:layout_width="match_parent"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="Experiment Information:"
-                android:background="#FF5577AA"
-                android:layout_height="wrap_content">
-             </TextView>
+                <LinearLayout 
+                    android:id="@+id/ExperimentInformationLayout" 
+                    android:background="#FF5577AA"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <ImageView
+                        android:id="@+id/imageViewInformation"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/information">
+                    </ImageView>     
+           	        <TextView
+                        android:id="@+id/TextViewExperiment"
+                        android:layout_width="match_parent"
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:text="Experiment Information:"
+                        android:layout_height="wrap_content">
+                    </TextView>
+                </LinearLayout>
              
-             <TextView
-                android:id="@+id/ExperimentTimer"
-                android:layout_width="fill_parent"
-                android:textSize="8pt"
-                android:layout_height="wrap_content">
-             </TextView>
+                <TextView
+                    android:id="@+id/ExperimentTimer"
+                    android:layout_width="fill_parent"
+                    android:textSize="8pt"
+                    android:layout_height="wrap_content">
+                </TextView>
              </LinearLayout> 
              
             <LinearLayout

@@ -5,15 +5,27 @@
     android:focusable="true"
     android:focusableInTouchMode="true" >
 
-    <TextView
-        android:id="@+id/textViewTitle"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
+    <LinearLayout
+        android:id="@+id/liner_layout_title"
         android:background="#FF5577AA"
-        android:textSize="12pt"
-        android:text="Experiment Script Setting" >
-    </TextView>
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+        <ImageView 
+            android:src="@drawable/script" 
+            android:id="@+id/ScriptIcon" 
+            android:layout_width="16pt"
+            android:layout_height="16pt">
+        </ImageView>
+        
+        <TextView
+            android:id="@+id/textViewTitle"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:textSize="12pt"
+            android:text="Experiment Script Setting" >
+        </TextView>
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/liner_layout_button"
@@ -26,36 +38,44 @@
             android:layout_width="0dp"
             android:layout_height="80dp"
             android:layout_weight="1"
-            android:background="@drawable/buttons_script_edit"
+            android:drawableLeft="@drawable/add_script"
+            android:gravity="center_vertical|center_horizontal|start"
             android:text="@string/script_add_step"
-            android:textSize="26sp" />
+            android:textSize="22sp"
+            android:typeface="serif" />
 
         <Button
             android:id="@+id/button_clear_all"
             android:layout_width="0dp"
             android:layout_height="80dp"
             android:layout_weight="1"
-            android:textSize="26sp"
-            android:background="@drawable/buttons_script_edit"
-            android:text="@string/script_clear_all" />
+            android:drawableLeft="@drawable/clear_all"
+            android:gravity="center_vertical|center_horizontal|start"
+            android:text="@string/script_clear_all"
+            android:textSize="22sp"
+            android:typeface="serif" />
 
         <Button
             android:id="@+id/button_save"
             android:layout_width="0dp"
             android:layout_height="80dp"
             android:layout_weight="1"
-            android:textSize="26sp"
-            android:background="@drawable/buttons_script_edit"
-            android:text="@string/script_save_script" />
+            android:drawableLeft="@drawable/save_script"
+            android:gravity="center_vertical|center_horizontal|start"
+            android:text="@string/script_save_script"
+            android:textSize="22sp"
+            android:typeface="serif" />
 
         <Button
             android:id="@+id/button_load"
             android:layout_width="0dp"
             android:layout_height="80dp"
             android:layout_weight="1"
-            android:textSize="26sp"
-            android:background="@drawable/buttons_script_edit"
-            android:text="@string/script_load_script" />
+            android:drawableLeft="@drawable/load_script"
+            android:gravity="center_vertical|center_horizontal|start"
+            android:text="@string/script_load_script"
+            android:textSize="22sp"
+            android:typeface="serif" />
 
     </LinearLayout>
 
@@ -63,7 +83,7 @@
         android:id="@+id/listViewStep"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/textViewTitle"
+        android:layout_below="@+id/liner_layout_title"
         android:layout_above="@+id/liner_layout_button"
         android:layout_marginBottom="10dp"
         android:layout_marginTop="10dp"

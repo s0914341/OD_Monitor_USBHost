@@ -159,9 +159,9 @@ public class StepScriptActivityList extends Activity {
 	        }
 	    });
 	    
-        Typeface cFont = Typeface.createFromAsset(getAssets(), "fonts/Sansation-Bold.ttf");
+        //Typeface cFont = Typeface.createFromAsset(getAssets(), "fonts/Sansation-Bold.ttf");
 	    button_add_item = (Button) findViewById(R.id.button_add);
-	    button_add_item.setTypeface(cFont);
+	  //  button_add_item.setTypeface(cFont);
 	    button_add_item.setOnClickListener(new View.OnClickListener() {
         	public void onClick(View v) {
         		try {
@@ -174,7 +174,7 @@ public class StepScriptActivityList extends Activity {
 		});
 	    
 	    button_clear_all = (Button) findViewById(R.id.button_clear_all);
-	    button_clear_all.setTypeface(cFont);
+	    //button_clear_all.setTypeface(cFont);
 	    button_clear_all.setOnClickListener(new View.OnClickListener() {
         	public void onClick(View v) {
         		try {
@@ -189,7 +189,7 @@ public class StepScriptActivityList extends Activity {
 		});
 	    
 	    button_save_script = (Button) findViewById(R.id.button_save);
-	    button_save_script.setTypeface(cFont);
+	    //button_save_script.setTypeface(cFont);
 	    button_save_script.setOnClickListener(new View.OnClickListener() {
         	public void onClick(View v) {
         		save_script_setting_to_file();
@@ -197,7 +197,7 @@ public class StepScriptActivityList extends Activity {
 		});
 	    
 	    button_load_script = (Button) findViewById(R.id.button_load);
-	    button_load_script.setTypeface(cFont);
+	    //button_load_script.setTypeface(cFont);
 	    button_load_script.setOnClickListener(new View.OnClickListener() {
         	public void onClick(View v) {	
         		if (0 == load_script_to_step(list, experiment_item)) {

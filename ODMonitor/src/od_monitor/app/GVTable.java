@@ -16,40 +16,39 @@ import android.widget.AdapterView.OnItemClickListener;
 
 public class GVTable extends LinearLayout {
 	protected GridView gvTable,gvPage;	
-	protected SimpleAdapter saPageID,saTable;// ?��?�器
-	protected ArrayList<HashMap<String, String>> srcPageID,srcTable;// ?��?���?
+	protected SimpleAdapter saPageID,saTable;
+	protected ArrayList<HashMap<String, String>> srcPageID,srcTable;
 	
-	protected int TableRowCount=10;//??�页?��，�?�页??�Row?�数
-	protected int TableColCount=0;//每页col??�数???
+	protected int TableRowCount=10;
+	protected int TableColCount=0;
 	protected SQLiteDatabase db;
 	protected String rawSQL="";
-	protected Cursor curTable;//??�页?��使用??�Cursor
-	protected OnTableClickListener clickListener;//?��个�?�页?��件被?��?��?��??��?��?�函?��
-	protected OnPageSwitchListener switchListener;//??�页??�换?��??��?��?�函?��
+	protected Cursor curTable;
+	protected OnTableClickListener clickListener;
+	protected OnPageSwitchListener switchListener;
 	
 	public GVTable(Context context) {
 		super(context);
-		this.setOrientation(VERTICAL);//??�直
+		this.setOrientation(VERTICAL);
 		
 		//----------------------------------------
 		gvPage=new GridView(context);
 		gvPage.setColumnWidth(80);
-		gvPage.setNumColumns(GridView.AUTO_FIT);//??�页??�钮?��??�自?��设置
+		gvPage.setNumColumns(GridView.AUTO_FIT);
 		addView(gvPage, new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT,
-		        LayoutParams.WRAP_CONTENT));//宽长式样
+		        LayoutParams.WRAP_CONTENT));
 		srcPageID = new ArrayList<HashMap<String, String>>();
 		saPageID = new SimpleAdapter(context,
-				srcPageID,// ?��?��?���?
-				R.layout.items,//XML实现
-				new String[] { "ItemText" },// ?��?�数组�?�ImageItem对�?��?��?�项
+				srcPageID,
+				R.layout.items,
+				new String[] { "ItemText" },
 				new int[] { R.id.ItemText });
-		// 添�?�并且显�?
+		
 		gvPage.setAdapter(saPageID);
-	    // 添�?��?�息处�??
 		gvPage.setOnItemClickListener(new OnItemClickListener(){
 		    public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-		        LoadTable(arg2);//?��?��???��?�页读�?�对应�?�数?��
-			    if(switchListener!=null){//??�页??�换?��
+		        LoadTable(arg2);
+			    if(switchListener!=null){
 		            switchListener.onPageSwitchListener(arg2,srcPageID.size());
 			    }
 		    }
@@ -57,23 +56,23 @@ public class GVTable extends LinearLayout {
 		//----------------------------------------
 		gvTable=new GridView(context);
 		addView(gvTable, new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT,
-                LayoutParams.WRAP_CONTENT));//宽长式样
+                LayoutParams.WRAP_CONTENT));
 		
 		srcTable = new ArrayList<HashMap<String, String>>();
 		saTable = new SimpleAdapter(context,
-				srcTable,// ?��?��?���?
-				R.layout.items,//XML实现
-				new String[] { "ItemText" },// ?��?�数组�?�ImageItem对�?��?��?�项
+				srcTable,
+				R.layout.items,
+				new String[] { "ItemText" },
 				new int[] { R.id.ItemText });
-		// 添�?�并且显�?
+		
 		gvTable.setAdapter(saTable);
 		gvTable.setOnItemClickListener(new OnItemClickListener(){
 			public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
 					long arg3) {
-				int y=arg2/curTable.getColumnCount()-1;//??��?��?��?��?��??
+				int y=arg2/curTable.getColumnCount()-1;
 				int x=arg2 % curTable.getColumnCount();
-				if (clickListener != null//??�页?��?��被点?��
-						&& y!=-1) {//?��中�?��?�是??��?��?�时
+				if (clickListener != null
+						&& y!=-1) {
 					clickListener.onTableClickListener(x,y,curTable);
 				}
 			}
@@ -99,18 +98,17 @@ public class GVTable extends LinearLayout {
 	 * 表示从TABLE_NAME表获??�数?��，跳�?10行�?��??9�?
 	 * @param pageID ??��?��?��?�页ID
 	 */
-	protected void LoadTable(int pageID)
-	{
-		if(curTable!=null)//??�放上次??�数?��
+	protected void LoadTable(int pageID) {
+		if(curTable!=null)
 			curTable.close();
 		
 	    String sql= rawSQL+" Limit "+String.valueOf(TableRowCount)+ " Offset " +String.valueOf(pageID*TableRowCount);
 	    curTable = db.rawQuery(sql, null);
 	    
-	    gvTable.setNumColumns(curTable.getColumnCount());//表现为表?��??�关?��?���?
+	    gvTable.setNumColumns(curTable.getColumnCount());
 	    TableColCount=curTable.getColumnCount();
 	    srcTable.clear();
-	    // ??��?��?�段??�称
+	   
 	    int colCount = curTable.getColumnCount();
 		for (int i = 0; i < colCount; i++) {
 			HashMap<String, String> map = new HashMap<String, String>();
@@ -118,11 +116,10 @@ public class GVTable extends LinearLayout {
 			srcTable.add(map);
 		}
 		
-		// ??�举?��????�数?��
 		int recCount=curTable.getCount();
-		for (int i = 0; i < recCount; i++) {//定�?�到�??��?��?��
+		for (int i = 0; i < recCount; i++) {
 			curTable.moveToPosition(i);
-			for(int ii=0;ii<colCount;ii++)//定�?�到�??��?��?��中�?��?�个字段
+			for(int ii=0;ii<colCount;ii++)
 			{
 				HashMap<String, String> map = new HashMap<String, String>();
 				map.put("ItemText", curTable.getString(ii));
@@ -184,14 +181,14 @@ public class GVTable extends LinearLayout {
 	{
 		Cursor rec = db.rawQuery(sql, null);
 		rec.moveToLast();
-		long recSize=rec.getLong(0);//??��?��?�数
+		long recSize=rec.getLong(0);
 		rec.close();
-		int pageNum=(int)(recSize/TableRowCount) + 1;//??��?��?�页?��
+		int pageNum=(int)(recSize/TableRowCount) + 1;
 		
 		srcPageID.clear();
 		for (int i = 0; i < pageNum; i++) {
 			HashMap<String, String> map = new HashMap<String, String>();
-			map.put("ItemText", "Page." + String.valueOf(i));// 添�?�图??��?��?��?�ID
+			map.put("ItemText", "Page." + String.valueOf(i));
 			srcPageID.add(map);
 		}
 		saPageID.notifyDataSetChanged();
