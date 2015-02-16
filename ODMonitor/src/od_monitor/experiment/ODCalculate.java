@@ -23,7 +23,7 @@ public class ODCalculate {
 	
 	public static final double[] Upscale_factors = new double[] {13000.0/10.0, 13000.0/30.9, 13000.0/78.7, 13000.0/260.0, 13000.0/549.0, 13000.0/1500.0, 13000.0/5100.0, 1.0};
 	public static final double[] Adjecency_Channel_Ratio = new double[] {30.9/10, 78.7/30.9, 260/78.7, 549.0/260.0, 1500.0/549.0, 5100.0/1500.0, 13000.0/5100.0};
-	public static final int Ref_OD_Count = 1;
+	public static final int Ref_OD_Count = 25;
 	public static int Ref_OD_times = 0;
 	public static double Ref_OD = 0.0;
 	public double initial_OD600 = 0.0;

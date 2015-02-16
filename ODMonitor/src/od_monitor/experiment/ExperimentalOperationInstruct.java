@@ -393,41 +393,6 @@ public class ExperimentalOperationInstruct {
 		return current_one_sensor_data;
 	}
 	
-	/*public int save_sensor_data_to_file(int index, long time, String inStr) {
-		int ret = 0;
-		
-        file_operate_byte_array write_file = new file_operate_byte_array(sensor_data_composition.sensor_raw_folder_name, sensor_data_composition.sensor_raw_file_name, true);
-    	try {
-    	//	write_file.delete_file(write_file.generate_filename_no_date());
-            write_file.create_file(write_file.generate_filename_no_date());
-            
-            if (inStr != null) {
-    		    int[] raw_data = OD_calculate.parse_raw_data(inStr);
-    		    if ((raw_data != null) && (raw_data.length == sensor_data_composition.raw_total_sensor_data_size)) {
-    		    	current_one_sensor_data = new sensor_data_composition();
-    		    	current_one_sensor_data.set_sensor_get_index(index);
-    		    	// write this sensor data time to file
-    		    	current_one_sensor_data.set_sensor_measurement_time(time);
-    		    	current_one_sensor_data.set_raw_sensor_data(raw_data);
-    		    	write_file.write_file(current_one_sensor_data.buffer);
-    		    } else {
-    		    	ret = -3;
-    		    	Log.e(Tag, "parse raw data fail");
-    		    }
-    		} else {
-    			ret = -2;
-    		}
-    		
-    		write_file.flush_close_file();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			ret = -1;
-		}
-    	
-    	return ret;
-	}*/
-	
 	public int save_sensor_data_to_file(int index, long time, int[] raw_data, String file_name, int sensor_num, boolean data_valid) {
 		int ret = 0;
 		double od_value = 0;
@@ -490,11 +455,6 @@ public class ExperimentalOperationInstruct {
 	            }
 			}
 			
-			/*if (0 == save_sensor_data_to_file(sensor_data_index, new Date().getTime(), raw_data_save, SensorDataComposition.sensor_raw_file_name)) {
-        	    compare_alert_od_value();
-                ret = 0;
-            }*/
-			
 			sensor_data_index++;
 			current_instruct_data.next_instruct_index++;	
 			return ret;
@@ -503,7 +463,7 @@ public class ExperimentalOperationInstruct {
 		if (mODMonitorSensor.isDeviceOnline()) {
 	        mODMonitorSensor.IOCTL( CMD_T.HID_CMD_ODMONITOR_REQUEST_RAW_DATA, 0, 0, null, 1 );
 	        try {
-				Thread.sleep(2000);
+				Thread.sleep(22000);
 			} catch (InterruptedException e) {
 			}
 	        

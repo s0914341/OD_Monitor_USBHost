@@ -43,7 +43,6 @@ import org.achartengine.chart.PointStyle;
 import org.achartengine.chartdemo.demo.chart.AverageTemperatureChart;
 import org.achartengine.chartdemo.demo.chart.IDemoChart;
 import org.achartengine.chartdemo.demo.chart.ODChartBuilder;
-import org.achartengine.chartdemo.demo.chart.ODChartToBitmap;
 import org.achartengine.model.SeriesSelection;
 import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.model.XYSeries;
@@ -730,7 +729,10 @@ public class ODMonitorActivity extends Activity {
     	    
     	    case R.id.item_export_raw_data:
     	    	if (null != od_database.get_database()) {
-    	    		export_experiment_csv(od_database.get_database(), ODSqlDatabase.OD_CHANNEL_RAW_TABLE_NAME);
+    	    		for (int i = 0; i < ExperimentalOperationInstruct.EXPERIMENT_MAX_SENSOR_COUNT; i++) {
+	        	    	String table_name = ODSqlDatabase.OD_CHANNEL_RAW_TABLE_NAME + (i+1);
+	        	    	export_experiment_csv(od_database.get_database(), table_name);
+	        	    }
     	    	} else {
     	    		Toast.makeText(ODMonitorActivity.this, "OD_monitor_db is not created!",Toast.LENGTH_SHORT).show();
     	    		Log.d(Tag, "no data base is created!");
@@ -797,8 +799,10 @@ public class ODMonitorActivity extends Activity {
 	public mail_attach_file export_experiment_chart() {
 		mail_attach_file mail_attach = new mail_attach_file();
     	
-    	ODChartToBitmap chart = new ODChartToBitmap(ODMonitorActivity.this, 0, 0, 1024, 768);
-    	mail_attach.file = chart.get_file_dir() + "/" + chart.get_file_name();
+		ODChartBuilder chart = new ODChartBuilder();
+		chart.chart_to_bmp(ODMonitorActivity.this, 0, 0, 1024, 768);
+    	//ODChartToBitmap chart = new ODChartToBitmap(ODMonitorActivity.this, 0, 0, 1024, 768);
+    	mail_attach.file = chart.get_bmp_file_dir() + "/" + chart.get_bmp_file_name();
     	mail_attach.content_type = "image/png";
     	Log.d (Tag, mail_attach.file);
     	
