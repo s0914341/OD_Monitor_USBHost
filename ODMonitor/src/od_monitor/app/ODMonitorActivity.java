@@ -75,6 +75,7 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
@@ -287,6 +288,7 @@ public class ODMonitorActivity extends Activity {
 		sync_send_script = new SyncData();
 		sync_start_experiment = new SyncData();
 		ODMonitorApplication app_data = ((ODMonitorApplication)this.getApplication());
+		app_data.addActivity(this);
 		app_data.set_sync_chart_notify(sync_chart_notify);
 		
 		try {
@@ -684,7 +686,9 @@ public class ODMonitorActivity extends Activity {
             public void onClick(DialogInterface dialog, int i) {
             	//unregisterReceiver(mUsbReceiver);
             	//System.exit(0);
-            	finish();
+            	ODMonitorApplication app_data = ((ODMonitorApplication)ODMonitorActivity.this.getApplication());
+                app_data.exit();
+            	//finish();
             	//LEDActivity.this.finish();//Ãö³¬activity
             }
         });
@@ -1039,6 +1043,8 @@ public class ODMonitorActivity extends Activity {
 		    mHandler.sendMessage(msg);
 		    
 			while (experiment_thread_run) {
+				Log.i(Tag, "Heap usedMemory: "+Debug.getNativeHeapSize());
+
 				if (app_data.is_mail_alert_load()) {
 					app_data.set_mail_alert_load(false);
 					/* read email alert setting file */

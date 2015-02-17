@@ -142,6 +142,7 @@ public class ODChartBuilder extends Activity {
       debug_view = (TextView)findViewById(R.id.DebugView);
       
       ODMonitorApplication app_data = ((ODMonitorApplication)this.getApplication());
+      app_data.addActivity(this);
 	  sync_chart_notify = app_data.get_sync_chart_notify();
 	  initial_renderer();
       

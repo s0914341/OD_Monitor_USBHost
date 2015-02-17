@@ -21,6 +21,7 @@ import org.achartengine.chartdemo.demo.chart.IDemoChart;
 import org.achartengine.chartdemo.demo.chart.ODChartBuilder;
 
 import od_monitor.app.ODMonitorActivity;
+import od_monitor.app.ODMonitorApplication;
 import od_monitor.app.R;
 import od_monitor.app.R.array;
 import od_monitor.app.R.drawable;
@@ -101,6 +102,8 @@ public class StepScriptActivityList extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
+	    ODMonitorApplication app_data = ((ODMonitorApplication)this.getApplication());
+	    app_data.addActivity(this);
 	  //把資料加入ArrayList中
 	    setContentView(R.layout.step_script_layout);
 	    list_view = (ListView) findViewById(R.id.listViewStep);

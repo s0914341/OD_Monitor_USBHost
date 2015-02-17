@@ -52,6 +52,8 @@ public class EmailSettingActivity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
+	    ODMonitorApplication app_data = ((ODMonitorApplication)this.getApplication());
+	    app_data.addActivity(this);
 	    setContentView(R.layout.email_setting);
 	    
 	    String title_string = "Email Alert Setting";

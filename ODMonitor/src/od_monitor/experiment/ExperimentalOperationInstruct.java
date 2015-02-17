@@ -35,8 +35,8 @@ public class ExperimentalOperationInstruct {
 	private static final int shaker_command_retry_count = 5;
 	private static final int sensor_command_retry_count = 5;
 	private static final long shaker_command_fail_retry_delay = 300;
-	private static final long MAIL_ALERT_UNIT = 60000;
-	//private static final long MAIL_ALERT_UNIT = 1000;
+	//private static final long MAIL_ALERT_UNIT = 60000;
+	private static final long MAIL_ALERT_UNIT = 1000;
 	
     /*graphical objects*/
     public TextView readText;

@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import od_monitor.app.data.ExperimentScriptData;
 import od_monitor.app.data.StepExperimentScriptData;
 
+import od_monitor.app.ODMonitorApplication;
 import od_monitor.app.R;
 import od_monitor.app.R.id;
 import od_monitor.app.R.layout;
@@ -49,6 +50,8 @@ public class StepScriptSettingActivity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
+	    ODMonitorApplication app_data = ((ODMonitorApplication)this.getApplication());
+	    app_data.addActivity(this);
 	    setContentView(R.layout.step_script_setting);
 	    
 	    Intent intent = getIntent(); 
