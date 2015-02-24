@@ -25,7 +25,6 @@ import java.util.Date;
 
 import od_monitor.app.ODMonitorActivity;
 import od_monitor.app.ODMonitorApplication;
-import od_monitor.app.data.AndroidAccessoryPacket;
 import od_monitor.app.data.ChartDisplayData;
 import od_monitor.app.data.ExperimentScriptData;
 import od_monitor.app.data.MachineInformation;
@@ -599,7 +598,7 @@ public class ODChartBuilder extends Activity {
             mChartView.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
             // handle the click event on the chart
-                Log.d ( Tag, "height: " + Integer.toString( mChartView.getMinimumHeight() ) );
+                Log.d ( Tag, "height: " + Integer.toString( mChartView.getMeasuredHeight() ) );
                 Log.d ( Tag, "width: " + Integer.toString( mChartView.getMeasuredWidth() ) );
             	refresh_view_range_wait = System.currentTimeMillis();
                 SeriesSelection seriesSelection = mChartView.getCurrentSeriesAndPoint();

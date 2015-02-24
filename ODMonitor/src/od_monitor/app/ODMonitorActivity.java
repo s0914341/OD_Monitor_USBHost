@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import od_monitor.app.data.AndroidAccessoryPacket;
 import od_monitor.app.data.ChartDisplayData;
 import od_monitor.app.data.ExperimentScriptData;
 import od_monitor.app.data.MachineInformation;
@@ -149,14 +148,7 @@ public class ODMonitorActivity extends Activity {
 	
 	public static final long WAIT_TIMEOUT = 3000;
 	public static final long WAIT_TIMEOUT_GET_EXPERIMENT = 10000;
-	public byte  ledPrevMap = 0x00;
-	//public byte[] usbdataIN;
-	public AndroidAccessoryPacket acc_pkg_transfer = new AndroidAccessoryPacket(AndroidAccessoryPacket.INIT_PREFIX_VALUE);
-	public AndroidAccessoryPacket acc_pkg_receive = new AndroidAccessoryPacket(AndroidAccessoryPacket.NO_INIT_PREFIX_VALUE);
-	
-	public SeekBar volumecontrol;
-    public ProgressBar slider;
-    
+
     public ImageButton start_button;
     public ImageButton stop_button;
     public ImageButton chart_button;
@@ -499,8 +491,6 @@ public class ODMonitorActivity extends Activity {
     }
 	
 	void FileToODDataDB() {
-		Date date = null;
-        double od_value = 0;
         boolean show_data_to_db = false;
         List<mutil_sensor_data_information> list = new ArrayList<mutil_sensor_data_information>();
           

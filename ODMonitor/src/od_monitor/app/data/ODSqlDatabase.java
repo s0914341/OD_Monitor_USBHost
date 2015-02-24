@@ -11,7 +11,7 @@ public class ODSqlDatabase {
 	int id;
 	public static final String OD_VALUE_TABLE_NAME = "od";
 	private static final String INDEX = "NO";
-	private static final String DATE = "date";
+	private static final String DATE = "Date";
 	private static final String OD1 = "OD1";
 	private static final String OD2 = "OD2";
 	private static final String OD3 = "OD3";
