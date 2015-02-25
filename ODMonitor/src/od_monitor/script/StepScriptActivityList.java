@@ -18,7 +18,7 @@ import od_monitor.app.file.FileOperateByteArray;
 import od_monitor.script.SwipeDismissListViewTouchListener.DismissCallbacks;
 
 import org.achartengine.chartdemo.demo.chart.IDemoChart;
-import org.achartengine.chartdemo.demo.chart.ODChartBuilder;
+import org.achartengine.chartdemo.demo.chart.ODChartActivity;
 
 import od_monitor.app.ODMonitorActivity;
 import od_monitor.app.ODMonitorApplication;

@@ -23,7 +23,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:textSize="12pt"
-            android:text="Experiment Script Setting" >
+            android:text="@string/script_setting_title" >
         </TextView>
     </LinearLayout>
 
@@ -41,7 +41,7 @@
             android:drawableLeft="@drawable/add_script"
             android:gravity="center_vertical|center_horizontal|start"
             android:text="@string/script_add_step"
-            android:textSize="22sp"
+            android:textSize="18sp"
             android:typeface="serif" />
 
         <Button
@@ -52,7 +52,7 @@
             android:drawableLeft="@drawable/clear_all"
             android:gravity="center_vertical|center_horizontal|start"
             android:text="@string/script_clear_all"
-            android:textSize="22sp"
+            android:textSize="18sp"
             android:typeface="serif" />
 
         <Button
@@ -63,7 +63,7 @@
             android:drawableLeft="@drawable/save_script"
             android:gravity="center_vertical|center_horizontal|start"
             android:text="@string/script_save_script"
-            android:textSize="22sp"
+            android:textSize="18sp"
             android:typeface="serif" />
 
         <Button
@@ -74,7 +74,7 @@
             android:drawableLeft="@drawable/load_script"
             android:gravity="center_vertical|center_horizontal|start"
             android:text="@string/script_load_script"
-            android:textSize="22sp"
+            android:textSize="18sp"
             android:typeface="serif" />
 
     </LinearLayout>
@@ -87,6 +87,8 @@
         android:layout_above="@+id/liner_layout_button"
         android:layout_marginBottom="10dp"
         android:layout_marginTop="10dp"
+        android:divider="#555555"
+        android:dividerHeight="2dp"
         android:drawSelectorOnTop="false"
         android:visibility="visible" />
 

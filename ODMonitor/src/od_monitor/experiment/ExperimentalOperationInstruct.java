@@ -35,8 +35,8 @@ public class ExperimentalOperationInstruct {
 	private static final int shaker_command_retry_count = 5;
 	private static final int sensor_command_retry_count = 5;
 	private static final long shaker_command_fail_retry_delay = 300;
-	//private static final long MAIL_ALERT_UNIT = 60000;
-	private static final long MAIL_ALERT_UNIT = 1000;
+	private static final long MAIL_ALERT_UNIT = 60000;
+	//private static final long MAIL_ALERT_UNIT = 1000;
 	
     /*graphical objects*/
     public TextView readText;
@@ -45,9 +45,7 @@ public class ExperimentalOperationInstruct {
     public ODCalculate od_cal = new ODCalculate();
   
     public DeviceUART shaker;
-    public DeviceUART sensor;
     public int shaker_port_num = -1;
-    public int sensor_port_num = -1;
     public int sensor_data_index = 0;
     public final static char[] shaker_id = new char[] {'I', 'D', ' '};
     public final static char[] shaker_on = new char[] {'O', 'N', ' '};
@@ -129,13 +127,6 @@ public class ExperimentalOperationInstruct {
 	    shaker.stopBit = 1;
 	    shaker.parity = 0;
 	    shaker.flowControl = 0; 
-	    
-	    sensor = new DeviceUART(ExperimentalOperationInstructContext, ftdid2xx, read_text);
-	    sensor.baudRate = 115200;
-	    sensor.dataBit = 8;
-	    sensor.stopBit = 1;
-	    sensor.parity = 0;
-	    sensor.flowControl = 0;
 	    
         /*20150121 added by michael*/
         mODMonitorSensor = new ODMonitorSensor (parentContext);

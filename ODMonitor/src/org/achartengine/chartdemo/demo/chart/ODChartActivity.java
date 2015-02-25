@@ -66,8 +66,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class ODChartBuilder extends Activity {
-  public final static String Tag = ODChartBuilder.class.getName();
+public class ODChartActivity extends Activity {
+  public final static String Tag = ODChartActivity.class.getName();
   /** The main dataset that includes all the series that go into a chart. */
   private XYMultipleSeriesDataset mDataset = new XYMultipleSeriesDataset();
   /** The main renderer that includes all the renderers customizing a chart. */
@@ -175,7 +175,7 @@ public class ODChartBuilder extends Activity {
       			  write_file.create_file(write_file.generate_filename());
       			  write_file.write_file(mChartView.toBitmap(), Bitmap.CompressFormat.PNG, 100);
         		  write_file.flush_close_file();
-        		  Toast.makeText(ODChartBuilder.this, "Save chart success!", Toast.LENGTH_SHORT).show(); 
+        		  Toast.makeText(ODChartActivity.this, "Save chart success!", Toast.LENGTH_SHORT).show(); 
       		  } catch (IOException e) {
       			  // TODO Auto-generated catch block
       			  e.printStackTrace();
@@ -354,8 +354,11 @@ public class ODChartBuilder extends Activity {
   		int[] index = b.getIntArray("index");
   		long[] date = b.getLongArray("date");
   		double[] od = b.getDoubleArray("od");
+  		boolean[] data_valid = b.getBooleanArray("data valid");
   		
   		for (int i = 0; i < chart_count; i++) {
+  			if (!data_valid[i])
+  				continue;
   			chart_end_time = date[i];
   		    if (od[i] > chart_max_od_value)
        	        chart_max_od_value = od[i];
@@ -459,6 +462,7 @@ public class ODChartBuilder extends Activity {
                 	    int[] index = new int[chart_count];
                 	    long[] date = new long[chart_count];
                 	    double[] od = new double[chart_count];
+                	    boolean[] data_valid = new boolean[chart_count];
                 	
                 	    for (int i = 0; i < chart_count; i++) {
                 	        double od_value = 0;
@@ -468,6 +472,7 @@ public class ODChartBuilder extends Activity {
    		                    index[i] = current_raw_index[sensor_num];
    		                    date[i] = one_sensor_data.get_sensor_measurement_time();
    		                    od[i] = od_value;
+   		                    data_valid[i] = one_sensor_data.is_data_valid();
    		         
  	                        Log.d(Tag, "thread index:"+current_raw_index + " date:" + one_sensor_data.get_sensor_measurement_time() + " od:" + od_value);
  	                    
@@ -483,6 +488,7 @@ public class ODChartBuilder extends Activity {
 		                b.putIntArray("index", index);
 		                b.putLongArray("date", date);
 		                b.putDoubleArray("od", od);
+		                b.putBooleanArray("data valid", data_valid);
 		               //  b.putSerializable("chart array", chart_data);
 		                msg.setData(b);
 	                    mHandler.sendMessage(msg);
@@ -525,9 +531,10 @@ public class ODChartBuilder extends Activity {
 			
 			while ((size-offset) >= SensorDataComposition.total_size) {
 				 one_sensor_data.set_buffer(data, offset, SensorDataComposition.total_size);
-				 date = new Date(one_sensor_data.get_sensor_measurement_time());	 
 				 offset += SensorDataComposition.total_size;
-				 
+				 if (!one_sensor_data.is_data_valid())
+					 continue;
+				 date = new Date(one_sensor_data.get_sensor_measurement_time());			 
 				 od_value = one_sensor_data.get_sensor_od_value();    
 		        // od_value = OD_calculate.calculate_od(one_sensor_data.get_channel_data());      
 		         if (mCurrentSeries[sensor_num] == null) {
@@ -553,12 +560,21 @@ public class ODChartBuilder extends Activity {
 		         mCurrentSeries[sensor_num].add(date, od_value);
 			}
 		    
-			refresh_current_view_range(date, chart_max_od_value, chart_max_od_value, chart_min_od_value); 
-			refresh_current_view_range(date, chart_min_od_value, chart_max_od_value, chart_min_od_value); 
+			if (null != date) {
+			    refresh_current_view_range(date, chart_max_od_value, chart_max_od_value, chart_min_od_value); 
+			    refresh_current_view_range(date, chart_min_od_value, chart_max_od_value, chart_min_od_value); 
+			}
 		} else {
-			if (mCurrentSeries[sensor_num] == null) {
+			boolean have_series = false;
+			for (int i = 0; i < sensor_num; i++) {
+				if (mCurrentSeries[i] != null)
+					have_series = true;
+			}
+			
+			if (null == mCurrentSeries[sensor_num]) {
 			    long init_date = System.currentTimeMillis();
-	            mRenderer.setRange(new double[] {init_date, init_date+20000, 0.0-(1.0/20.0), 0.0+(1.0/20.0)});
+			    if (!have_series)
+	                mRenderer.setRange(new double[] {init_date, init_date+20000, 0.0-(1.0/20.0), 0.0+(1.0/20.0)});
 	            CreateNewSeries(sensor_num);
 	        }
 		}
@@ -609,7 +625,7 @@ public class ODChartBuilder extends Activity {
                 	Date date = new Date((long)seriesSelection.getXValue());
                 	SimpleDateFormat date_format = new SimpleDateFormat("MM/dd h:mm:ss a");
                 	Toast.makeText(
-                    ODChartBuilder.this,
+                    ODChartActivity.this,
                     SERIES_NAME + (seriesSelection.getSeriesIndex()+1)
                     + "\nclosest point value X = " + date_format.format(date)
                     + "\nY = " + seriesSelection.getValue(), Toast.LENGTH_SHORT).show();

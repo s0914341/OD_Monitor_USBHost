@@ -18,15 +18,15 @@
             android:layout_width="300dp"
             android:layout_height="wrap_content"
             android:textSize="8pt"
-            android:text="High Speed(rpm)" />
+            android:text="@string/high_speed" />
 
         <EditText
             android:id="@+id/editTextHighSpeedRPM"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:maxLength="3"
-            android:hint="50~300"
+            android:hint="@string/speed_hint"
             android:digits="0123456789"
             android:inputType="number" >
         </EditText>
@@ -45,15 +45,15 @@
             android:layout_width="300dp"
             android:layout_height="wrap_content"
             android:textSize="8pt"
-            android:text="Low Speed(rpm)" />
+            android:text="@string/low_speed" />
 
         <EditText
             android:id="@+id/editTextLowSpeedRPM"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:maxLength="3"
-            android:hint="50~300"
+            android:hint="@string/speed_hint"
             android:digits="0123456789"
             android:inputType="number" >
         </EditText>
@@ -72,15 +72,15 @@
             android:layout_width="300dp"
             android:layout_height="wrap_content"
             android:textSize="8pt"
-            android:text="High Speed Operation Duration(sec)" />
+            android:text="@string/high_speed_duration" />
 
         <EditText
             android:id="@+id/editTextHighSpeedOperationDuration"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:maxLength="5"
-            android:hint="10~99999"
+            android:hint="@string/speed_duration_hint"
             android:digits="0123456789"
             android:inputType="number" >
         </EditText>
@@ -99,15 +99,15 @@
             android:layout_width="300dp"
             android:layout_height="wrap_content"
             android:textSize="8pt"
-            android:text="Low Speed Operation Duration(sec)" />
+            android:text="@string/low_speed_duration" />
 
        <EditText
             android:id="@+id/editTextLowSpeedOperationDuration"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:maxLength="5"
-            android:hint="10~99999"
+            android:hint="@string/speed_duration_hint"
             android:digits="0123456789"
             android:inputType="number" >
         </EditText>
@@ -126,15 +126,15 @@
             android:layout_width="300dp"
             android:layout_height="wrap_content"
             android:textSize="8pt"
-            android:text="Temperature(℃)" />
+            android:text="@string/temperature" />
 
        <EditText
             android:id="@+id/editTextTemperature"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:maxLength="2"
-            android:hint="0~70"
+            android:hint="@string/temperature_hint"
             android:digits="0123456789"
             android:inputType="number" >
         </EditText>
@@ -153,7 +153,7 @@
             android:layout_width="300dp"
             android:layout_height="wrap_content"
             android:textSize="8pt"
-            android:text="Experiment Operation Duration" />
+            android:text="@string/experiment_duration" />
 
        <EditText
             android:id="@+id/editExperimentOperationDurationHour"
@@ -161,7 +161,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:maxLength="2"
-            android:hint="0~90"
+            android:hint="@string/hour_hint"
             android:digits="0123456789"
             android:inputType="number" >
         </EditText>
@@ -171,7 +171,7 @@
             android:layout_width="50dp"
             android:layout_height="wrap_content"
             android:textSize="8pt"
-            android:text="Hour" />
+            android:text="@string/hour" />
         
         <EditText
             android:id="@+id/editExperimentOperationDurationMin"
@@ -179,7 +179,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:maxLength="2"
-            android:hint="0~59"
+            android:hint="@string/min_hint"
             android:digits="0123456789"
             android:inputType="number" >
         </EditText>
@@ -189,7 +189,7 @@
             android:layout_width="50dp"
             android:layout_height="wrap_content"
             android:textSize="8pt"
-            android:text="Min" />
+            android:text="@string/min" />
 
     </LinearLayout>
 
@@ -204,7 +204,7 @@
             android:layout_width="match_parent"
             android:layout_height="80dp"
             android:textSize="20sp"
-            android:text="OK" />
+            android:text="@string/ok" />
     </LinearLayout>
 
 </LinearLayout>

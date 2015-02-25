@@ -8,5 +8,45 @@
     <string name="script_save_script">Save Script</string>
     <string name="script_load_script">Load Script</string>
     <string name="script_add_step">Add Step</string>
+    
+    <string name="devices_information">Devices status information/App version:0.11</string>
+    <string name="status_shaker">Shaker</string>
+    <string name="status_sensor">Sensor</string>
+    <string name="init_od">Initial OD</string>
+    <string name="init_od_hint">0~0.05</string>
+    <string name="init_od_value">0</string>
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+    <string name="chart">Chart</string>
+    <string name="script_set">Script Set</string>
+    <string name="email_alert">E-mail Alert</string>
+    <string name="experiment_information">Experiment Information:</string>
+    
+    <string name="from_email">From Email</string>
+    <string name="from_email_hint">from@email</string>
+    <string name="from_email_password">Password(From Email)</string>
+    <string name="to_email">To Email</string>
+    <string name="to_email_hint">to@email</string>
+    <string name="subject">Subject</string>
+    <string name="body">Body</string>
+    <string name="alert_interval">Alert Interval</string>
+    <string name="alert_od_value">Alert OD Value</string>
+    <string name="alert_od_value_value">0</string>
+    <string name="ok">OK</string>
+    
+    <string name="script_setting_title">Experiment Script Setting</string>
+    <string name="high_speed">High Speed(rpm)</string>
+    <string name="speed_hint">50~300</string>
+    <string name="low_speed">Low Speed(rpm)</string>
+    <string name="high_speed_duration">High Speed Operation Duration(sec)</string>
+    <string name="low_speed_duration">Low Speed Operation Duration(sec)</string>
+    <string name="speed_duration_hint">10~99999</string>
+    <string name="temperature">Temperature(℃)</string>
+    <string name="temperature_hint">0~70</string>
+    <string name="experiment_duration">Experiment Operation Duration</string>
+    <string name="hour_hint">0~90</string>
+    <string name="hour">Hour</string>
+    <string name="min_hint">0~59</string>
+    <string name="min">Min</string>
     <string name="link"><a href="http://www.maestrogen.com/ftp/i-track/user_manual.html">iTrack User Manual</a></string>
 </resources>

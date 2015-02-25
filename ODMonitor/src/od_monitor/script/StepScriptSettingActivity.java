@@ -287,32 +287,9 @@ public class StepScriptSettingActivity extends Activity {
 		});
 	}
 	
-	public void save_experiment_script() throws NumberFormatException{	
-		/*if (spinner_instruct.getSelectedItemPosition() == experiment_script_data.INSTRUCT_SHAKER_SET_SPEED) {
-			try {
-			    int shaker_speed = Integer.parseInt(editText_shaker_speed.getText().toString());
-			    if (shaker_speed < 20) {
-			    	shaker_speed = 20;
-			    } else if (shaker_speed > 255) {
-			    	shaker_speed = 255;
-			    }
-			    
-			    item_data.set_shaker_speed_value(shaker_speed);
-			} catch (NumberFormatException ex) {
-	    	      // Do something
-				Builder WarrningDialog = new AlertDialog.Builder(this);
-				WarrningDialog.setTitle("Warrning");
-				WarrningDialog.setMessage("please enter correct number");
-				WarrningDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-		            public void onClick(DialogInterface dialog, int i) {
-		            }
-		        });
-				WarrningDialog.show();
-				Log.d(Tag, "NumberFormatException");
-				throw new NumberFormatException("shaker_speed format exception");
-	    	}
-		}*/
+	public void save_experiment_script() throws NumberFormatException {	
 		boolean fail = false; 
+		
 		int val = Integer.parseInt(editText_high_speed_rpm.getText().toString().trim());
         if ((val > 300) || (val < 50)) {
         	editText_high_speed_rpm.setError("50~300");

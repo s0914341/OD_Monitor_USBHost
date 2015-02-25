@@ -18,7 +18,8 @@
              android:src="@drawable/icon">
          </ImageView>
          
-         <TextView android:text="TextView" 
+         <TextView 
+             android:text="TextView" 
              android:id="@+id/textViewStepIndex" 
              android:layout_width="wrap_content" 
              android:layout_height="wrap_content" 
@@ -28,7 +29,8 @@
              android:textAppearance="?android:attr/textAppearanceLarge">
          </TextView>
          
-         <TextView android:text="TextView" 
+         <TextView 
+             android:text="TextView" 
              android:id="@+id/textViewStep" 
              android:layout_width="wrap_content" 
              android:layout_height="wrap_content" 
@@ -45,14 +47,16 @@
          android:id="@+id/linearLayout2" 
          android:orientation="horizontal">
          
-         <TextView  android:text="TextView" 
+         <TextView  
+             android:text="TextView" 
              android:id="@+id/textViewHighSpeed" 
              android:layout_height="wrap_content" 
              android:layout_width="wrap_content" 
              android:textAppearance="?android:attr/textAppearanceSmall">
          </TextView>
          
-         <TextView  android:text="TextView" 
+         <TextView  
+             android:text="TextView" 
              android:id="@+id/textViewHighSpeedDuration" 
              android:layout_height="wrap_content" 
              android:layout_width="wrap_content" 
@@ -60,7 +64,8 @@
              android:textAppearance="?android:attr/textAppearanceSmall">
          </TextView>
          
-          <TextView  android:text="TextView" 
+          <TextView  
+             android:text="TextView" 
              android:id="@+id/textViewTemperature" 
              android:layout_height="wrap_content" 
              android:layout_width="wrap_content" 
@@ -74,14 +79,16 @@
          android:id="@+id/linearLayout3" 
          android:orientation="horizontal">
          
-         <TextView  android:text="TextView" 
+         <TextView  
+             android:text="TextView" 
              android:id="@+id/textViewLowSpeed" 
              android:layout_height="wrap_content" 
              android:layout_width="wrap_content" 
              android:textAppearance="?android:attr/textAppearanceSmall">
          </TextView>
          
-         <TextView  android:text="TextView" 
+         <TextView  
+             android:text="TextView" 
              android:id="@+id/textViewLowSpeedDuration" 
              android:layout_height="wrap_content" 
              android:layout_width="wrap_content" 
@@ -89,7 +96,8 @@
              android:textAppearance="?android:attr/textAppearanceSmall">
          </TextView>
          
-         <TextView  android:text="TextView" 
+         <TextView  
+             android:text="TextView" 
              android:id="@+id/textViewOperationDuration" 
              android:layout_height="wrap_content" 
              android:layout_width="wrap_content" 
