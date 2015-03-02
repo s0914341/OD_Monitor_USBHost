@@ -433,7 +433,7 @@ public class ExperimentalOperationInstruct {
 		int try_count = sensor_command_retry_count;
 		
 		if (ODMonitorApplication.no_devices) {
-			boolean[] is_online = {true, false, false, false};
+			boolean[] is_online = {true, true, true, true};
 			int[] raw_data_save = {597, 704, 702, 698, 698, 694, 694, 692, 693};
 			
 			long current_system_time = System.currentTimeMillis();

@@ -107,6 +107,56 @@ public class StepScriptActivityList extends Activity {
 	  //把資料加入ArrayList中
 	    setContentView(R.layout.step_script_layout);
 	    list_view = (ListView) findViewById(R.id.listViewStep);
+	    //Typeface cFont = Typeface.createFromAsset(getAssets(), "fonts/Sansation-Bold.ttf");
+	    button_add_item = (Button) findViewById(R.id.button_add);
+	  //  button_add_item.setTypeface(cFont);
+	    button_add_item.setOnClickListener(new View.OnClickListener() {
+        	public void onClick(View v) {
+        		try {
+        			add_new_instruct(list.size(),  experiment_item, list);
+                    adapter.notifyDataSetChanged();
+                } catch (NullPointerException e) {
+                    Log.i(Tag, "Tried to add null value");
+                }
+        	}
+		});
+	    
+	    button_clear_all = (Button) findViewById(R.id.button_clear_all);
+	    //button_clear_all.setTypeface(cFont);
+	    button_clear_all.setOnClickListener(new View.OnClickListener() {
+        	public void onClick(View v) {
+        		try {
+        			list.clear();
+        			experiment_item.clear();
+        		    adapter.notifyDataSetChanged();
+        		    button_save_script.setTextColor(TEXT_REMINDER_SAVE_COLOR);
+                } catch (NullPointerException e) {
+                    Log.i(Tag, "Tried to clear all exception");
+                }
+        	}
+		});
+	    
+	    button_save_script = (Button) findViewById(R.id.button_save);
+	    //button_save_script.setTypeface(cFont);
+	    button_save_script.setOnClickListener(new View.OnClickListener() {
+        	public void onClick(View v) {
+        		save_script_setting_to_file();
+        	}
+		});
+	    
+	    button_load_script = (Button) findViewById(R.id.button_load);
+	    //button_load_script.setTypeface(cFont);
+	    button_load_script.setOnClickListener(new View.OnClickListener() {
+        	public void onClick(View v) {	
+        		if (0 == load_script_to_step(list, experiment_item)) {
+        		    adapter.notifyDataSetChanged();
+        		    button_save_script.setTextColor(TEXT_DEFAULT_COLOR);
+                    Toast.makeText(StepScriptActivityList.this, "Load script success!", Toast.LENGTH_SHORT).show(); 
+        		} else {
+        			Toast.makeText(StepScriptActivityList.this, "No script file existed!", Toast.LENGTH_SHORT).show(); 
+        		}
+        	}
+		});
 	    
 	    if (0 != load_script_to_step(list, experiment_item)) {
 	        add_default_experiment_script();
@@ -161,57 +211,6 @@ public class StepScriptActivityList extends Activity {
 	                show_script_setting_dialog(id, position);
 	        }
 	    });
-	    
-        //Typeface cFont = Typeface.createFromAsset(getAssets(), "fonts/Sansation-Bold.ttf");
-	    button_add_item = (Button) findViewById(R.id.button_add);
-	  //  button_add_item.setTypeface(cFont);
-	    button_add_item.setOnClickListener(new View.OnClickListener() {
-        	public void onClick(View v) {
-        		try {
-        			add_new_instruct(list.size(),  experiment_item, list);
-                    adapter.notifyDataSetChanged();
-                } catch (NullPointerException e) {
-                    Log.i(Tag, "Tried to add null value");
-                }
-        	}
-		});
-	    
-	    button_clear_all = (Button) findViewById(R.id.button_clear_all);
-	    //button_clear_all.setTypeface(cFont);
-	    button_clear_all.setOnClickListener(new View.OnClickListener() {
-        	public void onClick(View v) {
-        		try {
-        			list.clear();
-        			experiment_item.clear();
-        		    adapter.notifyDataSetChanged();
-        		    button_save_script.setTextColor(TEXT_REMINDER_SAVE_COLOR);
-                } catch (NullPointerException e) {
-                    Log.i(Tag, "Tried to clear all exception");
-                }
-        	}
-		});
-	    
-	    button_save_script = (Button) findViewById(R.id.button_save);
-	    //button_save_script.setTypeface(cFont);
-	    button_save_script.setOnClickListener(new View.OnClickListener() {
-        	public void onClick(View v) {
-        		save_script_setting_to_file();
-        	}
-		});
-	    
-	    button_load_script = (Button) findViewById(R.id.button_load);
-	    //button_load_script.setTypeface(cFont);
-	    button_load_script.setOnClickListener(new View.OnClickListener() {
-        	public void onClick(View v) {	
-        		if (0 == load_script_to_step(list, experiment_item)) {
-        		    adapter.notifyDataSetChanged();
-        		    button_save_script.setTextColor(TEXT_DEFAULT_COLOR);
-                    Toast.makeText(StepScriptActivityList.this, "Load script success!", Toast.LENGTH_SHORT).show(); 
-        		} else {
-        			Toast.makeText(StepScriptActivityList.this, "No script file existed!", Toast.LENGTH_SHORT).show(); 
-        		}
-        	}
-		});
     }
 	
 	public boolean onKeyDown(int keyCode, KeyEvent event) {

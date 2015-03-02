@@ -17,11 +17,14 @@ package org.achartengine.chartdemo.demo.chart;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 import od_monitor.app.ODMonitorActivity;
 import od_monitor.app.ODMonitorApplication;
@@ -99,13 +102,36 @@ public class ODChartActivity extends Activity {
   private ImageButton save_chart_button;
   private long chart_start_time = System.currentTimeMillis();
   private long chart_end_time = chart_start_time + 20000;
+  private long chart_diff_time = 0;
   private double chart_max_od_value = 0;
   private double chart_min_od_value = 0;
-  private boolean refresh_view_range = true;
   private long refresh_view_range_wait = 0;
   private String bmp_file_name;
   private String bmp_file_dir;
 
+  public class refresh_chart_data implements Serializable{
+	  /**
+	 * 
+	 */
+	  private static final long serialVersionUID = -2158668727672341466L;
+	  public int sensor_num = 0;
+      public int chart_count = 0;
+	  public int[] index = null;
+	  public long[] date = null;
+	  public double[] od = null;
+	  public boolean[] data_valid = null;
+	  
+	  public refresh_chart_data(int sensor_num, int count) {
+		  this.sensor_num = sensor_num;
+		  chart_count = count;
+		  if (chart_count > 0) {
+			  index = new int[chart_count];
+			  date = new long[chart_count];
+			  od = new double[chart_count];
+			  data_valid = new boolean[chart_count];
+		  }
+	  }
+  }
 
   @Override
   protected void onSaveInstanceState(Bundle outState) {
@@ -198,10 +224,10 @@ public class ODChartActivity extends Activity {
       mRenderer.setLabelsTextSize(15);
       mRenderer.setLegendTextSize(15);
       mRenderer.setMargins(new int[] { 20, 30, 15, 0 });
-      // long now = Math.round(new Date().getTime() / DAY) * DAY;
+      //long now = Math.round(new Date().getTime() / DAY) * DAY;
       //long now = new Date().getTime();
     
-     // mRenderer.setRange(new double[] {now, now+60000, 0, 50});
+      //mRenderer.setRange(new double[] {now, now+60000, 0, 50});
       //mRenderer.setZoomButtonsVisible(true);
       mRenderer.setZoomEnabled(true);
       mRenderer.setExternalZoomEnabled(true);
@@ -337,8 +363,7 @@ public class ODChartActivity extends Activity {
 	  }
   }
 
-  public void SerialAdd(int sensor_num, Date x, double y, double max_od_y, double min_od_y) {
-	  
+  public void SerialAdd(int sensor_num, Date x, double y, double max_od_y, double min_od_y) { 
 	  if ((System.currentTimeMillis() - refresh_view_range_wait) > 30000) {
           // add a new data point to the current series
 	      refresh_current_view_range(x, y, max_od_y, min_od_y);
@@ -351,62 +376,59 @@ public class ODChartActivity extends Activity {
   final Handler chart_handler = new Handler() {
   	public void handleMessage(Message msg) {
   		Bundle b = msg.getData();
-  		int series_num = b.getInt("series num");
-  		int chart_count = b.getInt("chart count");
-  		int[] index = b.getIntArray("index");
-  		long[] date = b.getLongArray("date");
-  		double[] od = b.getDoubleArray("od");
-  		boolean[] data_valid = b.getBooleanArray("data valid");
-  		
-  		for (int i = 0; i < chart_count; i++) {
-  			Log.d(Tag, "chart_handler data valid: "+data_valid[i]);
-  			if (!data_valid[i]) {
-  				continue;
-  			}
-  			chart_end_time = date[i];
-  		    if (od[i] > chart_max_od_value)
-       	        chart_max_od_value = od[i];
-  		    else if (od[i] < chart_min_od_value)
-       	        chart_min_od_value = od[i];
+  		List<refresh_chart_data> refresh_char_data_list = (List<refresh_chart_data>) b.getSerializable("refresh_char_data_list");
+  
+  		//for (int j = 0; j < refresh_char_data_list.size(); j++) {
+  		for (refresh_chart_data temp : refresh_char_data_list) {
+  		    for (int i = 0; i < temp.chart_count; i++) {
+  			    int sensor_num = temp.sensor_num;
+  			    boolean[] data_valid = temp.data_valid;
+  			    int[] index = temp.index;
+  	  		    long[] date = temp.date;
+  	  		    double[] od = temp.od;
+  	  		
+  			    Log.d(Tag, "chart_handler data valid: "+ data_valid[i]);
+  			    if (data_valid[i]) {
+  			        /* refresh time end value, od max and min value */ 
+  			        chart_end_time = date[i];
+  		            if (od[i] > chart_max_od_value)
+       	                chart_max_od_value = od[i];
+  		            else if (od[i] < chart_min_od_value)
+       	                chart_min_od_value = od[i];
   			
-  		    if (index[i] == 0) {
-  			    chart_start_time = date[i];
+  		            if (index[i] == 0) {
+  			            chart_start_time = date[i];
   			    
-  			    double margin = (chart_max_od_value-chart_min_od_value)/20.0;
-  			    if (margin > 0)
-  			        mRenderer.setRange(new double[] {chart_start_time, chart_start_time+20000, chart_min_od_value-margin, chart_max_od_value+margin});
-  			    else
-  			        mRenderer.setRange(new double[] {chart_start_time, chart_start_time+20000, od[i]-(1.0/20.0), od[i]+(1.0/20.0)});
+  			            double margin = (chart_max_od_value-chart_min_od_value)/20.0;
+  			            if (margin > 0)
+  			                mRenderer.setRange(new double[] {chart_start_time, chart_start_time+20000, chart_min_od_value-margin, chart_max_od_value+margin});
+  			            else
+  			                mRenderer.setRange(new double[] {chart_start_time, chart_start_time+20000, od[i]-(1.0/20.0), od[i]+(1.0/20.0)});
   			    	
-  			    if(null == mCurrentSeries[series_num])
-  	                CreateNewSeries(series_num);
-  		        mCurrentSeries[series_num].add(new Date(date[i]), od[i]);
-  		        if (null != mChartView)
-  		        	mChartView.repaint();
-  		    } else {
-  		    	if (index[i] == 1) {
-  		    	     double margin = (chart_max_od_value-chart_min_od_value)/20.0;
-	        	     if (margin > 0)
-	        	         mRenderer.setRange(new double[] {chart_start_time, chart_start_time+(chart_end_time-chart_start_time)*10, chart_min_od_value-margin, chart_max_od_value+margin});
-	        	     else 
-	        		     mRenderer.setRange(new double[] {chart_start_time, chart_start_time+(chart_end_time-chart_start_time)*10, od[i]-(1.0/20.0), od[i]+(1.0/20.0)});
-  		    	}
-  		        SerialAdd(series_num, new Date(date[i]), od[i], chart_max_od_value, chart_min_od_value);
-  		    }
+  			            if(null == mCurrentSeries[sensor_num])
+  	                        CreateNewSeries(sensor_num);
+  		                mCurrentSeries[sensor_num].add(new Date(date[i]), od[i]);
+  		                if (null != mChartView)
+  		        	        mChartView.repaint();
+  		            } else {
+  		    	        if (index[i] == 1) {
+  		    	            double margin = (chart_max_od_value-chart_min_od_value)/20.0;
+	        	            if (margin > 0)
+	        	                mRenderer.setRange(new double[] {chart_start_time, chart_start_time+(chart_end_time-chart_start_time)*10, chart_min_od_value-margin, chart_max_od_value+margin});
+	        	            else 
+	        		            mRenderer.setRange(new double[] {chart_start_time, chart_start_time+(chart_end_time-chart_start_time)*10, od[i]-(1.0/20.0), od[i]+(1.0/20.0)});
+  		    	        }
+  		                SerialAdd(sensor_num, new Date(date[i]), od[i], chart_max_od_value, chart_min_od_value);
+  		            }
   		
-  		    String str = "sensor_num: " + series_num + "\n" + "index: " + index[i] + "\n" + "OD: " + od[i] + "\n";
-    	    debug_view.setText(str);
+  		            String str = "sensor_num: " + sensor_num + "\n" + "index: " + index[i] + "\n" + "OD: " + od[i] + "\n";
+    	            debug_view.setText(str);
   	
-		    Log.d(Tag, "chart_thread handler id:"+Thread.currentThread().getId() + "process:" + android.os.Process.myTid());
-		    Log.d(Tag, "sensor_num:" + series_num + "index:"+ index[i] + "date:" + date[i] + "od:" + od[i]);
+		            Log.d(Tag, "chart_thread handler id:"+Thread.currentThread().getId() + "process:" + android.os.Process.myTid());
+		            Log.d(Tag, "sensor_num:" + sensor_num + "index:"+ index[i] + "date:" + date[i] + "od:" + od[i]);
+  			    }
+  		    }
   		}
-  		
-  		if (sync_chart_handler != null) {
-	        synchronized (sync_chart_handler) {
-	        	Log.d(Tag, "chart_handler notify");
-	        	sync_chart_handler.notify();
-	        }
-	    }
   	}
   };
   
@@ -437,6 +459,7 @@ public class ODChartActivity extends Activity {
 					}
 				}
 				
+				List<refresh_chart_data> refresh_char_data_list = new ArrayList<refresh_chart_data>();
 				for (int sensor_num = 0; sensor_num < ExperimentalOperationInstruct.EXPERIMENT_MAX_SENSOR_COUNT; sensor_num++) {
 				    int file_data_offset = 0;
 				    String file_name = SensorDataComposition.sensor_raw_file_name + (sensor_num+1);
@@ -463,21 +486,16 @@ public class ODChartActivity extends Activity {
 		            }
 		        
                     if (one_sensor_data.get_sensor_get_index() == (current_raw_index[sensor_num]+1) || (-1 == current_raw_index[sensor_num])) {
-                	    int chart_count = file_data.length/SensorDataComposition.total_size;
-                	    int[] index = new int[chart_count];
-                	    long[] date = new long[chart_count];
-                	    double[] od = new double[chart_count];
-                	    boolean[] data_valid = new boolean[chart_count];
-                	
-                	    for (int i = 0; i < chart_count; i++) {
+                    	refresh_chart_data temp_data = new refresh_chart_data(sensor_num, file_data.length/SensorDataComposition.total_size);
+                	    for (int i = 0; i < temp_data.chart_count; i++) {
                 	        double od_value = 0;
                 	        current_raw_index[sensor_num] = one_sensor_data.get_sensor_get_index();
                 	        od_value = one_sensor_data.get_sensor_od_value();   
    		                    // od_value = OD_calculate.calculate_od(one_sensor_data.get_channel_data());      
-   		                    index[i] = current_raw_index[sensor_num];
-   		                    date[i] = one_sensor_data.get_sensor_measurement_time();
-   		                    od[i] = od_value;
-   		                    data_valid[i] = one_sensor_data.is_data_valid();
+                	        temp_data.index[i] = current_raw_index[sensor_num];
+                	        temp_data.date[i] = one_sensor_data.get_sensor_measurement_time();
+                	        temp_data.od[i] = od_value;
+                	        temp_data.data_valid[i] = one_sensor_data.is_data_valid();
    		         
  	                        Log.d(Tag, "thread index:"+ current_raw_index[sensor_num] + " date:" + one_sensor_data.get_sensor_measurement_time() + " od:" + od_value);
  	                    
@@ -486,30 +504,17 @@ public class ODChartActivity extends Activity {
  	                            file_data_offset += SensorDataComposition.total_size;
  	                        }
                 	    }
-                	
-	                    synchronized (sync_chart_handler) {
-	    				    try {
-	    				    	Message msg = mHandler.obtainMessage();
-	                    	    b.putInt("series num", sensor_num);
-	    		                b.putInt("chart count", chart_count);
-	    		                b.putIntArray("index", index);
-	    		                b.putLongArray("date", date);
-	    		                b.putDoubleArray("od", od);
-	    		                b.putBooleanArray("data valid", data_valid);
-	    		               //  b.putSerializable("chart array", chart_data);
-	    		                msg.setData(b);
-	    	                    mHandler.sendMessage(msg);
-	    				    	Log.d(Tag, "chart_thread wait");
-	    				    	sync_chart_handler.wait();
-	    					} catch (InterruptedException e) {
-	    						// TODO Auto-generated catch block
-	    						e.printStackTrace();
-	    					}
-	    				}
+                	    
+                	    refresh_char_data_list.add(temp_data);
                     } else {
                         Log.d(Tag, "sensor get index:"+one_sensor_data.get_sensor_get_index() + "current_raw_index:" + current_raw_index);
                     }
 				}
+				
+				Message msg = mHandler.obtainMessage();
+                b.putSerializable("refresh_char_data_list", (Serializable) refresh_char_data_list);
+                msg.setData(b);
+                mHandler.sendMessage(msg);
 			}
 		}
 	}
@@ -557,38 +562,43 @@ public class ODChartActivity extends Activity {
 				 
 				if (null == date) {
 					chart_start_time = one_sensor_data.get_sensor_measurement_time();
+					chart_diff_time = 0;
+					chart_end_time = chart_start_time;
+				} else {
+					chart_diff_time = one_sensor_data.get_sensor_measurement_time() - chart_end_time;
+			        chart_end_time = one_sensor_data.get_sensor_measurement_time();
 				}
+				
 				date = new Date(one_sensor_data.get_sensor_measurement_time());			 
 				od_value = one_sensor_data.get_sensor_od_value();     
-		         
-		        chart_end_time = date.getTime();
+		    
 		        if (od_value > chart_max_od_value)
 		        	chart_max_od_value = od_value;
 		        else if (od_value < chart_min_od_value)
 		            chart_min_od_value = od_value;
 		            
-		      //  current_raw_index[sensor_num] = one_sensor_data.get_sensor_get_index();
-		      /*  if (1 == current_raw_index[sensor_num]) {
-		        	double margin = (chart_max_od_value-chart_min_od_value)/20.0;
-		        	if (margin > 0)
-		        	    mRenderer.setRange(new double[] {chart_start_time, chart_start_time+(chart_end_time-chart_start_time)*10, chart_min_od_value-margin, chart_max_od_value+margin});
-		        	else 
-		        		mRenderer.setRange(new double[] {chart_start_time, chart_start_time+(chart_end_time-chart_start_time)*10, od_value-(1.0/20.0), od_value+(1.0/20.0)});
-		        }*/
 		        mCurrentSeries[sensor_num].add(date, od_value);
 			}
 			
 			if (null != date) {
-				if (chart_end_time > chart_start_time) {
+				if (chart_end_time >= chart_start_time) {
+					long x_min = chart_start_time;
+					long x_max = chart_end_time+20000;
+					if ((chart_end_time - chart_start_time) > 3*chart_diff_time) {
+						x_min = chart_end_time-3*chart_diff_time;
+						x_max = chart_end_time+7*chart_diff_time;
+					} else {
+						if (chart_end_time > chart_start_time)
+							x_max = chart_start_time+chart_diff_time*10;
+					}
+					
 					double margin = (chart_max_od_value-chart_min_od_value)/20.0;
 		        	if (margin > 0)
-		        		mRenderer.setRange(new double[] {chart_start_time, chart_end_time, chart_min_od_value-margin, chart_max_od_value+margin});
+		        		mRenderer.setRange(new double[] {x_min, x_max, chart_min_od_value-margin, chart_max_od_value+margin});
 		        	else 
-		        		mRenderer.setRange(new double[] {chart_start_time, chart_end_time, od_value-(1.0/20.0), od_value+(1.0/20.0)});
+		        		mRenderer.setRange(new double[] {x_min, x_max, od_value-(1.0/20.0), od_value+(1.0/20.0)});
 				}
 				
-			    refresh_current_view_range(date, chart_max_od_value, chart_max_od_value, chart_min_od_value); 
-			    refresh_current_view_range(date, chart_min_od_value, chart_max_od_value, chart_min_od_value); 
 			}
 		} else {			
 		}
@@ -628,8 +638,8 @@ public class ODChartActivity extends Activity {
             mChartView.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
             // handle the click event on the chart
-                Log.d ( Tag, "height: " + Integer.toString( mChartView.getMeasuredHeight() ) );
-                Log.d ( Tag, "width: " + Integer.toString( mChartView.getMeasuredWidth() ) );
+                Log.d (Tag, "height: " + Integer.toString(mChartView.getMeasuredHeight()));
+                Log.d (Tag, "width: " + Integer.toString(mChartView.getMeasuredWidth()));
             	refresh_view_range_wait = System.currentTimeMillis();
                 SeriesSelection seriesSelection = mChartView.getCurrentSeriesAndPoint();
                 if (seriesSelection == null) {

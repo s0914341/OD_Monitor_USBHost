@@ -602,7 +602,6 @@ public class ODMonitorActivity extends Activity {
     
     @Override
     protected void onNewIntent(Intent intent) {
-
         super.onNewIntent(intent);
 
     	setIntent(intent);//must store the new intent unless getIntent() will return the old one
@@ -610,15 +609,6 @@ public class ODMonitorActivity extends Activity {
     		EnumerationDevice(intent);
 
     	  //processExtraData();
-    	
-    /*	usbmanager = (UsbManager) getSystemService(Context.USB_SERVICE);
-        Log.d(Tag, "usbmanager" +usbmanager);
-        mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
-        IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
-        filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
-        //filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
-        Log.d(Tag, "filter" +filter);
-        registerReceiver(mUsbReceiver, filter);*/
     }
     
     private void SetupD2xxLibrary () {
@@ -674,12 +664,8 @@ public class ODMonitorActivity extends Activity {
         ad.setMessage("Are you sure want to exit?");
         ad.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int i) {
-            	//unregisterReceiver(mUsbReceiver);
-            	//System.exit(0);
             	ODMonitorApplication app_data = ((ODMonitorApplication)ODMonitorActivity.this.getApplication());
                 app_data.exit();
-            	//finish();
-            	//LEDActivity.this.finish();//Ãö³¬activity
             }
         });
         
@@ -795,7 +781,6 @@ public class ODMonitorActivity extends Activity {
     	
 		ODChartActivity chart = new ODChartActivity();
 		chart.chart_to_bmp(ODMonitorActivity.this, 0, 0, 1024, 768);
-    	//ODChartToBitmap chart = new ODChartToBitmap(ODMonitorActivity.this, 0, 0, 1024, 768);
     	mail_attach.file = chart.get_bmp_file_dir() + "/" + chart.get_bmp_file_name();
     	mail_attach.content_type = "image/png";
     	Log.d (Tag, mail_attach.file);
