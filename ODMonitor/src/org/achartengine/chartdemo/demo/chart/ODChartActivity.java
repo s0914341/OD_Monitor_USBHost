@@ -92,7 +92,6 @@ public class ODChartActivity extends Activity {
   private static final long DAY = 24*HOUR;
   private static final int HOURS = 24;
   
-  public SyncData sync_chart_handler;
   public SyncData sync_chart_notify;
   private boolean chart_thread_run = false;
   public TextView debug_view;
@@ -211,7 +210,6 @@ public class ODChartActivity extends Activity {
     
       init_od_series();
       chart_thread_run = true;
-      sync_chart_handler = new SyncData();
       new Thread(new chart_thread(chart_handler)).start(); 
   }
   
@@ -236,6 +234,7 @@ public class ODChartActivity extends Activity {
       mRenderer.setPointSize(8);
   }
   
+  /* chart view to bmp file without display */
   public void chart_to_bmp(Context context, int left, int top, int right, int bottom) {
 	  initial_renderer();
 	  init_od_series();
@@ -663,7 +662,6 @@ public class ODChartActivity extends Activity {
             }
             });
             layout.addView(mChartView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
-            boolean enabled = mDataset.getSeriesCount() > 0;
         } else {
             mChartView.repaint();
         }

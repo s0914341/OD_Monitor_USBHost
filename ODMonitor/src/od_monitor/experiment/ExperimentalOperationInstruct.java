@@ -428,9 +428,6 @@ public class ExperimentalOperationInstruct {
 	
 	public int read_sensor_instruct(ExperimentScriptData current_instruct_data) {
 		int ret = -1;
-		char[] readDataChar = new char[128];
-		int receive_length = 0;
-		int try_count = sensor_command_retry_count;
 		
 		if (ODMonitorApplication.no_devices) {
 			boolean[] is_online = {true, true, true, true};
